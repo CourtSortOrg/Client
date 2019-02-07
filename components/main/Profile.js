@@ -9,7 +9,7 @@ export default class Profile extends React.Component {
       headerLeft: (
         <Button
           title="Profile"
-          onPress={() => navigation.goBack()}gg=G
+          onPress={() => navigation.goBack()}
         />
       ),
       headerRight: (
