@@ -1,6 +1,7 @@
 import React from "react";
 import {
     Alert,
+    Button,
     Image,
     Keyboard,
     StatusBar,
@@ -12,7 +13,8 @@ import {
     View
 } from "react-native";
 
-import {Button} from 'react-native-elements';
+import {Google} from "expo";
+
 
 function renderIf(condition, content) {
     if (condition) {
@@ -23,13 +25,41 @@ function renderIf(condition, content) {
 }
 
 export default class SignIn extends React.Component {
-    signInUserNative = () => {
+    signInNative = () => {
         Alert.alert('You tapped the button!');
         Keyboard.dismiss()
     }
     createAccount = () => {
         Alert.alert('Should now navigate to creating account screen');
     }
+
+    signInGoogleAsync = async () => {
+    try {
+        const result = await Google.logInAsync({
+            androidClientId: "41918470748-ci8cpn0tpcmt26hjtamo4qic8eo1olpf.apps.googleusercontent.com",
+            iosClientId: "41918470748-lgi689vhab9g6hnctjfcivfrc1hf329j.apps.googleusercontent.com",
+            scopes: ['profile', 'email'],
+        });
+
+        console.log(result);
+
+        if (result.type === 'success') {
+            console.log(result.email);
+            return result.accessToken;
+        } else {
+            return {
+                cancelled: true
+            };
+        }
+
+        //TODO: Do something with the token that is returned
+
+    } catch (e) {
+        return {
+            error: true
+        };
+    }
+}
 
     render() {
         return (
@@ -82,33 +112,24 @@ export default class SignIn extends React.Component {
                         underlineColorAndroid="transparent"></TextInput>
 
                     {/* The Button to sign in the user */}
-                    {renderIf(Platform.os === "ios", < Button buttonStyle = {{
-                        color: "#e9650d"
-                    }}
+                   < Button 
                     onPress = {
-                        () => {
-                            this.signInUserNative();
-                        }
+                            this.signInNative
                     }
-                    title = "Sign In" type = "clear" > </Button>
-                    )}
-                     {renderIf(Platform.os === "Android", < Button buttonStyle = {{
-                        backgroundColor: "#e9650d"
-                    }}
-                    onPress = {
-                        () => {
-                            this.signInUserNative();
-                        }
-                    }
-                    title = "Sign In" type = "clear" > </Button>
-                    )}
-
+                    title = "Sign In"> </Button>
+                  
                     {/* A visual block to separate native sign in and third part sign in */}
                     <View style={styles.dividerContainer}>
                         <View style={styles.divider}/>
                         <Text style={styles.dividerText}>OR</Text>
                         <View style={styles.divider}/>
                     </View>
+
+                    < Button 
+                    onPress = {
+                            this.signInGoogleAsync
+                    }
+                    title = "Sign In With Google" > </Button>
 
                     {/* The linked Text that navigates to the CreateAccount screen */}
                     <TouchableHighlight
