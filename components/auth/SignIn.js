@@ -1,63 +1,116 @@
 import React from "react";
 import {
     Alert,
-    Button,
     Image,
+    Keyboard,
     StatusBar,
     StyleSheet,
     Text,
     TextInput,
     TouchableHighlight,
+    TouchableOpacity,
     View
 } from "react-native";
+
+import {Button} from 'react-native-elements';
+
+function renderIf(condition, content) {
+    if (condition) {
+        return content;
+    } else {
+        return null;
+    }
+}
 
 export default class SignIn extends React.Component {
     signInUserNative = () => {
         Alert.alert('You tapped the button!');
+        Keyboard.dismiss()
     }
     createAccount = () => {
         Alert.alert('Should now navigate to creating account screen');
     }
+
     render() {
         return (
-            <View style={styles.container}>
+            <TouchableOpacity
+                style={styles.container}
+                activeOpacity={1}
+                onPress={Keyboard.dismiss}>
+                {/* Wrapped in a TouchableOpacity so the keyboard can dismiss upon clicking outside of the TextInputs */}
 
-                <StatusBar hidden/>
+                {/* Hide the StatusBar for the SignIn Screen */}
+                <StatusBar hidden></StatusBar>
 
+                {/* The header for the SignIn Screen (purely visual) */}
                 <View style={styles.header}>
-                    <Image source={require('/assets/logo.png')} style={styles.logo}/>
+                    <Image style={styles.logo} source={require('/assets/logo.png')}/>
                     <Text style={styles.greeting}>Sign in and get started!</Text>
                 </View>
 
+                {/* The body of the SignIn Screen (user interactable) */}
                 <View style={styles.body}>
+
+                    {/* The TextInput for the email, on pressing the return key it focuses to the TextInput for the password */}
                     <TextInput
                         style={styles.input}
-                        underlineColorAndroid="transparent"
+                        autoCapitalize="none"
+                        blurOnSubmit={false}
+                        onSubmitEditing={() => {
+                        this
+                            .password
+                            .focus();
+                    }}
                         placeholder="Email"
                         placeholderTextColor="#999"
-                        autoCapitalize="none"/>
+                        returnKeyType={"next"}
+                        underlineColorAndroid="transparent"></TextInput>
 
+                    {/* The TextInput for the password, on pressing the return key it attempts to sign in the user */}
                     <TextInput
                         style={styles.input}
-                        underlineColorAndroid="transparent"
-                        placeholder="Password"
-                        placeholderTextColor="#999"
                         autoCapitalize="none"
-                        secureTextEntry={true}/>
-
-                    <Button
-                        onPress={() => {
+                        onSubmitEditing={() => {
                         this.signInUserNative();
                     }}
-                        title="Sign In"
-                        color="#e9650d"/>
+                        placeholder="Password"
+                        placeholderTextColor="#999"
+                        ref={(input) => {
+                        this.password = input;
+                    }}
+                        secureTextEntry={true}
+                        underlineColorAndroid="transparent"></TextInput>
 
+                    {/* The Button to sign in the user */}
+                    {renderIf(Platform.os === "ios", < Button buttonStyle = {{
+                        color: "#e9650d"
+                    }}
+                    onPress = {
+                        () => {
+                            this.signInUserNative();
+                        }
+                    }
+                    title = "Sign In" type = "clear" > </Button>
+                    )}
+                     {renderIf(Platform.os === "Android", < Button buttonStyle = {{
+                        backgroundColor: "#e9650d"
+                    }}
+                    onPress = {
+                        () => {
+                            this.signInUserNative();
+                        }
+                    }
+                    title = "Sign In" type = "clear" > </Button>
+                    )}
+
+                    {/* A visual block to separate native sign in and third part sign in */}
                     <View style={styles.dividerContainer}>
                         <View style={styles.divider}/>
                         <Text style={styles.dividerText}>OR</Text>
                         <View style={styles.divider}/>
                     </View>
 
+                    {/* The linked Text that navigates to the CreateAccount screen */}
                     <TouchableHighlight
                         onPress={this.createAccount}
                         activeOpacity={.65}
@@ -69,7 +122,7 @@ export default class SignIn extends React.Component {
                         }}>Create an Account</Text>
                     </TouchableHighlight>
                 </View>
-            </View>
+            </TouchableOpacity>
         // Add Component for Google Sign-in Add Componenet for Facebook Sign-in
         )
     }
