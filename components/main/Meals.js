@@ -9,15 +9,31 @@ export default class Meals extends React.Component {
       headerTitle: "Meals",
       headerLeft: (
         <Button
-        title="Profile"
-        onPress={() => navigation.push("Profile")}
+          title="Profile"
+          onPress={() => navigation.navigate("Profile")}
         />
       ),
       headerRight: (
+        <View style={{
+          width:100,
+          flex:1,
+          flexDirection: "row"
+        }}>
         <Button
-        title="Notifications"
-        onPress={() => navigation.push("Notifications")}
+        style={{
+          width: 50
+        }}
+        icon={{name: 'map'}}
+        onPress={() => navigation.navigate("Map")}
         />
+        <Button
+        style={{
+          width: 50
+        }}
+        icon={{name: 'notifications'}}
+        onPress={() => navigation.navigate("Notifications")}
+        />
+        </View>
       )
     }
   }

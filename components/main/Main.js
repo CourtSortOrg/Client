@@ -6,7 +6,7 @@ import DiningCourt from "./DiningCourt";
 import Friend from "./Friend";
 import Group from "./Group";
 import Home from "./Home";
-//import Map from "./Map";
+import Map from "./Map";
 import MealItem from "./MealItem";
 import Meals from "./Meals";
 import Message from "./Message";
@@ -19,6 +19,7 @@ import Profile from "./Profile";
 * A navigator exists for everything.
 */
 
+/*
 const SocialStack = createStackNavigator(
   {
     Friend: {
@@ -50,7 +51,15 @@ const DiningDetailsStack = createStackNavigator(
       screen: DiningCourt
     },
   },
+  {
+    mode: "modal",
+    cardStyle: {
+      backgroundColor:"transparent",
+      opacity:0.99,
+    },
+  }
 );
+*/
 
 const HomeStack = createStackNavigator(
   {
@@ -60,15 +69,21 @@ const HomeStack = createStackNavigator(
     Profile: {
       screen: Profile
     },
-    Social: {
-      screen: SocialStack
+    Friend: {
+      screen: Friend
+    },
+    Group: {
+      screen: Group
     },
     Notifications: {
       screen: Notifications
     },
-    DiningDetails: {
-      screen: DiningDetailsStack
-    }
+    MealItem: {
+      screen: MealItem
+    },
+    DiningCourt: {
+      screen: DiningCourt
+    },
   },
   {
     headerMode: "screen",
@@ -84,15 +99,27 @@ const MealsStack = createStackNavigator(
     Profile: {
       screen: Profile
     },
-    Social: {
-      screen: SocialStack
+    Friend: {
+      screen: Friend
+    },
+    Group: {
+      screen: Group
     },
     Notifications: {
       screen: Notifications
     },
-    DiningDetails: {
-      screen: DiningDetailsStack
+    MealItem: {
+      screen: MealItem
     },
+    DiningCourt: {
+      screen: DiningCourt
+    },
+    Map: {
+      screen: Map
+    }
+    /*DiningDetails: {
+      screen: DiningDetailsStack
+    },*/
   },
 );
 
@@ -104,15 +131,21 @@ const MessagesStack = createStackNavigator(
     Profile: {
       screen: Profile
     },
-    Social: {
-      screen: SocialStack
+    Friend: {
+      screen: Friend
     },
+    Group: {
+      screen: Group
+    },
+    /*Social: {
+      screen: SocialStack
+    },*/
     Notifications: {
       screen: Notifications
     },
     Message: {
-      screen: MessageStack
-    }
+      screen: Message//Stack
+    },
   },
 );
 
@@ -128,10 +161,8 @@ const Tab = createBottomTabNavigator({
   }
 },
 {
-  defaultNavigationOptions: {
-    gesturesEnabled: false,
-  },
-  backBehavior: "initalRoute"
+  backBehavior: "initalRoute",
+  lazy: false
 });
 
 const TabContainer = createAppContainer(Tab);

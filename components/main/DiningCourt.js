@@ -9,10 +9,6 @@ export default class DiningCourt extends React.Component {
       <View>
         <Text>DiningCourt</Text>
         <Button
-          title="Go Back"
-          onPress={() => this.props.navigation.goBack()}
-        />
-        <Button
           title="Go to meal item"
           onPress={() => this.props.navigation.push("MealItem")}
         />
