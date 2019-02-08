@@ -1,4 +1,5 @@
 const functions = require('firebase-functions');
+var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -6,6 +7,11 @@ const functions = require('firebase-functions');
 // exports.helloWorld = functions.https.onRequest((request, response) => {
 //  response.send("Hello from Firebase!");
 // });
+
+//this function is for testing
+exports.test = functions.https.onRequest((request, response) => {
+  response.send("Heyo!");
+});
 
 //This is Carlo's first attempt at writing a function to get
 //menu info from Purdue Dining API
