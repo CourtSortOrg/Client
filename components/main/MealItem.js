@@ -23,15 +23,15 @@ export default class MealItem extends React.Component {
         this.props.Nutrition.map(fact => <NutritionFact {...fact})
       }
       </View>
-      
+
       // Just a list.
       <View>
-      <Text>{this.props.Incredients}</Text>
+        <Text>{this.props.Ingredients}</Text>
       </View>
-      <Button
-      title="Go to dining court"
-      onPress={() => this.props.navigation.push("DiningCourt")}
-      />
+        <Button
+          title="Go to dining court"
+          onPress={() => this.props.navigation.push("DiningCourt")}
+        />
       </View>
     )
   }
