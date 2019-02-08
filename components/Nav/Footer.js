@@ -8,7 +8,12 @@ export default class Footer extends React.Component {
       <View style={{flex: 0.1, flexDirection: "row"}}>
       <View style={{flex: 1}}>
       <Button
-      icon={{name: 'home'}}
+      icon=
+      {
+        this.props.active == "Home" ?
+        {name: 'home'} :
+        {name: 'home-outline'}
+      }
       onPress={() => this.props.navigation.navigate("Home")}
       />
       </View>
@@ -20,8 +25,12 @@ export default class Footer extends React.Component {
       </View>
       <View style={{flex: 1}}>
       <Button
-      icon={{name: 'chatBubble'}}
-      onPress={() => this.props.navigation.navigate("Notifications")}
+      icon={
+        this.props.active == "Messages" ?
+        {name: 'chat-bubble'} :
+        {name: 'chat-bubble-outline'}
+      }
+      onPress={() => this.props.navigation.navigate("Messages")}
       />
       </View>
       </View>

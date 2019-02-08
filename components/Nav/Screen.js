@@ -16,14 +16,16 @@ export default class Screen extends React.Component {
       >
       <Header
         navigation={{ ...this.props.navigation}}
-        title="Home"
+        title={this.props.title}
         backButton={this.props.backButton}
+        active={this.props.title}
       />
       <Body>
       {this.props.children}
       </Body>
       <Footer
-      navigation={{ ...this.props.navigation}}
+        navigation={{ ...this.props.navigation}}
+        active={this.props.title}
       />
       </View>
     )
