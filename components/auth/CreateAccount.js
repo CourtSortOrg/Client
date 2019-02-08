@@ -10,10 +10,24 @@ import {
     TextInput,
     TouchableHighlight,
     TouchableOpacity,
+    Switch,
     View
 } from "react-native";
 
 export default class CreateAccount extends React.Component {
+    state = {
+        name: '',
+        email: '',
+        password: '',
+        isVegan: false;
+        isVegetarian: false,
+    }
+
+    CreateAccount = () => {
+        Alert.alert('name' + name + 'email: ' + email + ' password: ' + password)
+        Keyboard.dismiss()
+    }
+
 
     render() {
         return (
@@ -48,7 +62,7 @@ export default class CreateAccount extends React.Component {
                         placeholder="Name"
                         placeholderTextColor="#999"
 
-                        ref={(input) => {this.name = input;}}
+                        onChangeText={(text) => this.setState({name: text})}
                         returnKeyType={"next"}
                         underlineColorAndroid="transparent">
                     </TextInput>
@@ -66,7 +80,7 @@ export default class CreateAccount extends React.Component {
                         placeholder="Email"
                         placeholderTextColor="#999"
 
-                        ref={(input) => {this.email = input;}}
+                        onChangeText={(text) => this.setState({email: text})}
                         returnKeyType={"next"}
                         underlineColorAndroid="transparent">
                     </TextInput>
@@ -83,18 +97,26 @@ export default class CreateAccount extends React.Component {
                         placeholder="Password"
                         placeholderTextColor="#999"
 
-                        ref={(input) => {this.password = input;}}
+                        onChangeText={(text) => this.setState({password: text})}
                         secureTextEntry={true}
                         underlineColorAndroid="transparent">
                     </TextInput>
 
 
                     {/* Ask the user if they are vegan and or vegetarian */}
+                    <Text>Are you vegan?</Text>
+                    <Switch
+                        onValueChange = { (value) => this.setState({ isVegan: value })}
+                        value = {this.state.isVegan}
+                    />
 
+                    <Text>Are you vegetarian?</Text>
+                    <Switch
+                        onValueChange = { (value) => this.setState({ isVegetarian: value })}
+                        value = {this.state.isVegetarian}
+                    />
                     {/* Ask the user about any dietary restrictions */}
                     {/* Allergens: Eggs, Fish, Gluten, Milk, Peanuts, Shellfish, Soy, Tree Nuts, Wheat*/}
-
-
 
                     {/* The Button to create the account */}
                     < Button color="#e9650d" onPress={this.createAccount} title="Create Account"></Button>
@@ -140,8 +162,15 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         paddingHorizontal: 15
     },
-    .invalid: {
-        borderColor: "#00FF00"
-        borderRadius: 8;
+    invalid_input: {
+        marginBottom: 10,
+        padding: 5,
+        height: 40,
+        width: '75%',
+        borderColor: "#00FF00",
+        backgroundColor: '#eee',
+        borderWidth: 2,
+        borderRadius: 8,
+        paddingHorizontal: 15
     }
 })
