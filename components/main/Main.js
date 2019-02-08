@@ -1,6 +1,6 @@
 import React from "react";
 import {View, Text} from "react-native";
-import { createStackNavigator, createBottomTabNavigator, createAppContainer } from 'react-navigation';
+import { createStackNavigator, createBottomTabNavigator, createSwitchNavigator, createAppContainer } from 'react-navigation';
 
 import DiningCourt from "./DiningCourt";
 import Friend from "./Friend";
@@ -61,6 +61,7 @@ const DiningDetailsStack = createStackNavigator(
 );
 */
 
+/*
 const HomeStack = createStackNavigator(
   {
     Home: {
@@ -117,12 +118,11 @@ const MealsStack = createStackNavigator(
     Map: {
       screen: Map
     }
-    /*DiningDetails: {
-      screen: DiningDetailsStack
-    },*/
   },
 );
+*/
 
+/*
 const MessagesStack = createStackNavigator(
   {
     Messages: {
@@ -137,9 +137,6 @@ const MessagesStack = createStackNavigator(
     Group: {
       screen: Group
     },
-    /*Social: {
-      screen: SocialStack
-    },*/
     Notifications: {
       screen: Notifications
     },
@@ -148,7 +145,9 @@ const MessagesStack = createStackNavigator(
     },
   },
 );
+*/
 
+/*
 const Tab = createBottomTabNavigator({
   Home: {
     screen: HomeStack
@@ -164,7 +163,56 @@ const Tab = createBottomTabNavigator({
   backBehavior: "initalRoute",
   lazy: false
 });
+*/
 
-const TabContainer = createAppContainer(Tab);
+const Switch = createStackNavigator(
+  {
+    Messages: {
+      screen: Messages
+    },
+    Profile: {
+      screen: Profile
+    },
+    Friend: {
+      screen: Friend
+    },
+    Group: {
+      screen: Group
+    },
+    Notifications: {
+      screen: Notifications
+    },
+    Message: {
+      screen: Message
+    },
+    Meals: {
+      screen: Meals
+    },
+    MealItem: {
+      screen: MealItem
+    },
+    DiningCourt: {
+      screen: DiningCourt
+    },
+    Map: {
+      screen: Map
+    },
+    Home: {
+      screen: Home
+    },
+  },
+  {
+    initialRouteName: "Home",
+    headerMode: "none",
+    transitionConfig: () => ({
+      transitionSpec: {
+        duration: 0,
+      }}),
+  }
+);
 
-export default TabContainer;
+//const TabContainer = createAppContainer(Tab);
+const SwitchContainer = createAppContainer(Switch);
+
+//export default TabContainer;
+export default SwitchContainer;
