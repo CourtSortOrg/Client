@@ -13,8 +13,6 @@ import {
     View
 } from "react-native";
 
-import {Google} from "expo";
-
 export default class CreateAccount extends React.Component {
 
     render() {
@@ -25,19 +23,37 @@ export default class CreateAccount extends React.Component {
                 onPress={Keyboard.dismiss}>
                 {/* Wrapped in a TouchableOpacity so the keyboard can dismiss upon clicking outside of the TextInputs */}
 
-                {/* Hide the StatusBar for the SignIn Screen */}
+                {/* Hide the StatusBar for the CreateAccount Screen */}
                 <StatusBar hidden></StatusBar>
 
-                {/* The header for the SignIn Screen (purely visual) */}
+                {/* The header for the CreateAccount Screen (purely visual) */}
                 <View style={styles.header}>
                     <Image style={styles.logo} source={require('/assets/logo.png')}/>
-                    <Text style={styles.greeting}>Sign in and get started!</Text>
+                    <Text style={styles.greeting}>Create a new account!</Text>
                 </View>
 
-                {/* The body of the SignIn Screen (user interactable) */}
+                {/* The body of the CreateAcoount Screen (user interactable) */}
                 <View style={styles.body}>
 
-                    {/* The TextInput for the email, on pressing the return key it focuses to the TextInput for the password */}
+                    {/* TextInput asking for the user's name */}
+                    <TextInput
+                        style={styles.input}
+                        autoCapitalize="none"
+                        blurOnSubmit={false}
+                        onSubmitEditing={() => {
+                        this
+                            .email
+                            .focus();
+                        }}
+                        placeholder="Name"
+                        placeholderTextColor="#999"
+
+                        ref={(input) => {this.name = input;}}
+                        returnKeyType={"next"}
+                        underlineColorAndroid="transparent">
+                    </TextInput>
+
+                    {/* TextInput for the email */}
                     <TextInput
                         style={styles.input}
                         autoCapitalize="none"
@@ -46,31 +62,42 @@ export default class CreateAccount extends React.Component {
                         this
                             .password
                             .focus();
-                    }}
+                        }}
                         placeholder="Email"
                         placeholderTextColor="#999"
-                        returnKeyType={"next"}
-                        underlineColorAndroid="transparent"></TextInput>
 
-                    {/* The TextInput for the password, on pressing the return key it attempts to sign in the user */}
-                    <TextInput
+                        ref={(input) => {this.email = input;}}
+                        returnKeyType={"next"}
+                        underlineColorAndroid="transparent">
+                    </TextInput>
+
+                    {/* TextInput for the password */}
+                    <TextInput 
                         style={styles.input}
                         autoCapitalize="none"
+                        blurOnSubmit={false}
                         onSubmitEditing={() => {
-                            this.signInUserNative();
+                            .allergens
+                            .focus();
                         }}
-
                         placeholder="Password"
                         placeholderTextColor="#999"
-                        ref={(input) => {
-                            this.password = input;
-                        }}
 
+                        ref={(input) => {this.password = input;}}
                         secureTextEntry={true}
-                        underlineColorAndroid="transparent"></TextInput>
+                        underlineColorAndroid="transparent">
+                    </TextInput>
 
-                    {/* The Button to sign in the user */}
-                    < Button color="#e9650d" onPress={this.createAccount} title="CreateAccount"></Button>
+
+                    {/* Ask the user if they are vegan and or vegetarian */}
+
+                    {/* Ask the user about any dietary restrictions */}
+                    {/* Allergens: Eggs, Fish, Gluten, Milk, Peanuts, Shellfish, Soy, Tree Nuts, Wheat*/}
+
+
+
+                    {/* The Button to create the account */}
+                    < Button color="#e9650d" onPress={this.createAccount} title="Create Account"></Button>
                 </View>
             </TouchableOpacity>
         )
@@ -113,28 +140,8 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         paddingHorizontal: 15
     },
-    dividerContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 30
-    },
-    divider: {
-        borderBottomColor: '#BBB',
-        borderTopColor: '#BBB',
-        borderBottomWidth: 1,
-        borderTopWidth: 1,
-        height: 2,
-        width: '40%'
-    },
-    dividerText: {
-        marginHorizontal: 15,
-        color: '#BBB'
-    },
-    authentication: {
-        flex: 1,
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'space-evenly'
+    .invalid: {
+        borderColor: "#00FF00"
+        borderRadius: 8;
     }
 })
