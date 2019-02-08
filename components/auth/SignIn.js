@@ -20,8 +20,16 @@ export default class SignIn extends React.Component {
         Alert.alert('You tapped the button!');
         Keyboard.dismiss()
     }
-    createAccount = () => {
-        Alert.alert('Should now navigate to creating account screen');
+    createAccount = async() => {
+        //Alert.alert('Should now navigate to creating account screen');
+        try {
+            let response = await fetch(
+              'https://us-central1-courtsort-e1100.cloudfunctions.net/test',
+            );
+            Alert.alert(response._bodyText);
+          } catch (error) {
+            console.error(error);
+          }
     }
 
     signInGoogleAsync = async() => {
@@ -92,7 +100,7 @@ export default class SignIn extends React.Component {
                         style={styles.input}
                         autoCapitalize="none"
                         onSubmitEditing={() => {
-                        this.signInUserNative();
+                        this.signInNative();
                     }}
                         placeholder="Password"
                         placeholderTextColor="#999"
