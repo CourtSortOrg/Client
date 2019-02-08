@@ -15,15 +15,6 @@ import {
 
 import {Google} from "expo";
 
-
-function renderIf(condition, content) {
-    if (condition) {
-        return content;
-    } else {
-        return null;
-    }
-}
-
 export default class SignIn extends React.Component {
     signInNative = () => {
         Alert.alert('You tapped the button!');
@@ -33,33 +24,33 @@ export default class SignIn extends React.Component {
         Alert.alert('Should now navigate to creating account screen');
     }
 
-    signInGoogleAsync = async () => {
-    try {
-        const result = await Google.logInAsync({
-            androidClientId: "41918470748-ci8cpn0tpcmt26hjtamo4qic8eo1olpf.apps.googleusercontent.com",
-            iosClientId: "41918470748-lgi689vhab9g6hnctjfcivfrc1hf329j.apps.googleusercontent.com",
-            scopes: ['profile', 'email'],
-        });
+    signInGoogleAsync = async() => {
+        try {
+            const result = await Google.logInAsync({
+                androidClientId: "41918470748-ci8cpn0tpcmt26hjtamo4qic8eo1olpf.apps.googleusercontent.com",
+                iosClientId: "41918470748-lgi689vhab9g6hnctjfcivfrc1hf329j.apps.googleusercontent.com",
+                scopes: ['profile', 'email']
+            });
 
-        console.log(result);
+            console.log(result);
 
-        if (result.type === 'success') {
-            console.log(result.email);
-            return result.accessToken;
-        } else {
-            return {
-                cancelled: true
-            };
+            if (result.type === 'success') {
+                console.log(result.email);
+                return result.accessToken;
+            } else {
+                return {cancelled: true};
+            }
+
+            //TODO: Do something with the token that is returned
+
+        } catch (e) {
+            return {error: true};
         }
-
-        //TODO: Do something with the token that is returned
-
-    } catch (e) {
-        return {
-            error: true
-        };
     }
-}
+
+    signInFacebookAsync = async() => {
+
+    }
 
     render() {
         return (
@@ -112,12 +103,8 @@ export default class SignIn extends React.Component {
                         underlineColorAndroid="transparent"></TextInput>
 
                     {/* The Button to sign in the user */}
-                   < Button 
-                    onPress = {
-                            this.signInNative
-                    }
-                    title = "Sign In"> </Button>
-                  
+                    < Button color="#e9650d" onPress={this.signInNative} title="Sign In"></Button>
+
                     {/* A visual block to separate native sign in and third part sign in */}
                     <View style={styles.dividerContainer}>
                         <View style={styles.divider}/>
@@ -125,26 +112,28 @@ export default class SignIn extends React.Component {
                         <View style={styles.divider}/>
                     </View>
 
-                    < Button 
-                    onPress = {
-                            this.signInGoogleAsync
-                    }
-                    title = "Sign In With Google" > </Button>
+                    <View style={styles.authentication}>
+                        {/* TODO: Set up Facebook authentication */}
+                        {/* TODO: Style Google and Facebook buttons */}
 
-                    {/* The linked Text that navigates to the CreateAccount screen */}
-                    <TouchableHighlight
-                        onPress={this.createAccount}
-                        activeOpacity={.65}
-                        underlayColor="#FFF">
-                        <Text
-                            style={{
-                            textDecorationLine: "underline",
-                            color: "#AAA"
-                        }}>Create an Account</Text>
-                    </TouchableHighlight>
+                        <Button onPress={this.signInGoogleAsync} title="Sign In With Google"></Button>
+                        <Button onPress={this.signInFacebookAsync} title="Sign In With Facebook"></Button>
+
+                        {/* The linked Text that navigates to the CreateAccount screen */}
+                        <TouchableHighlight
+                            onPress={this.createAccount}
+                            activeOpacity={.65}
+                            underlayColor="#FFF">
+                            <Text
+                                style={{
+                                textDecorationLine: "underline",
+                                color: "#AAA"
+                            }}>Create an Account</Text>
+                        </TouchableHighlight>
+
+                    </View>
                 </View>
             </TouchableOpacity>
-        // Add Component for Google Sign-in Add Componenet for Facebook Sign-in
         )
     }
 }
@@ -202,5 +191,11 @@ const styles = StyleSheet.create({
     dividerText: {
         marginHorizontal: 15,
         color: '#BBB'
+    },
+    authentication: {
+        flex: 1,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-evenly'
     }
 })

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Button, StyleSheet, Text, View, StyleSheet } from 'react-native';
+import { Alert, Button, StyleSheet, Text, View } from 'react-native';
 import { createSwitchNavigator, createAppContainer } from "react-navigation"
 
 import Main from "./components/main/Main";
