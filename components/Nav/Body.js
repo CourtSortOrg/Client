@@ -11,8 +11,8 @@ export default class Body extends React.Component {
           flexGrow: 1
         }}
       >
-      {this.props.children}
+        {this.props.children}
       </View>
-    )
+    );
   }
 }

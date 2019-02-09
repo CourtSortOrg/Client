@@ -11,26 +11,24 @@ export default class Screen extends React.Component {
       <View
         style={{
           backgroundColor: "red",
-          flex: 1,
+          flex: 1
         }}
       >
-      <Header
-        styles={styles}
-        navigation={{ ...this.props.navigation}}
-        title={this.props.title}
-        backButton={this.props.backButton}
-        active={this.props.title}
-      />
-      <Body>
-      {this.props.children}
-      </Body>
-      <Footer
-        styles={styles}
-        navigation={{ ...this.props.navigation}}
-        active={this.props.title}
-      />
+        <Header
+          styles={styles}
+          navigation={{ ...this.props.navigation }}
+          title={this.props.title}
+          backButton={this.props.backButton}
+          active={this.props.title}
+        />
+        <Body>{this.props.children}</Body>
+        <Footer
+          styles={styles}
+          navigation={{ ...this.props.navigation }}
+          active={this.props.title}
+        />
       </View>
-    )
+    );
   }
 }
 
