@@ -7,7 +7,7 @@ export default class Header extends React.Component {
     return (
       <View style={{flex: 0.15, flexDirection: "column", justifyContent: "flex-end", backgroundColor: "#e86515"}}>
         <View style={{flex: 0.33}}/>
-        <View style={{flexDirection: "row", flex: 0.67, alignItems: "space"}}>
+        <View style={{flexDirection: "row", flex: 0.67, alignItems: "space-around"}}>
           <View style={{flex: 1, flexDirection: "row"}}>
           <Avatar
             small

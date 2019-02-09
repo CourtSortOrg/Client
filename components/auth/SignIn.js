@@ -44,7 +44,7 @@ export default class SignIn extends React.Component {
 
                 {/* The header for the SignIn Screen (purely visual) */}
                 <View style={styles.header}>
-                    <Image style={styles.logo} source={require('/assets/logo.png')}/>
+                    <Image style={styles.logo} source={require('../../assets/logo.png')}/>
                     <Text style={styles.greeting}>Sign in and get started!</Text>
                 </View>
 
