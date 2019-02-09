@@ -24,7 +24,10 @@ const firebaseConfig = {
     storageBucket: "courtsort-e1100.appspot.com"
   };
 
-firebase.initializeApp(firebaseConfig);
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
 
 
 export default class SignIn extends React.Component {
@@ -250,7 +253,7 @@ export default class SignIn extends React.Component {
             </TouchableOpacity>
         )
     }
-};
+}
 
 const styles = StyleSheet.create({
     container: {
