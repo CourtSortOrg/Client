@@ -5,7 +5,7 @@ FUNCTION: get_menu_url()
 ARGS: dining_court, day, month, year
 RETURN: the url to the menu of that dining court at that specific day
 */
-function get_menu_url(dining_court, day, month, year) {
+export function get_menu_url(dining_court, day, month, year) {
   var url = 'https://api.hfs.purdue.edu/menus/v2/locations/' + dining_court + '/' + year + '-' + month + '-' + day;
   return url;
 }
@@ -15,7 +15,7 @@ FUNCTION: get_menus_url()
 ARGS: dining_court, day, month, year, offset
 RETURN: an array of urls to the menus of the dining court at that specific day plus offset - 1 additional days
 */
-function get_menus_url(dining_court, day, month, year, offset) {
+export function get_menus_url(dining_court, day, month, year, offset) {
   var urls = new Array(offset);
   var currDay = day;
   var currMonth = month;

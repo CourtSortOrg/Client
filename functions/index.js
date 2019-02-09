@@ -2,6 +2,7 @@ const functions = require('firebase-functions');
 //var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const fetch = require("node-fetch");
 const req = require('request');
+const algorithms = require('./algorithms.js')
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
