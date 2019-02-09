@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
     Alert,
     Button,
@@ -11,32 +11,35 @@ import {
     TouchableHighlight,
     TouchableOpacity,
     View
-} from "react-native";
+} from 'react-native';
 
-import {Google} from "expo";
+import {Google} from 'expo';
+import {FontAwesome} from '@expo/vector-icons';
 
 export default class SignIn extends React.Component {
     signInNative = () => {
-        Alert.alert('You tapped the button!');
+        Alert.alert('Signing User In', 'Navigating to main page');
         Keyboard.dismiss()
     }
     createAccount = async() => {
         //Alert.alert('Should now navigate to creating account screen');
         try {
-            let response = await fetch(
-              'https://us-central1-courtsort-e1100.cloudfunctions.net/test',
-            );
-            Alert.alert(response._bodyText);
-          } catch (error) {
+            let response = await fetch('https://us-central1-courtsort-e1100.cloudfunctions.net/test',);
+            Alert.alert('Firebase Test Response', response._bodyText);
+        } catch (error) {
             console.error(error);
-          }
+        }
+    }
+
+    forgotPassword = () => {
+        Alert.alert('Whoops forgot password', 'Navigating to reset password')
     }
 
     signInGoogleAsync = async() => {
         try {
             const result = await Google.logInAsync({
-                androidClientId: "41918470748-ci8cpn0tpcmt26hjtamo4qic8eo1olpf.apps.googleusercontent.com",
-                iosClientId: "41918470748-lgi689vhab9g6hnctjfcivfrc1hf329j.apps.googleusercontent.com",
+                androidClientId: '41918470748-ci8cpn0tpcmt26hjtamo4qic8eo1olpf.apps.googleusercontent.com',
+                iosClientId: '41918470748-lgi689vhab9g6hnctjfcivfrc1hf329j.apps.googleusercontent.com',
                 scopes: ['profile', 'email']
             });
 
@@ -57,7 +60,8 @@ export default class SignIn extends React.Component {
     }
 
     signInFacebookAsync = async() => {
-
+        // APPID 279514589383224 Follow docs here:
+        // https://docs.expo.io/versions/v32.0.0/sdk/facebook/
     }
 
     render() {
@@ -83,35 +87,35 @@ export default class SignIn extends React.Component {
                     {/* The TextInput for the email, on pressing the return key it focuses to the TextInput for the password */}
                     <TextInput
                         style={styles.input}
-                        autoCapitalize="none"
+                        autoCapitalize='none'
                         blurOnSubmit={false}
                         onSubmitEditing={() => {
                         this
                             .password
                             .focus();
                     }}
-                        placeholder="Email"
-                        placeholderTextColor="#999"
-                        returnKeyType={"next"}
-                        underlineColorAndroid="transparent"></TextInput>
+                        placeholder='Email'
+                        placeholderTextColor='#999'
+                        returnKeyType={'next'}
+                        underlineColorAndroid='transparent'></TextInput>
 
                     {/* The TextInput for the password, on pressing the return key it attempts to sign in the user */}
                     <TextInput
                         style={styles.input}
-                        autoCapitalize="none"
+                        autoCapitalize='none'
                         onSubmitEditing={() => {
                         this.signInNative();
                     }}
-                        placeholder="Password"
-                        placeholderTextColor="#999"
+                        placeholder='Password'
+                        placeholderTextColor='#999'
                         ref={(input) => {
                         this.password = input;
                     }}
                         secureTextEntry={true}
-                        underlineColorAndroid="transparent"></TextInput>
+                        underlineColorAndroid='transparent'></TextInput>
 
                     {/* The Button to sign in the user */}
-                    < Button color="#e9650d" onPress={this.signInNative} title="Sign In"></Button>
+                    < Button color='#e9650d' onPress={this.signInNative} title='Sign In'></Button>
 
                     {/* A visual block to separate native sign in and third part sign in */}
                     <View style={styles.dividerContainer}>
@@ -120,24 +124,69 @@ export default class SignIn extends React.Component {
                         <View style={styles.divider}/>
                     </View>
 
+                    {/* TODO: Set up Facebook authentication */}
                     <View style={styles.authentication}>
-                        {/* TODO: Set up Facebook authentication */}
-                        {/* TODO: Style Google and Facebook buttons */}
 
-                        <Button onPress={this.signInGoogleAsync} title="Sign In With Google"></Button>
-                        <Button onPress={this.signInFacebookAsync} title="Sign In With Facebook"></Button>
+                        {/* The branded Button for Google Authentification */}
+                        <TouchableHighlight
+                            onPress={this.signInGoogleAsync}
+                            style={{
+                            borderRadius: 5
+                        }}>
+                            <View
+                                style={[
+                                styles.brandedButton, {
+                                    backgroundColor: '#DB4437'
+                                }
+                            ]}>
+                                <FontAwesome name='google' size={24} color='white'/>
+                                <Text style={styles.brandedButtonText}>
+                                    Sign In With Google
+                                </Text>
+                            </View>
+                        </TouchableHighlight>
+
+                        {/* The branded Button for Facebook Authentification */}
+                        <TouchableHighlight
+                            onPress={this.signInFacebookAsync}
+                            style={{
+                            borderRadius: 5
+                        }}>
+                            <View
+                                style={[
+                                styles.brandedButton, {
+                                    backgroundColor: '#3C5A99'
+                                }
+                            ]}>
+                                <FontAwesome name='facebook-official' size={24} color='white'/>
+                                <Text style={styles.brandedButtonText}>
+                                    Sign In With Facebook
+                                </Text>
+                            </View>
+                        </TouchableHighlight>
+
+                        {/* Find icons at https://expo.github.io/vector-icons/ (must import the 'type'/source of icon i.e. FontAwesome, Ionicon, etc.) */}
 
                         {/* The linked Text that navigates to the CreateAccount screen */}
-                        <TouchableHighlight
-                            onPress={this.createAccount}
-                            activeOpacity={.65}
-                            underlayColor="#FFF">
-                            <Text
-                                style={{
-                                textDecorationLine: "underline",
-                                color: "#AAA"
-                            }}>Create an Account</Text>
-                        </TouchableHighlight>
+                        <View
+                            styles={{
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <TouchableHighlight
+                                onPress={this.createAccount}
+                                activeOpacity={.65}
+                                underlayColor='#FFF'>
+                                <Text style={styles.linkingText}>Create an Account</Text>
+                            </TouchableHighlight>
+                            <TouchableHighlight
+                                onPress={this.forgotPassword}
+                                activeOpacity={.65}
+                                underlayColor='#FFF'>
+                                <Text style={styles.linkingText}>Forgot your password?</Text>
+                            </TouchableHighlight>
+                        </View>
 
                     </View>
                 </View>
@@ -153,57 +202,81 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end'
     },
     header: {
-        flex: 1,
         alignItems: 'center',
+        flex: 1,
         justifyContent: 'flex-end'
     },
     logo: {
         aspectRatio: 1,
-        height: "55%"
+        height: '55%'
     },
     greeting: {
         fontSize: 20,
+        fontWeight: '500',
         marginVertical: 15
     },
     body: {
+        alignItems: 'center',
         flex: 2,
         flexDirection: 'column',
-        justifyContent: 'flex-start',
-        alignItems: 'center'
+        justifyContent: 'flex-start'
     },
     input: {
-        marginBottom: 10,
-        padding: 5,
-        height: 40,
-        width: '75%',
-        borderColor: '#e9650d',
         backgroundColor: '#eee',
-        borderWidth: 2,
+        borderColor: '#e9650d',
         borderRadius: 5,
-        paddingHorizontal: 15
+        borderWidth: 2,
+        height: 40,
+        marginBottom: 10,
+        marginBottom: 10,
+        paddingVertical: 5,
+        paddingHorizontal: 15,
+        width: '75%'
     },
     dividerContainer: {
+        alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
         marginTop: 30
     },
     divider: {
         borderBottomColor: '#BBB',
-        borderTopColor: '#BBB',
         borderBottomWidth: 1,
+        borderTopColor: '#BBB',
         borderTopWidth: 1,
         height: 2,
         width: '40%'
     },
     dividerText: {
-        marginHorizontal: 15,
-        color: '#BBB'
+        color: '#BBB',
+        marginHorizontal: 15
     },
     authentication: {
+        alignItems: 'center',
         flex: 1,
         flexDirection: 'column',
-        alignItems: 'center',
         justifyContent: 'space-evenly'
+    },
+    brandedButton: {
+        alignItems: 'center',
+        borderRadius: 5,
+        flexDirection: 'row',
+        height: 40,
+        justifyContent: 'space-around',
+        padding: 5,
+        width: '65%'
+    },
+    brandedButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '500',
+        marginLeft: 5,
+        textAlign: 'center'
+    },
+    linkingText: {
+        color: '#AAA',
+        marginTop: 10,
+        textAlign: 'center',
+        textDecorationLine: 'underline'
     }
 })
