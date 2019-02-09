@@ -1,35 +1,23 @@
 import React from "react";
-import {View, Text} from "react-native";
+import { View, Text } from "react-native";
 import { Button } from "react-native-elements";
 
-export default class Messages extends React.Component {
-  static navigationOptions = ({ navigation }) => {
-    return {
-      headerTitle: "Messages",
-      headerLeft: (
-        <Button
-        title="Profile"
-        onPress={() => navigation.push("Profile")}
-        />
-      ),
-      headerRight: (
-        <Button
-        title="Notifications"
-        onPress={() => navigation.push("Notifications")}
-        />
-      )
-    }
-  }
+import Screen from "../Nav/Screen";
 
+export default class Messages extends React.Component {
   render() {
     return (
-      <View>
-      <Text>Messages</Text>
-      <Button
-      title="Message"
-      onPress={() => this.props.navigation.push("Message")}
-      />
-      </View>
-    )
+      <Screen
+        title="Messages"
+        navigation={{ ...this.props.navigation }}
+        backButton={false}
+      >
+        <Text>Messages</Text>
+        <Button
+          title="Message"
+          onPress={() => this.props.navigation.push("Message")}
+        />
+      </Screen>
+    );
   }
 }
