@@ -15,16 +15,47 @@ import {
 
 import {Facebook, Google} from 'expo';
 import {FontAwesome} from '@expo/vector-icons';
+import * as firebase from 'firebase';
+
+const firebaseConfig = {
+    apiKey: "AIzaSyA9icFnK3c3GeJTbrnFA2RkukNo9fxq5lk",
+    authDomain: "courtsort-e1100.firebaseapp.com",
+    databaseURL: "https://courtsort-e1100.firebaseio.com",
+    storageBucket: "courtsort-e1100.appspot.com"
+  };
+
+firebase.initializeApp(firebaseConfig);
+
 
 export default class SignIn extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            username: "",
+            password: ""
+        }
+    }
+
     signInNative = () => {
         // Alert.alert('Clicked Sign In', 'Attempt to login user, for now will
         // automagically continue to main');
         Keyboard.dismiss();
-        this
-            .props
-            .navigation
-            .navigate("Home");
+        //Alert.alert("Credentials", this.state.username+"\n"+this.state.password)
+        // this
+        //     .props
+        //     .navigation
+        //     .navigate("Home");
+        var username = this.state.username.toString();
+        var pass = this.state.username.toString();
+        firebase.auth().createUserWithEmailAndPassword(username, pass).catch(function(error) {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            if(errorCode == 'auth/weak-password') {
+                Alert.alert("the password is too weak");
+            } else {
+                Alert.alert("Error", error.message);
+            }
+        });
     }
     createAccount = async() => {
         //Alert.alert('Should now navigate to creating account screen');
@@ -118,6 +149,7 @@ export default class SignIn extends React.Component {
                         placeholder='Email'
                         placeholderTextColor='#999'
                         returnKeyType={'next'}
+                        onChangeText={(username) => this.setState({username})}
                         underlineColorAndroid='transparent'></TextInput>
 
                     {/* The TextInput for the password, on pressing the return key it attempts to sign in the user */}
@@ -133,6 +165,7 @@ export default class SignIn extends React.Component {
                         this.password = input;
                     }}
                         secureTextEntry={true}
+                        onChangeText={(password) => this.setState({password})}
                         underlineColorAndroid='transparent'></TextInput>
 
                     {/* The Button to sign in the user */}
@@ -219,88 +252,87 @@ export default class SignIn extends React.Component {
     }
 };
 
-const styles = StyleSheet
-.create({
-container: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'flex-end'
-},
-header: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'flex-end'
-},
-logo: {
-    aspectRatio: 1,
-    height: '55%'
-},
-greeting: {
-    fontSize: 20,
-    fontWeight: '500',
-    marginVertical: 15
-},
-body: {
-    alignItems: 'center',
-    flex: 2,
-    flexDirection: 'column',
-    justifyContent: 'flex-start'
-},
-input: {
-    backgroundColor: '#eee',
-    borderColor: '#e9650d',
-    borderRadius: 5,
-    borderWidth: 2,
-    height: 40,
-    marginBottom: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    width: '70%'
-},
-dividerContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 30
-},
-divider: {
-    borderBottomColor: '#BBB',
-    borderBottomWidth: 1,
-    borderTopColor: '#BBB',
-    borderTopWidth: 1,
-    height: 2,
-    width: '40%'
-},
-dividerText: {
-    color: '#BBB',
-    marginHorizontal: 15
-},
-authentication: {
-    alignItems: 'center',
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'space-evenly'
-},
-brandedButton: {
-    alignItems: 'center',
-    borderRadius: 5,
-    elevation: 2,
-    flexDirection: 'row',
-    height: 40,
-    justifyContent: 'space-around',
-    padding: 5,
-    width: '65%'
-},
-brandedButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '500',
-    textAlign: 'center'
-},
-linkingText: {
-    color: '#AAA',
-    marginTop: 10,
-    textAlign: 'center',
-    textDecorationLine: 'underline'
-}
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'flex-end'
+    },
+    header: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'flex-end'
+    },
+    logo: {
+        aspectRatio: 1,
+        height: '55%'
+    },
+    greeting: {
+        fontSize: 20,
+        fontWeight: '500',
+        marginVertical: 15
+    },
+    body: {
+        alignItems: 'center',
+        flex: 2,
+        flexDirection: 'column',
+        justifyContent: 'flex-start'
+    },
+    input: {
+        backgroundColor: '#eee',
+        borderColor: '#e9650d',
+        borderRadius: 5,
+        borderWidth: 2,
+        height: 40,
+        marginBottom: 10,
+        paddingVertical: 5,
+        paddingHorizontal: 15,
+        width: '70%'
+    },
+    dividerContainer: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 30
+    },
+    divider: {
+        borderBottomColor: '#BBB',
+        borderBottomWidth: 1,
+        borderTopColor: '#BBB',
+        borderTopWidth: 1,
+        height: 2,
+        width: '40%'
+    },
+    dividerText: {
+        color: '#BBB',
+        marginHorizontal: 15
+    },
+    authentication: {
+        alignItems: 'center',
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'space-evenly'
+    },
+    brandedButton: {
+        alignItems: 'center',
+        borderRadius: 5,
+        elevation: 2,
+        flexDirection: 'row',
+        height: 40,
+        justifyContent: 'space-around',
+        padding: 5,
+        width: '65%'
+    },
+    brandedButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '500',
+        textAlign: 'center'
+    },
+    linkingText: {
+        color: '#AAA',
+        marginTop: 10,
+        textAlign: 'center',
+        textDecorationLine: 'underline'
+    }
 })
