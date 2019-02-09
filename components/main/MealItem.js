@@ -8,7 +8,7 @@ import Screen from "../Nav/Screen"
 export default class MealItem extends React.Component {
   render() {
     return (
-      <Screen title="Dining Court" navigation={{...this.props.navigation}} backButton={true}>
+      <Screen title="MealItem" navigation={{...this.props.navigation}} backButton={true}>
         <Text>MealItem</Text>
         <Button
           title="Go to dining court"
