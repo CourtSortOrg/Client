@@ -2,45 +2,12 @@ import React from "react";
 import {View, Text} from "react-native";
 import { Button } from "react-native-elements"
 
+import Screen from "../Nav/Screen"
 
 export default class Meals extends React.Component {
-  static navigationOptions = ({ navigation }) => {
-    return {
-      headerTitle: "Meals",
-      headerLeft: (
-        <Button
-          title="Profile"
-          onPress={() => navigation.navigate("Profile")}
-        />
-      ),
-      headerRight: (
-        <View style={{
-          width:100,
-          flex:1,
-          flexDirection: "row"
-        }}>
-        <Button
-        style={{
-          width: 50
-        }}
-        icon={{name: 'map'}}
-        onPress={() => navigation.navigate("Map")}
-        />
-        <Button
-        style={{
-          width: 50
-        }}
-        icon={{name: 'notifications'}}
-        onPress={() => navigation.navigate("Notifications")}
-        />
-        </View>
-      )
-    }
-  }
-
   render() {
     return (
-      <View>
+      <Screen title="Meals" navigation={{...this.props.navigation}} backButton={false}>
       <Text>Meals</Text>
       <Button
       title="Dining Court"
@@ -50,7 +17,7 @@ export default class Meals extends React.Component {
       title="MealItem"
       onPress={() => this.props.navigation.push("MealItem")}
       />
-      </View>
+      </Screen>
     )
   }
 }

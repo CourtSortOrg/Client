@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert, Button, StyleSheet, Text, View } from 'react-native';
 import { createSwitchNavigator, createAppContainer } from "react-navigation"
+import { Font } from "expo";
 
 import Main from "./components/main/Main";
 import Splash from "./components/auth/Splash"
@@ -23,23 +24,32 @@ const AuthNavigation = createSwitchNavigator(
   }
 );
 
-const App = createAppContainer(AuthNavigation);
-export default App;
+const Navigation = createAppContainer(AuthNavigation);
 
-/*export default class App extends React.Component {
-  render() {
-    return (
-      <View style={styles.container}>
-        <AuthContainer />
-        <Text>Open up App.js to start working on your app!</Text>
-        <Button
-          onPress={() => {Alert.alert('You tapped the button!');}}
-          title="Press Me"
-        />
-      </View>
-    );
+export default class App extends React.Component {
+  state = {
+    fontLoaded: false
+  };
+
+  async componentDidMount() {
+    await Font.loadAsync({
+      'Lobster': require('./assets/fonts/Lobster/Lobster-Regular.ttf'),
+      'Quicksand-Regular': require('./assets/fonts/Quicksand/Quicksand-Regular.ttf'),
+      'Quicksand-Light': require('./assets/fonts/Quicksand/Quicksand-Light.ttf'),
+      'Quicksand-Medium': require('./assets/fonts/Quicksand/Quicksand-Medium.ttf'),
+      'Quicksand-Bold': require('./assets/fonts/Quicksand/Quicksand-Bold.ttf'),
+    });
+
+    this.setState({fontLoaded: true});
   }
-}*/
+
+  render() {
+    if(this.state.fontLoaded)
+      return <Navigation />
+    return <Splash />
+  }
+}
+
 
 const styles = StyleSheet.create({
   container: {
