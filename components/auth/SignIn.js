@@ -19,9 +19,12 @@ import {FontAwesome} from '@expo/vector-icons';
 export default class SignIn extends React.Component {
     signInNative = () => {
         // Alert.alert('Clicked Sign In', 'Attempt to login user, for now will
-        // automagically continue to main');        
+        // automagically continue to main');
         Keyboard.dismiss();
-        this.props.navigation.navigate("Home");
+        this
+            .props
+            .navigation
+            .navigate("Home");
     }
     createAccount = async() => {
         //Alert.alert('Should now navigate to creating account screen');
@@ -46,6 +49,11 @@ export default class SignIn extends React.Component {
             });
 
             console.log(result);
+
+            this
+                .props
+                .navigation
+                .navigate("Home");
 
             if (result.type === 'success') {
                 console.log(result.email);
