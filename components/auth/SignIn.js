@@ -18,7 +18,10 @@ import {FontAwesome} from '@expo/vector-icons';
 
 export default class SignIn extends React.Component {
     signInNative = () => {
-        //Alert.alert('Clicked Sign In', 'Attempt to login user, for now will automagically continue to main');        Keyboard.dismiss()
+        // Alert.alert('Clicked Sign In', 'Attempt to login user, for now will
+        // automagically continue to main');        
+        Keyboard.dismiss();
+        this.props.navigation.navigate("Home");
     }
     createAccount = async() => {
         //Alert.alert('Should now navigate to creating account screen');
@@ -59,28 +62,19 @@ export default class SignIn extends React.Component {
     }
 
     signInFacebookAsync = async() => {
-        // TODO: Maybe need to add Android hashes??
-        // APPID 279514589383224
+        // TODO: Maybe need to add Android hashes?? APPID 279514589383224
         try {
-            const {
-              type,
-              token,
-              expires,
-              permissions,
-              declinedPermissions,
-            } = await Facebook.logInWithReadPermissionsAsync('279514589383224', {
-              permissions: ['public_profile'],
-            });
+            const {type, token, expires, permissions, declinedPermissions} = await Facebook.logInWithReadPermissionsAsync('279514589383224', {permissions: ['public_profile']});
             if (type === 'success') {
-              // Get the user's name using Facebook's Graph API
-              const response = await fetch(`https://graph.facebook.com/me?access_token=${token}`);
-              Alert.alert('Logged in!', `Hi ${(await response.json()).name}!`);
+                // Get the user's name using Facebook's Graph API
+                const response = await fetch(`https://graph.facebook.com/me?access_token=${token}`);
+                Alert.alert('Logged in!', `Hi ${ (await response.json()).name}!`);
             } else {
-              // type === 'cancel'
+                // type === 'cancel'
             }
-          } catch ({ message }) {
+        } catch ({message}) {
             alert(`Facebook Login Error: ${message}`);
-          }
+        }
     }
 
     render() {
@@ -176,7 +170,8 @@ export default class SignIn extends React.Component {
                             <View
                                 style={[
                                 styles.brandedButton, {
-                                    backgroundColor: '#3C5A99', width: "66%" 
+                                    backgroundColor: '#3C5A99',
+                                    width: "66%"
                                 }
                             ]}>
                                 <FontAwesome name='facebook-official' size={24} color='white'/>
