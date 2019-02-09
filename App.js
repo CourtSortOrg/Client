@@ -19,7 +19,7 @@ const AuthNavigation = createSwitchNavigator(
     },
   },
   {
-    initialRouteName: "Home"
+    initialRouteName: "Auth"
   }
 );
 

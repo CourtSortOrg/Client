@@ -13,13 +13,12 @@ import {
     View
 } from 'react-native';
 
-import {Google} from 'expo';
+import {Facebook, Google} from 'expo';
 import {FontAwesome} from '@expo/vector-icons';
 
 export default class SignIn extends React.Component {
     signInNative = () => {
-        Alert.alert('Signing User In', 'Navigating to main page');
-        Keyboard.dismiss()
+        //Alert.alert('Clicked Sign In', 'Attempt to login user, for now will automagically continue to main');        Keyboard.dismiss()
     }
     createAccount = async() => {
         //Alert.alert('Should now navigate to creating account screen');
@@ -32,7 +31,7 @@ export default class SignIn extends React.Component {
     }
 
     forgotPassword = () => {
-        Alert.alert('Whoops forgot password', 'Navigating to reset password')
+        Alert.alert('Clicked Forgot Password', 'Begin navigation to ResetPassword screen')
     }
 
     signInGoogleAsync = async() => {
@@ -60,8 +59,28 @@ export default class SignIn extends React.Component {
     }
 
     signInFacebookAsync = async() => {
-        // APPID 279514589383224 Follow docs here:
-        // https://docs.expo.io/versions/v32.0.0/sdk/facebook/
+        // TODO: Maybe need to add Android hashes??
+        // APPID 279514589383224
+        try {
+            const {
+              type,
+              token,
+              expires,
+              permissions,
+              declinedPermissions,
+            } = await Facebook.logInWithReadPermissionsAsync('279514589383224', {
+              permissions: ['public_profile'],
+            });
+            if (type === 'success') {
+              // Get the user's name using Facebook's Graph API
+              const response = await fetch(`https://graph.facebook.com/me?access_token=${token}`);
+              Alert.alert('Logged in!', `Hi ${(await response.json()).name}!`);
+            } else {
+              // type === 'cancel'
+            }
+          } catch ({ message }) {
+            alert(`Facebook Login Error: ${message}`);
+          }
     }
 
     render() {
@@ -130,6 +149,7 @@ export default class SignIn extends React.Component {
                         {/* The branded Button for Google Authentification */}
                         <TouchableHighlight
                             onPress={this.signInGoogleAsync}
+                            underlayColor="white"
                             style={{
                             borderRadius: 5
                         }}>
@@ -149,13 +169,14 @@ export default class SignIn extends React.Component {
                         {/* The branded Button for Facebook Authentification */}
                         <TouchableHighlight
                             onPress={this.signInFacebookAsync}
+                            underlayColor="white"
                             style={{
                             borderRadius: 5
                         }}>
                             <View
                                 style={[
                                 styles.brandedButton, {
-                                    backgroundColor: '#3C5A99'
+                                    backgroundColor: '#3C5A99', width: "66%" 
                                 }
                             ]}>
                                 <FontAwesome name='facebook-official' size={24} color='white'/>
@@ -228,10 +249,9 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         height: 40,
         marginBottom: 10,
-        marginBottom: 10,
         paddingVertical: 5,
         paddingHorizontal: 15,
-        width: '75%'
+        width: '70%'
     },
     dividerContainer: {
         alignItems: 'center',
@@ -260,6 +280,7 @@ const styles = StyleSheet.create({
     brandedButton: {
         alignItems: 'center',
         borderRadius: 5,
+        elevation: 2,
         flexDirection: 'row',
         height: 40,
         justifyContent: 'space-around',
@@ -270,7 +291,6 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
         fontWeight: '500',
-        marginLeft: 5,
         textAlign: 'center'
     },
     linkingText: {
