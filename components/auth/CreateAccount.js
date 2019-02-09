@@ -19,12 +19,12 @@ export default class CreateAccount extends React.Component {
         name: '',
         email: '',
         password: '',
-        isVegan: false;
-        isVegetarian: false,
+        isVegan: false,
+        isVegetarian: false
     }
 
-    CreateAccount = () => {
-        Alert.alert('name' + name + 'email: ' + email + ' password: ' + password)
+    createAccount = () => {
+        Alert.alert('Name: ' + this.state.name + '\nEmail: ' + this.state.email + '\nPassword: ' + this.state.password)
         Keyboard.dismiss()
     }
 
@@ -80,6 +80,7 @@ export default class CreateAccount extends React.Component {
                         placeholder="Email"
                         placeholderTextColor="#999"
 
+                        ref={(input) => { this.email = input; }}
                         onChangeText={(text) => this.setState({email: text})}
                         returnKeyType={"next"}
                         underlineColorAndroid="transparent">
@@ -90,13 +91,10 @@ export default class CreateAccount extends React.Component {
                         style={styles.input}
                         autoCapitalize="none"
                         blurOnSubmit={false}
-                        onSubmitEditing={() => {
-                            .allergens
-                            .focus();
-                        }}
                         placeholder="Password"
                         placeholderTextColor="#999"
 
+                        ref={(input) => { this.password = input; }}
                         onChangeText={(text) => this.setState({password: text})}
                         secureTextEntry={true}
                         underlineColorAndroid="transparent">
