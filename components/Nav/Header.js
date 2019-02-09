@@ -25,7 +25,8 @@ export default class Header extends React.Component {
       </View>
       <View style={{flex: 2}}>
       <Text style={{
-        textAlign: "center"
+        textAlign: "center",
+        fontFamily: "Lobster"
       }}
       >{this.props.title}</Text>
       </View>
