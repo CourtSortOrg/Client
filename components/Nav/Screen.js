@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 
 import Header from "./Header";
 import Footer from "./Footer";
@@ -15,6 +15,7 @@ export default class Screen extends React.Component {
         }}
       >
       <Header
+        styles={styles}
         navigation={{ ...this.props.navigation}}
         title={this.props.title}
         backButton={this.props.backButton}
@@ -24,6 +25,7 @@ export default class Screen extends React.Component {
       {this.props.children}
       </Body>
       <Footer
+        styles={styles}
         navigation={{ ...this.props.navigation}}
         active={this.props.title}
       />
@@ -31,3 +33,15 @@ export default class Screen extends React.Component {
     )
   }
 }
+
+const styles = StyleSheet.create({
+  button: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  icon: {
+    aspectRatio: 1,
+    height: "55%"
+  }
+});
