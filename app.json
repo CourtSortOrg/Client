@@ -24,6 +24,9 @@
     ],
     "ios": {
       "supportsTablet": true
-    }
+    },
+    "facebookScheme":"fb279514589383224",
+    "facebookAppId": "279514589383224",
+    "facebookDisplayName": "CourtSort"
   }
 }
