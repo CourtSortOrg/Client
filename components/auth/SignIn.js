@@ -76,21 +76,29 @@ export default class SignIn extends React.Component {
 
     signInGoogleAsync = async() => {
         try {
+            //const googleAuthProvider = new firebase.auth.GoogleAuthProvider();
+
+
+
             const result = await Google.logInAsync({
                 androidClientId: '41918470748-ci8cpn0tpcmt26hjtamo4qic8eo1olpf.apps.googleusercontent.com',
                 iosClientId: '41918470748-lgi689vhab9g6hnctjfcivfrc1hf329j.apps.googleusercontent.com',
                 scopes: ['profile', 'email']
             });
 
-            console.log(result);
+            //alert(result.type);
+            //console.log(result);
 
-            this
+
+            /*this
                 .props
                 .navigation
-                .navigate("Home");
+                .navigate("Home");*/
 
             if (result.type === 'success') {
-                console.log(result.email);
+                firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(result.idToken, result.accessToken)).catch(function(error){
+                  alert("Error", error.message);
+                });
                 return result.accessToken;
             } else {
                 return {cancelled: true};
@@ -98,7 +106,19 @@ export default class SignIn extends React.Component {
 
             //TODO: Do something with the token that is returned
 
+
+            /*firebase.auth().signInWithCustomToken(result.accessToken).catch(function(error){
+              var errorCode = error.code;
+              var errorMessage = error.message;
+              if (errorCode == 'auth/invalid-custom-token'){
+                alert('The token you provided is not valid.');
+              } else {
+                alert("Error", error.message);
+              }
+            });*/
+
         } catch (e) {
+            alert('ERROR: ' + e.message)
             return {error: true};
         }
     }
