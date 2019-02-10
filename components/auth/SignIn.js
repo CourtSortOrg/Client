@@ -76,9 +76,6 @@ export default class SignIn extends React.Component {
 
     signInGoogleAsync = async() => {
         try {
-            //const googleAuthProvider = new firebase.auth.GoogleAuthProvider();
-
-
 
             const result = await Google.logInAsync({
                 androidClientId: '41918470748-ci8cpn0tpcmt26hjtamo4qic8eo1olpf.apps.googleusercontent.com',
@@ -86,14 +83,10 @@ export default class SignIn extends React.Component {
                 scopes: ['profile', 'email']
             });
 
-            //alert(result.type);
-            //console.log(result);
-
-
-            /*this
+            this
                 .props
                 .navigation
-                .navigate("Home");*/
+                .navigate("Home");
 
             if (result.type === 'success') {
                 firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(result.idToken, result.accessToken)).catch(function(error){
@@ -104,18 +97,9 @@ export default class SignIn extends React.Component {
                 return {cancelled: true};
             }
 
-            //TODO: Do something with the token that is returned
+            //TODO: Add Android support
+            //TODO: Create ability to log back into a google account
 
-
-            /*firebase.auth().signInWithCustomToken(result.accessToken).catch(function(error){
-              var errorCode = error.code;
-              var errorMessage = error.message;
-              if (errorCode == 'auth/invalid-custom-token'){
-                alert('The token you provided is not valid.');
-              } else {
-                alert("Error", error.message);
-              }
-            });*/
 
         } catch (e) {
             alert('ERROR: ' + e.message)
