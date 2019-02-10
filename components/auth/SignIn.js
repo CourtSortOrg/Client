@@ -115,6 +115,7 @@ export default class SignIn extends React.Component {
                 // Get the user's name using Facebook's Graph API
                 const response = await fetch(`https://graph.facebook.com/me?access_token=${token}`);
                 Alert.alert('Logged in!', `Hi ${ (await response.json()).name}!`);
+                firebase.auth().signInAndRetrieveDataWithCredential(firebase.auth.FacebookAuthProvider.credential(token));
             } else {
                 // type === 'cancel'
             }
