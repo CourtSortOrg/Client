@@ -93,13 +93,11 @@ export default class SignIn extends React.Component {
                 .navigate("Home");*/
 
             if (result.type === 'success') {
-                console.log(result.email);
-                firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(result.accessToken)).catch(function(error){
+                firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(result.idToken, result.accessToken)).catch(function(error){
                   alert("Error", error.message);
                 });
                 return result.accessToken;
             } else {
-                alert("Cancelled");
                 return {cancelled: true};
             }
 
@@ -117,7 +115,7 @@ export default class SignIn extends React.Component {
             });*/
 
         } catch (e) {
-            alert('ERROR')
+            alert('ERROR: ' + e.message)
             return {error: true};
         }
     }
