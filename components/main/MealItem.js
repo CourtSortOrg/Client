@@ -1,7 +1,8 @@
 import React from "react";
-import {View, Text} from "react-native";
-import { Button } from "react-native-elements"
+import { View, Text } from "react-native";
+import { Button } from "react-native-elements";
 
+import Screen from "../Nav/Screen";
 
 export default class MealItem extends React.Component {
   render() {
@@ -32,7 +33,7 @@ export default class MealItem extends React.Component {
           title="Go to dining court"
           onPress={() => this.props.navigation.push("DiningCourt")}
         />
-      </View>
-    )
+      </Screen>
+    );
   }
 }
