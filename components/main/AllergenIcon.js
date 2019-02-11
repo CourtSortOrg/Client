@@ -8,7 +8,7 @@ export default class AllergenIcon extends React.Component {
       <Avatar
         small
         rounded
-        source={`./${this.Name}.png`}
+        source={`../../assets/images/${this.Name}.png`}
         {
           // Look disabled if not true.
           this.Value ? activeOpacity={0.2} : ""
