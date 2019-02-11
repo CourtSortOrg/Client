@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from "react-native";
 
 import ListElement from "./ListElement";
 
@@ -21,16 +21,17 @@ export default class List extends React.Component {
 
   render() {
     return (
-      <View>
+      <ScrollView style={{flex: 1}}>
         {this.props.list.map((element, index) => (
           <ListElement
             key={index}
+            id={index}
             {...element}
             type={this.props.type}
             subList={{ ...this.props.subList }}
           />
         ))}
-      </View>
+      </ScrollView>
     );
   }
 }

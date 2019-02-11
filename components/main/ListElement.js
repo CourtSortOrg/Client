@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default class ListElement extends React.Component {
   constructor(props) {
@@ -16,10 +17,12 @@ export default class ListElement extends React.Component {
 
   expandable = () => {
     return (
-      <View style={styles.expandable}>
+      <View style={{ ...styles.listElement, ...styles.expandable }}>
         <View style={styles.expandableHeader}>
           <TouchableOpacity onPress={() => this.toggleExpansion()}>
-            <Text>{this.props.Name}</Text>
+            <Text style={{ fontSize: 24 /*fontFamily: "Lobster"*/ }}>
+              {this.props.Name}
+            </Text>
             {this.viewMore()}
           </TouchableOpacity>
         </View>
@@ -30,29 +33,51 @@ export default class ListElement extends React.Component {
 
   dropDown = () => {
     return (
-      <View style={styles.dropDown}>
-        <View style={styles.dropDownHeader}>
-          <TouchableOpacity onPress={() => this.toggleExpansion()}>
-            <Text>Dropdown</Text>
-          </TouchableOpacity>
-          <Text>{this.props.Name}</Text>
-          {this.viewMore()}
-        </View>
+      <View style={{ ...styles.listElement, ...styles.dropDown }}>
+        <TouchableOpacity
+          style={styles.dropDownHeader}
+          onPress={() => this.toggleExpansion()}
+        >
+          <View style={{ marginLeft: -12 }}>
+            {this.state.expand ? (
+              <MaterialIcons
+                size={32}
+                name="keyboard-arrow-down"
+                color="#E86515"
+              />
+            ) : (
+              <MaterialIcons
+                size={32}
+                name="keyboard-arrow-right"
+                color="#E86515"
+              />
+            )}
+          </View>
+          <Text style={{ fontSize: 16 }}>{this.props.Name}</Text>
+        </TouchableOpacity>
+        {this.viewMore()}
         {this.subList()}
       </View>
     );
   };
 
   subList = () => {
-    if (this.state.expand) {
-      return (
-        <View>
-          {this.props[this.props.subList.list].map((element, index) => (
-            <ListElement key={index} {...element} {...this.props.subList} />
-          ))}
-        </View>
-      );
-    }
+    // Uncomment if what to reset when enclosing elements are closed.
+    //if (this.state.expand) {
+    return (
+      //Remove conditional if
+      <View style={this.state.expand ? styles.subList : { display: "none" }}>
+        {this.props[this.props.subList.list].map((element, index) => (
+          <ListElement
+            key={index}
+            id={index}
+            {...element}
+            {...this.props.subList}
+          />
+        ))}
+      </View>
+    );
+    //}
   };
 
   viewMore = () => {
@@ -66,7 +91,11 @@ export default class ListElement extends React.Component {
             )
           }
         >
-          <Text>View More</Text>
+          <MaterialIcons
+            size={32}
+            name="keyboard-arrow-right"
+            color="#E86515"
+          />
         </TouchableOpacity>
       );
     }
@@ -74,8 +103,27 @@ export default class ListElement extends React.Component {
 
   element = () => {
     return (
-      <View style={styles.element}>
-        <Text>element: {this.props.Name}</Text>
+      <View
+        style={
+          this.props.id % 2 == 0
+            ? {
+                ...styles.listElement,
+                ...styles.element,
+                ...styles.elementShaded
+              }
+            : { ...styles.listElement, ...styles.element }
+        }
+      >
+        <TouchableOpacity
+          onPress={() =>
+            this.props.navigation.navigate(
+              this.props.viewMore.page,
+              this.props.viewMore.item
+            )
+          }
+        >
+          <Text style={{ fontSize: 16 }}>{this.props.Name}</Text>
+        </TouchableOpacity>
         {this.viewMore()}
       </View>
     );
@@ -99,19 +147,38 @@ export default class ListElement extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  expandable: {
-    backgroundColor: "red"
+  listElement: {
+    flex: 1
   },
+  expandable: {},
   expandableHeader: {
-    flexDirection: "row"
+    backgroundColor: "#E86515",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexDirection: "row",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: "black",
+    borderBottomWidth: 2,
+    borderStyle: "solid",
+    padding: 16
   },
   dropDown: {
-    backgroundColor: "green"
+    backgroundColor: "white"
   },
   dropDownHeader: {
+    alignItems: "center",
     flexDirection: "row"
   },
   element: {
-    backgroundColor: "blue"
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingLeft: 8
+  },
+  elementShaded: {
+    backgroundColor: "#ddd"
+  },
+  subList: {
+    marginLeft: 20
   }
 });
