@@ -20,7 +20,7 @@ export default class MealItem extends React.Component {
       // Start with a list.
       <View>
       {
-        this.props.Nutrition.map(fact => <NutritionFact {...fact})
+        this.props.Nutrition.map(fact => <NutritionFact {...fact} />)
       }
       </View>
 
