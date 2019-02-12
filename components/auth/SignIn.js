@@ -37,6 +37,12 @@ export default class SignIn extends React.Component {
             username: "",
             password: ""
         }
+        firebase.auth().onAuthStateChanged(function(user){
+          if(user){
+            alert("User already signed in");
+            props.navigation.navigate("Home");
+          }
+        })
     }
 
     signInNative = () => {
@@ -44,15 +50,18 @@ export default class SignIn extends React.Component {
         // automagically continue to main');
         Keyboard.dismiss();
         //Alert.alert("Credentials", this.state.username+"\n"+this.state.password)
-        // this
-        //     .props
-        //     .navigation
-        //     .navigate("Home");
+
         var username = this.state.username.toString();
         var pass = this.state.username.toString();
-        firebase.auth().signInWithEmailAndPassword(username, pass).catch(function(error) {
+        firebase.auth().signInWithEmailAndPassword(username, pass).then(function(){
+          //TODO  change panels here. Gives me an error
+            //this
+                //.props
+                //.navigation
+                //.navigate("Home");
+        }).catch(function(error) {
           alert(error.message);
-        })
+        });
     }
     createAccount = async() => {
         //Alert.alert('Should now navigate to creating account screen');
