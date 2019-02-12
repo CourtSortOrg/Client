@@ -1,18 +1,17 @@
 import React from "react";
-import { View } from "react-native";
+import { ScrollView } from "react-native";
 
 export default class Body extends React.Component {
   render() {
     return (
-      <View
+      <ScrollView
         style={{
-          backgroundColor: "green",
           flex: 1,
           flexGrow: 1
         }}
       >
         {this.props.children}
-      </View>
+      </ScrollView>
     );
   }
 }
