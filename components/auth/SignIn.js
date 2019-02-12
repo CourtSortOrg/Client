@@ -50,15 +50,9 @@ export default class SignIn extends React.Component {
         //     .navigate("Home");
         var username = this.state.username.toString();
         var pass = this.state.username.toString();
-        firebase.auth().createUserWithEmailAndPassword(username, pass).catch(function(error) {
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            if(errorCode == 'auth/weak-password') {
-                Alert.alert("the password is too weak");
-            } else {
-                Alert.alert("Error", error.message);
-            }
-        });
+        firebase.auth().signInWithEmailAndPassword(username, pass).catch(function(error) {
+          alert(error.message);
+        })
     }
     createAccount = async() => {
         //Alert.alert('Should now navigate to creating account screen');

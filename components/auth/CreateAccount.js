@@ -26,6 +26,15 @@ export default class CreateAccount extends React.Component {
     createAccount = () => {
         Alert.alert('Name: ' + this.state.name + '\nEmail: ' + this.state.email + '\nPassword: ' + this.state.password)
         Keyboard.dismiss()
+        firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error) {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            if(errorCode == 'auth/weak-password') {
+                Alert.alert("the password is too weak");
+            } else {
+                Alert.alert("Error", error.message);
+            }
+        });
     }
 
 
@@ -87,7 +96,7 @@ export default class CreateAccount extends React.Component {
                     </TextInput>
 
                     {/* TextInput for the password */}
-                    <TextInput 
+                    <TextInput
                         style={styles.input}
                         autoCapitalize="none"
                         blurOnSubmit={false}
