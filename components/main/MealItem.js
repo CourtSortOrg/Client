@@ -1,16 +1,18 @@
 import React from "react";
-import { View, Text } from "react-native";
-import { Button } from "react-native-elements";
+import { View, Text, StyleSheet } from "react-native";
+import { Button, ButtonGroup } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import AllergenIcon from "./AllergenIcon";
-import NutritionFact from "./NutitionFact";
+import NutritionFact from "./NutritionFact";
+import List from "./List";
 
 export default class MealItem extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      selectedIndex: 1,
       Nutrition: [
         {
           Name: "Serving Size",
@@ -170,43 +172,96 @@ export default class MealItem extends React.Component {
     };
   }
 
+  updateIndex = selectedIndex => {
+    this.setState({selectedIndex})
+  }
+
   componentWillMount() {
     console.log("Load menu item");
+  }
 
-    this.setState({
-      Allergens: this.state.Allergens
-    });
+  renderElement(item) {
+    return <NutritionFact {...item} />;
+  }
+
+  renderNutrition() {
+    if (this.state.selectedIndex == 0) {
+      return (
+        <View>
+          <Text style={styles.header}>Allergens</Text>
+          <View style={styles.allergens}>
+            {this.state.Allergens.filter(allergen => allergen.Value).map(
+              (allergen, index) => {
+                return <AllergenIcon key={index} {...allergen} />;
+              }
+            )}
+          </View>
+          <Text style={styles.header}>Nutrition Facts</Text>
+          <List
+            list={this.state.Nutrition}
+            type="element"
+            subList={false}
+            renderElement={this.renderElement}
+          />
+          <View style={styles.ingredients}>
+            <Text style={styles.header}>Ingredients: </Text>
+            <Text style={styles.ingredientsText}>{this.state.Ingredients}</Text>
+          </View>
+        </View>
+      );
+    }
+  }
+
+  renderServing() {
+    if (this.state.selectedIndex == 1) {
+      return (
+        <Button
+          style={styles.button}
+          title="Go to dining court"
+          onPress={() => this.props.navigation.push("DiningCourt")}
+        />
+      );
+    }
+  }
+
+  renderRatings() {
+    console.log("ratings");
   }
 
   render() {
+    const buttons = ["Nutrition", "Serving", "Ratings"];
     return (
       <Screen
         title={this.state.Name}
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >
-        <View style={{ flex: 1, flexDirection: "row", flexWrap: "wrap" }}>
-          {this.state.Allergens.filter(allergen => allergen.Value).map(
-            (allergen, index) => {
-              return (
-                <AllergenIcon key={index} {...allergen} />
-              );
-            }
-          )}
-        </View>
-        <View>
-          {this.state.Nutrition.map((fact, index) => (
-            <NutritionFact key={index} {...fact} />
-          ))}
-        </View>
-        <View>
-          <Text>{this.state.Ingredients}</Text>
-        </View>
-        <Button
-          title="Go to dining court"
-          onPress={() => this.props.navigation.push("DiningCourt")}
+        <ButtonGroup
+          onPress={(selectedIndex) => this.updateIndex(selectedIndex)}
+          selectedIndex={this.state.selectedIndex}
+          buttons={buttons}
+          containerStyle={{ height: 40 }}
         />
+        {this.renderNutrition()}
+        {this.renderServing()}
+        {this.renderRatings()}
       </Screen>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  allergens: { flex: 1, padding: 10, flexDirection: "row", flexWrap: "wrap" },
+  ingredients: { padding: 10 },
+  header: {
+    fontFamily: "Lobster",
+    fontSize: 24,
+    flex: 1,
+    backgroundColor: "orange",
+    borderColor: "black",
+    borderWidth: 1,
+    borderStyle: "solid"
+  },
+  ingredientsText: { fontSize: 16 },
+  button: {}
+});
