@@ -9,11 +9,10 @@ export default class AllergenIcon extends React.Component {
         small
         rounded
         source={`../../assets/images/${this.Name}.png`}
-        {
-          // Look disabled if not true.
-          this.Value ? activeOpacity={0.2} : ""
+        activeOpacity={
+          this.Value ? 0.2 : 1
         }
-        //onPress to edit preferences?
+          //onPress to edit preferences?
       />
     )
   }
