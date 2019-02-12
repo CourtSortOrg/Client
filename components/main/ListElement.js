@@ -71,6 +71,7 @@ export default class ListElement extends React.Component {
           <ListElement
             key={index}
             id={index}
+            renderElement={this.props.renderElement}
             {...element}
             {...this.props.subList}
           />
@@ -115,14 +116,20 @@ export default class ListElement extends React.Component {
         }
       >
         <TouchableOpacity
+          style={{ flex: 1 }}
           onPress={() =>
+            this.props.viewMore &&
             this.props.navigation.navigate(
               this.props.viewMore.page,
               this.props.viewMore.item
             )
           }
         >
-          <Text style={{ fontSize: 16 }}>{this.props.Name}</Text>
+          {this.props.renderElement ? (
+            this.props.renderElement(this.props)
+          ) : (
+            <Text style={{ fontSize: 16 }}>{this.props.Name}</Text>
+          )}
         </TouchableOpacity>
         {this.viewMore()}
       </View>
