@@ -127,6 +127,20 @@ export default class SignIn extends React.Component {
         }
     }
 
+    deleteAccount = async() => {      //move this method into the correct section when a button to delete an account is created
+        user = firebase.auth().currentUser;
+        //get list of friends
+        //get list of individual ratings
+        user.delete().then(function() {
+          //navigate to SignIn Screen
+          this.props.navigation.navigate("SignIn");
+          //remove this user from all lists of friends
+          //remove this user's individual ratings
+        }).catch(function(error){
+          alert("ERROR: " + error.message);
+        });
+    }
+
     render() {
         return (
             <TouchableOpacity
