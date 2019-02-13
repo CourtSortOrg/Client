@@ -5,9 +5,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableHighlight,
   View
 } from "react-native";
+
+import { ListItem, Rating } from "react-native-elements";
 
 import { Avatar, ButtonGroup, Divider } from "react-native-elements";
 import { EvilIcons } from "@expo/vector-icons";
@@ -21,14 +22,14 @@ export default class Profile extends React.Component {
     var friendData = require("../../testData/friendData.json");
     var ratingData = require("../../testData/ratingData.json");
 
-
     this.state = {
       name: userData.name,
       initials: userData.initials,
       image: userData.image,
       restrictions: userData.restrictions,
       selectedIndex: 1,
-      friends: friendData.users
+      friends: friendData.users,
+      ratings: ratingData.ratings
     };
   }
 
@@ -42,7 +43,7 @@ export default class Profile extends React.Component {
 
   render() {
     const buttons = ["Ratings", "Friends", "Groups"];
-    const { selectedIndex, restrictions } = this.state;
+    const { selectedIndex, restrictions, ratings } = this.state;
     return (
       <Screen
         backButton={false}
@@ -94,13 +95,12 @@ export default class Profile extends React.Component {
               onPress={this.updateIndex}
               selectedIndex={selectedIndex}
             />
-            {/* {this.shouldRender(
+
+            {this.shouldRender(
               this.state.selectedIndex == 0,
-              this.state.friends.map((data, key) => {
-                return <Text key={key}>Rating #{data}</Text>;
-              }),
+              <RatingList ratings={this.state.ratings} />,
               null
-            )} */}
+            )}
             {this.shouldRender(
               this.state.selectedIndex == 1,
               <FriendList friends={this.state.friends} />,
@@ -118,6 +118,44 @@ export default class Profile extends React.Component {
       </Screen>
     );
   }
+}
+
+// function RatingList(props) {
+//   return (
+//     <List>
+//       <FlatList
+//         data={props.ratings}
+//         renderItem={({ item }) => {
+//           return <ListItem title={item.dish} />;
+//         }}
+//         keyExtractor={item => item.key}
+//       />
+//     </List>
+//   );
+// }
+
+function RatingList(props) {
+  return (
+    <FlatList
+      keyExtractor={item => item.key}
+      data={props.ratings}
+      renderItem={({ item, index }) => (
+        <ListItem
+          title={item.dish}
+          bottomDivider={index!=props.ratings.length-1}
+          topDivider={index!=0}
+          subtitle={
+            <Rating 
+              style={{alignItems:"flex-start"}}
+              imageSize={20}
+              readonly
+              startingValue={item.averageRating}
+            />
+          }
+        />
+      )}
+    />
+  );
 }
 
 function FriendList(props) {
@@ -188,7 +226,6 @@ const styles = StyleSheet.create({
   sectionLists: {
     backgroundColor: "white",
     flexDirection: "column",
-    alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 5,
     marginBottom: 5,
