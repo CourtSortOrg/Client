@@ -17,12 +17,16 @@ import Screen from "../Nav/Screen";
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
+    var userData = require("../../testData/userData.json");
     var friendData = require("../../testData/friendData.json");
+    var ratingData = require("../../testData/ratingData.json");
+
 
     this.state = {
-      name: "Profile Name",
-      initials: "IN",
-      allergens: ["Soy", "Gluten"],
+      name: userData.name,
+      initials: userData.initials,
+      image: userData.image,
+      restrictions: userData.restrictions,
       selectedIndex: 1,
       friends: friendData.users
     };
@@ -38,8 +42,7 @@ export default class Profile extends React.Component {
 
   render() {
     const buttons = ["Ratings", "Friends", "Groups"];
-    const { selectedIndex } = this.state;
-
+    const { selectedIndex, restrictions } = this.state;
     return (
       <Screen
         backButton={false}
@@ -53,7 +56,7 @@ export default class Profile extends React.Component {
               containerStyle={styles.profilePicture}
               rounded
               size={100}
-              source={require("../../assets/carlo.jpg")}
+              source={{ uri: this.state.image }}
               title={this.state.initials}
             />
             <Text style={styles.profileName}>{this.state.name}</Text>
@@ -63,7 +66,7 @@ export default class Profile extends React.Component {
               color="gray"
               style={styles.editInformation}
             />
-            {this.state.allergens.length > 0 ? (
+            {restrictions.length > 0 ? (
               <View style={{ flex: 1, borderRadius: 5 }}>
                 <View
                   style={{
@@ -77,7 +80,7 @@ export default class Profile extends React.Component {
                   <Text style={{ fontWeight: "bold" }}>
                     Allergens and Preferences
                   </Text>
-                  {this.state.allergens.map((data, key) => {
+                  {restrictions.map((data, key) => {
                     return <Text key={key}>{data}</Text>;
                   })}
                 </View>
