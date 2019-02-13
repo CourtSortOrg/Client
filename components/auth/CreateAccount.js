@@ -1,4 +1,5 @@
 import React from "react";
+import * as firebase from 'firebase';
 import {
   Alert,
   Button,
@@ -33,6 +34,8 @@ export default class CreateAccount extends React.Component {
         this.state.password
     );
     Keyboard.dismiss();
+    var email = this.state.email;
+    var password = this.state.password;
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
