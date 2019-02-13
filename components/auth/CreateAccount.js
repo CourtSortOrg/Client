@@ -39,7 +39,7 @@ export default class CreateAccount extends React.Component {
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
-      .then(function(user) {
+      .then((user) => {
         var user = firebase.auth().currentUser;
         user
           .updateProfile({
@@ -51,6 +51,7 @@ export default class CreateAccount extends React.Component {
           .catch(function(error) {
             alert(error.message);
           });
+          this.props.navigation.navigate("Home");
       })
       .catch(function(error) {
         var errorCode = error.code;

@@ -51,14 +51,12 @@ export default class SignIn extends React.Component {
         Keyboard.dismiss();
         //Alert.alert("Credentials", this.state.username+"\n"+this.state.password)
 
+
+
         var username = this.state.username.toString();
-        var pass = this.state.username.toString();
-        firebase.auth().signInWithEmailAndPassword(username, pass).then(function(){
-          //TODO  change panels here. Gives me an error
-            //this
-                //.props
-                //.navigation
-                //.navigate("Home");
+        var pass = this.state.password.toString();
+        firebase.auth().signInWithEmailAndPassword(username, pass).then(() =>   {
+            this.props.navigation.navigate("Home");
         }).catch(function(error) {
           alert(error.message);
         });
@@ -66,27 +64,17 @@ export default class SignIn extends React.Component {
     createAccount = async() => {
         //Alert.alert('Should now navigate to creating account screen');
         try {
-            let response = await fetch('https://us-central1-courtsort-e1100.cloudfunctions.net/test',);
-            Alert.alert('Firebase Test Response', response._bodyText);
+            //let response = await fetch('https://us-central1-courtsort-e1100.cloudfunctions.net/test',);
+            //Alert.alert('Firebase Test Response', response._bodyText);
         } catch (error) {
             console.error(error);
         }
     }
 
-    forgotPassword = () => {  //TODO : Get this code to work
-      var actionCode = {
-        url: "courtsort-e1100.firebaseapp.com",
-        handleCodeInApp: true
-      }
-
+    forgotPassword = async() => {
         Alert.alert('Clicked Forgot Password', 'Begin navigation to ResetPassword screen');
-        firebase.auth().sendPasswordResetEmail(this.state.username.toString(), actionCode).then(function(){
+        firebase.auth().sendPasswordResetEmail(this.state.username.toString()).then(function(){
           alert("Email Sent");
-          firebase.auth().confirmPasswordReset(actionCode, newPassword).then(function(){
-            alert("Confirmed");
-          }).catch(function(error){
-            alert("Error: " + error.message);
-          });
         }).catch(function(error){
           alert(error.message);
         });
