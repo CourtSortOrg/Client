@@ -257,7 +257,10 @@ export default class SignIn extends React.Component {
                             alignItems: 'center'
                         }}>
                             <TouchableHighlight
-                                onPress={this.createAccount}
+                                onPress={() => {
+                                  this.props.navigation.navigate("CreateAccount");
+                                  this.createAccount
+                                }}
                                 activeOpacity={.65}
                                 underlayColor='#FFF'>
                                 <Text style={styles.linkingText}>Create an Account</Text>
