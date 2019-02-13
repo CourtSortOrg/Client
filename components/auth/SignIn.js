@@ -73,8 +73,23 @@ export default class SignIn extends React.Component {
         }
     }
 
-    forgotPassword = () => {
-        Alert.alert('Clicked Forgot Password', 'Begin navigation to ResetPassword screen')
+    forgotPassword = () => {  //TODO : Get this code to work
+      var actionCode = {
+        url: "courtsort-e1100.firebaseapp.com",
+        handleCodeInApp: true
+      }
+
+        Alert.alert('Clicked Forgot Password', 'Begin navigation to ResetPassword screen');
+        firebase.auth().sendPasswordResetEmail(this.state.username.toString(), actionCode).then(function(){
+          alert("Email Sent");
+          firebase.auth().confirmPasswordReset(actionCode, newPassword).then(function(){
+            alert("Confirmed");
+          }).catch(function(error){
+            alert("Error: " + error.message);
+          });
+        }).catch(function(error){
+          alert(error.message);
+        });
     }
 
     signInGoogleAsync = async() => {
