@@ -1,6 +1,8 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import { StyleSheet, View, TouchableOpacity, Image } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+
+import Text from "../Nav/Text";
 
 export default class ListElement extends React.Component {
   constructor(props) {
@@ -20,7 +22,7 @@ export default class ListElement extends React.Component {
       <View style={{ ...styles.listElement, ...styles.expandable }}>
         <View style={styles.expandableHeader}>
           <TouchableOpacity onPress={() => this.toggleExpansion()}>
-            <Text style={{ fontSize: 24 /*fontFamily: "Lobster"*/ }}>
+            <Text type="header">
               {this.props.Name}
             </Text>
             {this.viewMore()}
@@ -53,7 +55,7 @@ export default class ListElement extends React.Component {
               />
             )}
           </View>
-          <Text style={{ fontSize: 16 }}>{this.props.Name}</Text>
+          <Text type="subHeader">{this.props.Name}</Text>
         </TouchableOpacity>
         {this.viewMore()}
         {this.subList()}
@@ -122,7 +124,7 @@ export default class ListElement extends React.Component {
             )
           }
         >
-          <Text style={{ fontSize: 16 }}>{this.props.Name}</Text>
+          <Text type="subHeader"}>{this.props.Name}</Text>
         </TouchableOpacity>
         {this.viewMore()}
       </View>

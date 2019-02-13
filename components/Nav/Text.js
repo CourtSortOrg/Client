@@ -3,8 +3,7 @@ import { Text as NativeText, StyleSheet } from "react-native";
 
 export default class Text extends React.Component {
   render() {
-    let style = { ...this.props };
-    delete style.type;
+    let style = { ...this.props.style };
 
     if (this.props.type) {
       style = { ...styles[this.props.type], ...style };
@@ -19,7 +18,9 @@ const styles = StyleSheet.create({
     fontSize: 24
   },
   body: {},
-  subHeader: {},
+  subHeader: {
+    fontSize: 16
+  },
   default: {},
   sectionName: {}
 });
