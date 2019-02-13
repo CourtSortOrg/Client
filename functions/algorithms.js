@@ -91,6 +91,6 @@ RETURN:
     The length of the array will be a multiple of 2.
     ( A better solution is use a struct-type data structure to keep the start and end times together )
 */
-function is_open(dining_court){
+function get_times(dining_court){
     // @TODO - Tyler
 }

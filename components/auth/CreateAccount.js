@@ -3,6 +3,7 @@ import * as firebase from 'firebase';
 import {
   Alert,
   Button,
+  FlatList,
   Image,
   Keyboard,
   StatusBar,
@@ -16,6 +17,11 @@ import {
 } from "react-native";
 
 export default class CreateAccount extends React.Component {
+  constructor(props) {
+    super(props);
+    var allergenData = require("../../allergenInformation.json");
+  }
+
   state = {
     name: "",
     email: "",
@@ -63,6 +69,30 @@ export default class CreateAccount extends React.Component {
         }
       });
   };
+
+  renderItem = data =>
+    <TouchableOpacity
+      onPress{ () => this.selectItem(data)}
+    />
+    <Text></Text>
+    </TouchableOpacity>
+
+  selectItem  = data => {
+    data.item.isSelect = !data.item.isSelect;
+    data.item.selectedClass = data.item.isSelect ? styles.selected: styles.list;
+
+    const index = this.state.dataSource.findIndex(
+      item => data.item.id === item.id
+    );
+
+    this.state.dataSource[index] = data.item;
+    this.setState({
+      dataSource: this.state.dataSource
+    });
+  };
+
+  FlatListItemSeparator = () => <View style={styles.line} />;
+
 
   render() {
     return (
@@ -146,7 +176,13 @@ export default class CreateAccount extends React.Component {
           />
           {/* Ask the user about any dietary restrictions */}
           {/* Allergens: Eggs, Fish, Gluten, Milk, Peanuts, Shellfish, Soy, Tree Nuts, Wheat*/}
-
+          <FlatList
+            style={styles.allergenList}
+            ItemSeparatorcomponent={this.FlatListItemSeparator}
+            data={props.allergenInformation}
+            renderItem={item =>  this.renderItem(item)}
+            keyExtractor={item => item.id.toString()}
+          />
           {/* The Button to create the account */}
           <Button
             color="#e9650d"
@@ -205,5 +241,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 8,
     paddingHorizontal: 15
+  },
+  allergenList:  {
+    width: "100%"
+  },
+  image: {
   }
 });
