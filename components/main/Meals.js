@@ -2917,15 +2917,6 @@ export default class Meals extends React.Component {
             }
           }}
         />
-
-        <Button
-          title="Dining Court"
-          onPress={() => this.props.navigation.push("DiningCourt")}
-        />
-        <Button
-          title="MealItem"
-          onPress={() => this.props.navigation.push("MealItem")}
-        />
       </Screen>
     );
   }
