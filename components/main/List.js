@@ -27,6 +27,7 @@ export default class List extends React.Component {
             key={index}
             id={index}
             {...element}
+            navigation={this.props.navigation}
             renderElement={this.props.renderElement}
             type={this.props.type}
             subList={{ ...this.props.subList }}

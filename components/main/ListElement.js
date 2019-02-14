@@ -71,6 +71,7 @@ export default class ListElement extends React.Component {
           <ListElement
             key={index}
             id={index}
+            navigation={this.props.navigation}
             renderElement={this.props.renderElement}
             {...element}
             {...this.props.subList}
@@ -81,17 +82,16 @@ export default class ListElement extends React.Component {
     //}
   };
 
+  navigate() {
+    this.props.navigation.navigate(this.props.viewMore.page, {
+      ID: this.props[this.props.viewMore.item]
+    });
+  }
+
   viewMore = () => {
     if (this.props.viewMore) {
       return (
-        <TouchableOpacity
-          onPress={() =>
-            this.props.navigation.navigate(
-              this.props.viewMore.page,
-              this.props.viewMore.item
-            )
-          }
-        >
+        <TouchableOpacity onPress={() => this.navigate()}>
           <MaterialIcons
             size={32}
             name="keyboard-arrow-right"
@@ -117,13 +117,7 @@ export default class ListElement extends React.Component {
       >
         <TouchableOpacity
           style={{ flex: 1 }}
-          onPress={() =>
-            this.props.viewMore &&
-            this.props.navigation.navigate(
-              this.props.viewMore.page,
-              this.props.viewMore.item
-            )
-          }
+          onPress={() => this.props.viewMore && this.navigate()}
         >
           {this.props.renderElement ? (
             this.props.renderElement(this.props)

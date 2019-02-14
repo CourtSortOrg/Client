@@ -2904,12 +2904,17 @@ export default class Meals extends React.Component {
           </TouchableOpacity>
         </View>
         <List
+          navigation={this.props.navigation}
           list={this.state.meals[this.state.currentMeal].Stations}
           type={"expandable"}
           subList={{
             list: "Items",
             type: "element",
-            subList: false
+            subList: false,
+            viewMore: {
+              page: "MealItem",
+              item: "ID"
+            }
           }}
         />
 

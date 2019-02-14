@@ -177,7 +177,7 @@ export default class MealItem extends React.Component {
   }
 
   componentWillMount() {
-    console.log("Load menu item");
+    console.log(`Load menu item ${this.props.navigation.getParam("ID", "NO-ID")}`);
   }
 
   renderElement(item) {
@@ -225,7 +225,6 @@ export default class MealItem extends React.Component {
   }
 
   renderRatings() {
-    console.log("ratings");
   }
 
   render() {
