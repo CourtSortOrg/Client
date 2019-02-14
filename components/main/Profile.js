@@ -8,9 +8,8 @@ import {
   View
 } from "react-native";
 
-import { ListItem, Rating } from "react-native-elements";
-
-import { Avatar, ButtonGroup, Divider } from "react-native-elements";
+import { Card, ListItem, Rating, Button } from "react-native-elements";
+import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
 import { EvilIcons } from "@expo/vector-icons";
 
 import Screen from "../Nav/Screen";
@@ -19,17 +18,22 @@ export default class Profile extends React.Component {
   constructor(props) {
     super(props);
     var userData = require("../../testData/userData.json");
-    var friendData = require("../../testData/friendData.json");
     var ratingData = require("../../testData/ratingData.json");
+    var friendData = require("../../testData/friendData.json");
+    var groupData = require("../../testData/groupData.json");
 
     this.state = {
+      selectedIndex: 0,
+      isEditing: false,
+
       name: userData.name,
       initials: userData.initials,
       image: userData.image,
       restrictions: userData.restrictions,
-      selectedIndex: 1,
+
+      ratings: ratingData.ratings,
       friends: friendData.users,
-      ratings: ratingData.ratings
+      groups: groupData.groups
     };
   }
 
@@ -41,9 +45,19 @@ export default class Profile extends React.Component {
     return expr ? comp1 : comp2;
   };
 
+  deleteAccount = () => {};
+
+  signOut = () => {};
+
   render() {
     const buttons = ["Ratings", "Friends", "Groups"];
-    const { selectedIndex, restrictions, ratings } = this.state;
+    const {
+      friends,
+      groups,
+      restrictions,
+      ratings,
+      selectedIndex
+    } = this.state;
     return (
       <Screen
         backButton={false}
@@ -52,7 +66,10 @@ export default class Profile extends React.Component {
       >
         {/* "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png" */}
         <ScrollView style={styles.backgroundColor}>
-          <View style={styles.profileInformation}>
+          <Card
+            containerStyle={styles.card}
+            wrapperStyle={styles.profileInformation}
+          >
             <Avatar
               containerStyle={styles.profilePicture}
               rounded
@@ -62,12 +79,15 @@ export default class Profile extends React.Component {
             />
             <Text style={styles.profileName}>{this.state.name}</Text>
             <EvilIcons
-              name="pencil"
-              size={35}
               color="gray"
+              name="pencil"
+              onPress={() => {
+                this.setState({ isEditing: true });
+              }}
+              size={35}
               style={styles.editInformation}
             />
-            {restrictions.length > 0 ? (
+            {/* {restrictions.length > 0 ? (
               <View style={{ flex: 1, borderRadius: 5 }}>
                 <View
                   style={{
@@ -86,10 +106,9 @@ export default class Profile extends React.Component {
                   })}
                 </View>
               </View>
-            ) : null}
-          </View>
-
-          <View style={styles.sectionLists}>
+            ) : null} */}
+          </Card>
+          <Card containerStyle={styles.card}>
             <ButtonGroup
               buttons={buttons}
               onPress={this.updateIndex}
@@ -97,102 +116,128 @@ export default class Profile extends React.Component {
             />
 
             {this.shouldRender(
-              this.state.selectedIndex == 0,
-              <RatingList ratings={this.state.ratings} />,
+              selectedIndex == 0,
+              <RatingsList ratings={ratings} />,
               null
             )}
             {this.shouldRender(
-              this.state.selectedIndex == 1,
-              <FriendList friends={this.state.friends} />,
+              selectedIndex == 1,
+              <FriendsList friends={friends} />,
               null
             )}
-            {/* {this.shouldRender(
-              this.state.selectedIndex == 2,
-              this.state.friends.map((data, key) => {
-                return <Text key={key}>Group #{data}</Text>;
-              }),
+            {this.shouldRender(
+              selectedIndex == 2,
+              <GroupsList groups={groups} />,
               null
-            )} */}
-          </View>
+            )}
+            
+          </Card>
+          <Overlay
+            borderRadius={4}
+            height="90%"
+            isVisible={this.state.isEditing}
+            overlayBackgroundColor="white"
+            width="90%"
+            windowBackgroundColor="rgba(0, 0, 0, .5)"
+          >
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 15
+              }}
+            >
+              <EvilIcons
+                color="gray"
+                name="close"
+                onPress={() => {
+                  this.setState({ isEditing: false });
+                }}
+                size={24}
+                style={styles.editInformation}
+              />
+              <Text>Edit Profile</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between"
+                }}
+              >
+                <Button
+                  title="Sign Out"
+                  onPress={this.signOut}
+                  containerStyle={{ flex: 1, marginHorizontal: 5 }}
+                />
+                <Button
+                  title="Delete Account"
+                  onPress={this.signOut}
+                  containerStyle={{ flex: 1, marginHorizontal: 5 }}
+                />
+              </View>
+            </View>
+          </Overlay>
         </ScrollView>
       </Screen>
     );
   }
 }
 
-// function RatingList(props) {
-//   return (
-//     <List>
-//       <FlatList
-//         data={props.ratings}
-//         renderItem={({ item }) => {
-//           return <ListItem title={item.dish} />;
-//         }}
-//         keyExtractor={item => item.key}
-//       />
-//     </List>
-//   );
-// }
-
-function RatingList(props) {
+function RatingsList(props) {
   return (
     <FlatList
-      keyExtractor={item => item.key}
       data={props.ratings}
+      keyExtractor={item => item.id}
       renderItem={({ item, index }) => (
         <ListItem
-          title={item.dish}
-          bottomDivider={index!=props.ratings.length-1}
-          topDivider={index!=0}
+          bottomDivider
           subtitle={
-            <Rating 
-              style={{alignItems:"flex-start"}}
-              imageSize={20}
-              readonly
-              startingValue={item.averageRating}
-            />
+            <View style={{ alignItems: "flex-start", flexDirection: "row" }}>
+              <Rating imageSize={20} readonly startingValue={item.userRating} />
+              <Text style={{ marginLeft: 5 }}>({item.diningCourt})</Text>
+            </View>
           }
+          title={item.dish}
+          topDivider
         />
       )}
     />
   );
 }
 
-function FriendList(props) {
+function FriendsList(props) {
   return (
     <FlatList
-      style={styles.friendList}
+      keyExtractor={item => item.id}
       data={props.friends}
-      renderItem={({ item, index }) => (
-        <FriendRow
-          key={item.key}
-          endIndex={props.friends.length}
-          name={item.name}
-          index={index}
-          image={item.image}
-          initials={item.initials}
+      renderItem={({ item }) => (
+        <ListItem
+          chevron
+          bottomDivider
+          leftAvatar={{
+            source: { uri: item.image },
+            containerStyle: styles.friendPicture
+          }}
+          subtitle={`@${item.username}`}
+          title={item.name}
+          topDivider
         />
       )}
     />
   );
 }
 
-function FriendRow(props) {
+function GroupsList(props) {
   return (
-    <View>
-      {props.index != 0 ? <Divider /> : null}
-      <View style={styles.friendRow}>
-        <Avatar
-          containerStyle={styles.friendPicture}
-          rounded
-          size="medium"
-          source={{ uri: props.image }}
-          title={props.initials}
-        />
-        <Text style={styles.friendName}>{props.name}</Text>
-      </View>
-      {props.index == props.endIndex ? <Divider /> : null}
-    </View>
+    <FlatList
+      keyExtractor={item => item.id}
+      data={props.groups}
+      renderItem={({ item }) => (
+        <ListItem chevron bottomDivider title={item.name} topDivider />
+      )}
+    />
   );
 }
 
@@ -200,18 +245,21 @@ const styles = StyleSheet.create({
   backgroundColor: {
     backgroundColor: "lightgray"
   },
+  card: {
+    padding: 0,
+    borderRadius: 4,
+    marginVertical: 5,
+    marginHorizontal: 10
+  },
   editInformation: {
     position: "absolute",
     top: 4,
     right: 4
   },
   profileInformation: {
-    backgroundColor: "white",
-    flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    margin: 5,
-    borderRadius: 5
+    flexDirection: "column",
+    justifyContent: "center"
   },
   profilePicture: {
     borderColor: "#e9650d",
@@ -223,29 +271,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 20
   },
-  sectionLists: {
-    backgroundColor: "white",
-    flexDirection: "column",
-    justifyContent: "center",
-    marginHorizontal: 5,
-    marginBottom: 5,
-    borderRadius: 5
-  },
-  friendList: {
-    width: "100%"
-  },
-  friendRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    margin: 5
-  },
   friendPicture: {
     borderColor: "#e9650d",
     borderWidth: 2
-  },
-  friendName: {
-    marginHorizontal: 10,
-    fontSize: 20,
-    fontWeight: "bold"
   }
 });

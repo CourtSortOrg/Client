@@ -2,37 +2,43 @@
   "users": [
     {
       "name": "Daniel Kambich",
-      "key": "123456",
+      "id": "123456",
+      "username": "dkambich",
       "image": "https://picsum.photos/300",
       "initials": "DK"
     },
     {
       "name": "Aahan Aggarwal",
-      "key": "54545",
+      "id": "54545",
+      "username": "aaggarwal",
       "image": "https://picsum.photos/301",
       "initials": "AA"
     },
     {
       "name": "Carlo Cirrincione",
-      "key": "31321354",
-      "image": "https://picsum.photos/302", 
+      "id": "31321354",
+      "username": "ccirrincione",
+      "image": "https://picsum.photos/302",
       "initials": "CC"
     },
     {
       "name": "Will Eiffert",
-      "key": "2275257",
+      "id": "2275257",
+      "username": "weiffert",
       "image": "https://picsum.photos/303",
       "initials": "WE"
     },
     {
       "name": "Karl Gaertner",
-      "key": "35435434",
+      "id": "35435434",
+      "username": "kgaertner",
       "image": "https://picsum.photos/304",
       "initials": "KG"
     },
     {
       "name": "Abigail McKinney",
-      "key": "654321", 
+      "id": "654321",
+      "username": "amckinney",
       "image": "https://picsum.photos/305",
       "initials": "AM"
     }

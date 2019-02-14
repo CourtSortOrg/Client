@@ -70,12 +70,13 @@ export default class CreateAccount extends React.Component {
       });
   };
 
-  renderItem = data =>
+  renderItem = data => {
     <TouchableOpacity
-      onPress{ () => this.selectItem(data)}
-    />
+      onPress={ () => this.selectItem(data)}
+    >
     <Text></Text>
     </TouchableOpacity>
+    }
 
   selectItem  = data => {
     data.item.isSelect = !data.item.isSelect;
