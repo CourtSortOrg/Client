@@ -1,5 +1,5 @@
 import React from "react";
-import * as firebase from 'firebase';
+import * as firebase from "firebase";
 import {
   Alert,
   FlatList,
@@ -50,25 +50,32 @@ export default class Profile extends React.Component {
     user = firebase.auth().currentUser;
     //get list of friends
     //get list of individual ratings
-    user.delete().then(() => {
-      //navigate to SignIn Screen
-      this.props.navigation.navigate("SignIn");
-      this.setState({ isEditing: false });
-      //remove this user from all lists of friends
-      //remove this user's individual ratings
-    }).catch(function(error){
-      alert("ERROR: " + error.message);
-    });
+    user
+      .delete()
+      .then(() => {
+        //navigate to SignIn Screen
+        this.props.navigation.navigate("Auth");
+        this.setState({ isEditing: false });
+        //remove this user from all lists of friends
+        //remove this user's individual ratings
+      })
+      .catch(function(error) {
+        alert("ERROR: " + error.message);
+      });
   };
 
   signOut = () => {
-  this.props.navigation.navigate("SignIn");
-    firebase.auth().signOut().then(() => {
-      this.setState({ isEditing: false });
-      //go back to SignIn screen
-    }).catch((error) => {
-      alert(error.message);
-    });
+    firebase
+      .auth()
+      .signOut()
+      .then(() => {
+        this.setState({ isEditing: false });
+        this.props.navigation.navigate("Auth");
+        //go back to SignIn screen
+      })
+      .catch(error => {
+        alert(error.message);
+      });
   };
 
   render() {
@@ -152,7 +159,6 @@ export default class Profile extends React.Component {
               <GroupsList groups={groups} />,
               null
             )}
-
           </Card>
           <Overlay
             borderRadius={4}
