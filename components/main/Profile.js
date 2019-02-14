@@ -1,4 +1,5 @@
 import React from "react";
+import * as firebase from 'firebase';
 import {
   Alert,
   FlatList,
@@ -45,9 +46,30 @@ export default class Profile extends React.Component {
     return expr ? comp1 : comp2;
   };
 
-  deleteAccount = () => {};
+  deleteAccount = () => {
+    user = firebase.auth().currentUser;
+    //get list of friends
+    //get list of individual ratings
+    user.delete().then(() => {
+      //navigate to SignIn Screen
+      this.props.navigation.navigate("SignIn");
+      this.setState({ isEditing: false });
+      //remove this user from all lists of friends
+      //remove this user's individual ratings
+    }).catch(function(error){
+      alert("ERROR: " + error.message);
+    });
+  };
 
-  signOut = () => {};
+  signOut = () => {
+  this.props.navigation.navigate("SignIn");
+    firebase.auth().signOut().then(() => {
+      this.setState({ isEditing: false });
+      //go back to SignIn screen
+    }).catch((error) => {
+      alert(error.message);
+    });
+  };
 
   render() {
     const buttons = ["Ratings", "Friends", "Groups"];
@@ -130,7 +152,7 @@ export default class Profile extends React.Component {
               <GroupsList groups={groups} />,
               null
             )}
-            
+
           </Card>
           <Overlay
             borderRadius={4}
@@ -173,7 +195,7 @@ export default class Profile extends React.Component {
                 />
                 <Button
                   title="Delete Account"
-                  onPress={this.signOut}
+                  onPress={this.deleteAccount}
                   containerStyle={{ flex: 1, marginHorizontal: 5 }}
                 />
               </View>

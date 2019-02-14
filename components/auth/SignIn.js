@@ -39,7 +39,6 @@ export default class SignIn extends React.Component {
         }
         firebase.auth().onAuthStateChanged(function(user){
           if(user){
-            alert("User already signed in");
             props.navigation.navigate("Home");
           }
         })
@@ -50,7 +49,6 @@ export default class SignIn extends React.Component {
         // automagically continue to main');
         Keyboard.dismiss();
         //Alert.alert("Credentials", this.state.username+"\n"+this.state.password)
-
 
 
         var username = this.state.username.toString();
@@ -128,20 +126,6 @@ export default class SignIn extends React.Component {
         } catch ({message}) {
             alert(`Facebook Login Error: ${message}`);
         }
-    }
-
-    deleteAccount = async() => {      //move this method into the correct section when a button to delete an account is created
-        user = firebase.auth().currentUser;
-        //get list of friends
-        //get list of individual ratings
-        user.delete().then(function() {
-          //navigate to SignIn Screen
-          this.props.navigation.navigate("SignIn");
-          //remove this user from all lists of friends
-          //remove this user's individual ratings
-        }).catch(function(error){
-          alert("ERROR: " + error.message);
-        });
     }
 
     render() {
