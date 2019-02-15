@@ -49,9 +49,11 @@ export default class Header extends React.Component {
               justifyContent: "center"
             }}
           >
-            <Text type="header">
-              {this.props.title}
-            </Text>
+            {this.props.center ? (
+              this.props.center
+            ) : (
+              <Text type="header">{this.props.title}</Text>
+            )}
           </View>
           <TouchableOpacity
             style={this.props.styles.button}

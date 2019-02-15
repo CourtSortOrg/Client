@@ -19,6 +19,7 @@ export default class Screen extends React.Component {
           title={this.props.title}
           backButton={this.props.backButton}
           active={this.props.title}
+          {...this.props.header}
         />
         <Body>{this.props.children}</Body>
         <Footer

@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { Button } from "react-native-elements";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { Button, SearchBar } from "react-native-elements";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import Screen from "../Nav/Screen";
@@ -2817,7 +2817,8 @@ export default class Meals extends React.Component {
     this.state = {
       date: 0,
       meals: Ford.Meals,
-      currentMeal: 0
+      currentMeal: 0,
+      search: ""
     };
   }
 
@@ -2839,6 +2840,24 @@ export default class Meals extends React.Component {
         title="Meals"
         navigation={{ ...this.props.navigation }}
         backButton={false}
+        header={{
+          center: (
+            /*<TextInput
+              style={{ flexGrow: 1, flex: 3, height: 40, borderColor: "gray", borderWidth: 1 }}
+              onChangeText={text => this.setState({ text })}
+              value={this.state.text}
+            />
+              */
+            <SearchBar
+              lightTheme
+              onChangeText={text => this.setState({text})}
+              onClearText={() => this.setState({text: ""})}
+              icon={{ type: "font-awesome", name: "search" }}
+              placeholder="Type Here..."
+              style={{width:200}}
+            />
+          )
+        }}
       >
         <View style={{ flex: 2, height: 75, flexDirection: "row" }}>
           <TouchableOpacity
