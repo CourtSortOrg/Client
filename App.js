@@ -7,11 +7,16 @@ import Main from "./components/main/Main";
 import Splash from "./components/auth/Splash";
 import SignIn from "./components/auth/SignIn";
 import CreateAccount from "./components/auth/CreateAccount";
+import ResetPassword from "./components/auth/ResetPassword";
+
 
 const AuthNavigation = createSwitchNavigator(
   {
     CreateAccount: {
       screen: CreateAccount
+    },
+    ResetPassword: {
+      screen: ResetPassword
     },
     Home: {
       screen: Main

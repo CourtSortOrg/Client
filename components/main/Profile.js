@@ -78,6 +78,19 @@ export default class Profile extends React.Component {
       });
   };
 
+  createUser = async () => {
+    let response = await fetch('https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        uid: "test-uid",
+      }),
+    });
+  }
+
   render() {
     const buttons = ["Ratings", "Friends", "Groups"];
     const {
@@ -187,6 +200,9 @@ export default class Profile extends React.Component {
                 style={styles.editInformation}
               />
               <Text>Edit Profile</Text>
+              <Button 
+                  title="Create Account"
+                  onPress={this.createUser}/>
               <View
                 style={{
                   flexDirection: "row",
@@ -194,6 +210,7 @@ export default class Profile extends React.Component {
                   justifyContent: "space-between"
                 }}
               >
+              
                 <Button
                   title="Sign Out"
                   onPress={this.signOut}

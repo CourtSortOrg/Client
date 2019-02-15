@@ -56,29 +56,20 @@ export default class SignIn extends React.Component {
       });
   };
   createAccount = async () => {
-    //Alert.alert('Should now navigate to creating account screen');
-    try {
-      //let response = await fetch('https://us-central1-courtsort-e1100.cloudfunctions.net/test',);
-      //Alert.alert('Firebase Test Response', response._bodyText);
-    } catch (error) {
-      console.error(error);
-    }
+    this.props.navigation.navigate("CreateAccount");
   };
 
   forgotPassword = async () => {
-    Alert.alert(
-      "Clicked Forgot Password",
-      "Begin navigation to ResetPassword screen"
-    );
-    firebase
-      .auth()
-      .sendPasswordResetEmail(this.state.username.toString())
-      .then(function() {
-        alert("Email Sent");
-      })
-      .catch(function(error) {
-        alert(error.message);
-      });
+    this.props.navigation.navigate("ResetPassword");
+    // firebase
+    //   .auth()
+    //   .sendPasswordResetEmail(this.state.username.toString())
+    //   .then(function() {
+    //     alert("Email Sent");
+    //   })
+    //   .catch(function(error) {
+    //     alert(error.message);
+    //   });
   };
 
   signInGoogleAsync = async () => {
@@ -274,10 +265,7 @@ export default class SignIn extends React.Component {
               }}
             >
               <TouchableHighlight
-                onPress={() => {
-                  this.props.navigation.navigate("CreateAccount");
-                  this.createAccount;
-                }}
+                onPress={this.createAccount}
                 activeOpacity={0.65}
                 underlayColor="#FFF"
               >
