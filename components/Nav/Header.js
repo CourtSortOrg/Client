@@ -1,6 +1,8 @@
 import React from "react";
-import { Text, View, TouchableOpacity, Image } from "react-native";
+import { View, TouchableOpacity, Image } from "react-native";
 import { Button, Avatar } from "react-native-elements";
+
+import Text from "./Text";
 
 export default class Header extends React.Component {
   render() {
@@ -47,12 +49,7 @@ export default class Header extends React.Component {
               justifyContent: "center"
             }}
           >
-            <Text
-              style={{
-                fontSize: 25,
-                fontFamily: "Lobster"
-              }}
-            >
+            <Text type="header">
               {this.props.title}
             </Text>
           </View>

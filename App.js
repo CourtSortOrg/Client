@@ -6,11 +6,12 @@ import { Font } from "expo";
 import Main from "./components/main/Main";
 import Splash from "./components/auth/Splash";
 import SignIn from "./components/auth/SignIn";
+import CreateAccount from "./components/auth/CreateAccount";
 
 const AuthNavigation = createSwitchNavigator(
   {
-    Splash: {
-      screen: Splash
+    CreateAccount: {
+      screen: CreateAccount
     },
     Home: {
       screen: Main

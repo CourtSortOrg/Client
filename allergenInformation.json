@@ -1,0 +1,49 @@
+{
+  "allergens": [
+    {
+      "name": "Eggs",
+      "id": 1,
+      "image": "assets/images/Eggs.png"
+    },
+    {
+      "name": "Fish",
+      "id": 2,
+      "image": "assets/images/Fish.png"
+    },
+    {
+      "name": "Gluten",
+      "id": 3,
+      "image": "assets/images/Gluten.png"
+    },
+    {
+      "name": "Milk",
+      "id": 4,
+      "image": "assets/images/Milk.png"
+    },
+    {
+      "name": "Peanuts",
+      "id": 5,
+      "image": "assets/images/Peanuts.png"
+    },
+    {
+      "name": "Shellfish",
+      "id": 6,
+      "image": "assets/images/Shellfish.png"
+    },
+    {
+      "name": "Soy",
+      "id": 7,
+      "image": "assets/images/Soy.png"
+    },
+    {
+      "name": "Tree Nuts",
+      "id": 8,
+      "image": "assets/images/TreeNuts.png"
+    },
+    {
+      "name": "Wheat",
+      "id": 9,
+      "image": "assets/images/Wheat.png"
+    }
+  ]
+}
