@@ -22,9 +22,7 @@ export default class ListElement extends React.Component {
       <View style={{ ...styles.listElement, ...styles.expandable }}>
         <View style={styles.expandableHeader}>
           <TouchableOpacity onPress={() => this.toggleExpansion()}>
-            <Text type="header">
-              {this.props.Name}
-            </Text>
+            <Text type="header">{this.props.Name}</Text>
             {this.viewMore()}
           </TouchableOpacity>
         </View>
@@ -124,7 +122,7 @@ export default class ListElement extends React.Component {
           {this.props.renderElement ? (
             this.props.renderElement(this.props)
           ) : (
-            <Text type="subHeader"}>{this.props.Name}</Text>
+            <Text type="subHeader">{this.props.Name}</Text>
           )}
         </TouchableOpacity>
         {this.viewMore()}
