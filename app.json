@@ -27,6 +27,8 @@
     },
     "facebookScheme":"fb279514589383224",
     "facebookAppId": "279514589383224",
-    "facebookDisplayName": "CourtSort"
+    "facebookDisplayName": "CourtSort",
+    "ios.config.googleMapsApiKey": "AIzaSyDJ0Ka2RYGk4cAQMO4avyc_7q1opokVDIk",
+    "android.config.googleSignIn":  "AIzaSyDJ0Ka2RYGk4cAQMO4avyc_7q1opokVDIk"
   }
 }

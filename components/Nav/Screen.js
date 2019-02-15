@@ -10,7 +10,6 @@ export default class Screen extends React.Component {
     return (
       <View
         style={{
-          backgroundColor: "red",
           flex: 1
         }}
       >

@@ -21,17 +21,19 @@ export default class List extends React.Component {
 
   render() {
     return (
-      <ScrollView style={{flex: 1}}>
+      <View style={{flex: 1}}>
         {this.props.list.map((element, index) => (
           <ListElement
             key={index}
             id={index}
             {...element}
+            navigation={this.props.navigation}
+            renderElement={this.props.renderElement}
             type={this.props.type}
             subList={{ ...this.props.subList }}
           />
         ))}
-      </ScrollView>
+      </View>
     );
   }
 }

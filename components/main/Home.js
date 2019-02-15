@@ -16,10 +16,6 @@ export default class Home extends React.Component {
           title="Dining Court"
           onPress={() => this.props.navigation.push("DiningCourt")}
         />
-        <Button
-          title="MealItem"
-          onPress={() => this.props.navigation.push("MealItem")}
-        />
       </Screen>
     );
   }
