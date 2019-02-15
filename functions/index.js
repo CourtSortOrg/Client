@@ -5,9 +5,7 @@ const req = require('request');
 //const algorithms = require('./algorithms.js')
 
 const admin = require('firebase-admin');
-const firebase = require('firebase');
 admin.initializeApp(functions.config().firebase);
-firebase.initializeApp(functions.config().firebase);
 
 var db = admin.firestore();
 
@@ -76,11 +74,48 @@ exports.updateUserDatabase = functions.https.onRequest((request, response) => {
 
   //check if the user exists already
   function checkUserExists(uid) {
-    firebase.database().ref('/User/' + uid).once('value').then(function(snapshot) {
-      return snapshot.exists();
+    var userRef = db.collection("User").doc(uid);
+    var getDoc = userRef.get().then(doc => {
+      if(!doc.exists()) {
+        console.log("User doesn't exist");
+        return false
+      }
+      else {
+        console.log("User exists");
+        return true;
+      }
+    }).catch(err => {
+      console.log("Error getting document: " + err);
     });
   }
 
   // Start listing users from the beginning, 1000 at a time.
   listAllUsers(undefined, response);
+});
+
+//add user to database
+exports.addUserToDatabase = functions.https.onRequest((request, response) => {
+  console.log(request);
+  console.log(request.body.uid);
+  var uid = request.query.uid;
+  console.log(uid);
+  if (uid == null) {
+    response.send("Must pass uid in request");
+    return;
+  }
+
+  var updatedUser = {
+    uid: uid,
+    preferences: "",
+    dietaryRestrictions: "",
+    friends: "",
+    blockedUsers: ""
+  }
+  db.collection("User").doc(uid).set(updatedUser).then(function() {
+    console.log("User successfully added!");
+    response.send("success");
+  }).catch(function(error) {
+    console.error("Error adding user: ", error);
+    response.send("error");
+  });
 });
