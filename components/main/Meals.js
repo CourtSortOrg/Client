@@ -5,6 +5,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import Screen from "../Nav/Screen";
 import List from "./List";
+import ListElement from "./ListElement";
 
 const Ford = {
   Meals: [
@@ -2969,21 +2970,26 @@ export default class Meals extends React.Component {
           placeholder="Filter"
           value={this.state.search}
         />
-        <List
-          navigation={this.props.navigation}
-          list={this.state.filteredMeals}
-          type={"expandable"}
-          expand={this.state.search.length != 0}
-          subList={{
-            list: "Items",
-            type: "element",
-            subList: false,
-            viewMore: {
-              page: "MealItem",
-              item: "ID"
-            }
-          }}
-        />
+        {console.log(this.state.filteredMeals.length)}
+        {this.state.filteredMeals.length != 0 ? (
+          <List
+            navigation={this.props.navigation}
+            list={this.state.filteredMeals}
+            type={"expandable"}
+            expand={this.state.search.length != 0}
+            subList={{
+              list: "Items",
+              type: "element",
+              subList: false,
+              viewMore: {
+                page: "MealItem",
+                item: "ID"
+              }
+            }}
+          />
+        ) : (
+          <ListElement type="element" Name="No item found" subList={false} />
+        )}
       </Screen>
     );
   }
