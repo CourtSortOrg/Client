@@ -2824,33 +2824,49 @@ export default class Meals extends React.Component {
   }
 
   previousDate() {
-    this.setState({
-      date: this.state.date - 1
-    });
-    this.updateMeals(0);
+    this.setState(
+      {
+        date: this.state.date - 1,
+        currentMeal: 0
+      },
+      this.onClearText
+    );
   }
 
   nextDate() {
-    this.setState({
-      date: this.state.date + 1
-    });
-    this.updateMeals(0);
+    this.setState(
+      {
+        date: this.state.date + 1,
+        currentMeal: 0
+      },
+      this.onClearText
+    );
   }
 
   updateMeals(index) {
-    this.setState({ currentMeal: index });
-    this.onClearText();
+    this.setState(
+      {
+        currentMeal: index
+      },
+      this.filterMeals
+    );
   }
 
   filterMeals() {
-    let filteredMeals = JSON.parse(JSON.stringify(this.state.meals[this.state.currentMeal].Stations));
-    console.log(this.state.search)
+    let filteredMeals = JSON.parse(
+      JSON.stringify(this.state.meals[this.state.currentMeal].Stations)
+    );
+    console.log(this.state.search);
     if (this.state.search != "") {
-      for(let i = 0; i < filteredMeals.length; i++) {
+      for (let i = 0; i < filteredMeals.length; i++) {
         console.log(`${filteredMeals[i].Items}.contains(${this.state.search})`);
-        filteredMeals[i].Items = filteredMeals[i].Items.filter(item => item.Name.includes(this.state.search))
+        filteredMeals[i].Items = filteredMeals[i].Items.filter(item =>
+          item.Name.includes(this.state.search)
+        );
       }
-      filteredMeals = filteredMeals.filter(station => station.Items.length != 0);
+      filteredMeals = filteredMeals.filter(
+        station => station.Items.length != 0
+      );
     }
     this.setState({
       filteredMeals
@@ -2858,16 +2874,21 @@ export default class Meals extends React.Component {
   }
 
   onChangeText(search) {
-    this.setState({
-      search
-    }, this.filterMeals);
+    this.setState(
+      {
+        search
+      },
+      this.filterMeals
+    );
   }
 
   onClearText() {
-    console.log("cleared!");
-    this.setState({
-      search: ""
-    }, this.filterMeals);
+    this.setState(
+      {
+        search: ""
+      },
+      this.filterMeals
+    );
   }
 
   render() {
@@ -2952,6 +2973,7 @@ export default class Meals extends React.Component {
           navigation={this.props.navigation}
           list={this.state.filteredMeals}
           type={"expandable"}
+          expand={this.state.search.length != 0}
           subList={{
             list: "Items",
             type: "element",

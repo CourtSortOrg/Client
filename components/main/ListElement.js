@@ -9,8 +9,15 @@ export default class ListElement extends React.Component {
     super(props);
 
     this.state = {
-      expand: false
+      expand: this.props.expand
     };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.expand != this.props.expand)
+      this.setState({
+        expand: this.props.expand
+      });
   }
 
   toggleExpansion = () => {
@@ -62,15 +69,13 @@ export default class ListElement extends React.Component {
   };
 
   subList = () => {
-    // Uncomment if what to reset when enclosing elements are closed.
-    //if (this.state.expand) {
     return (
-      //Remove conditional if
       <View style={this.state.expand ? styles.subList : { display: "none" }}>
         {this.props[this.props.subList.list].map((element, index) => (
           <ListElement
             key={index}
             id={index}
+            expand={this.props.expand}
             navigation={this.props.navigation}
             renderElement={this.props.renderElement}
             {...element}
