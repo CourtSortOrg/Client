@@ -6,7 +6,13 @@ export default class Footer extends React.Component {
   render() {
     return (
       <View
-        style={{ flex: 0.1, flexDirection: "row", backgroundColor: "#e86515", borderTopWidth: 5, borderColor: "black" }}
+        style={{
+          flex: 0.1,
+          flexDirection: "row",
+          backgroundColor: "#e86515",
+          borderTopWidth: 5,
+          borderColor: "black"
+        }}
       >
         <TouchableOpacity
           style={this.props.styles.button}
