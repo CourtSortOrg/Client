@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { View, TouchableOpacity, TextInput } from "react-native";
 import { Button, SearchBar } from "react-native-elements";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import Screen from "../Nav/Screen";
 import List from "./List";
 import ListElement from "./ListElement";
+import Text from "../Nav/Text"
 
 const Ford = {
   Meals: [
@@ -2985,7 +2986,7 @@ export default class Meals extends React.Component {
             }}
           />
         ) : (
-          <ListElement type="element" Name="No item found" subList={false} />
+          <ListElement type="expandable" Name="No item found" />
         )}
       </Screen>
     );

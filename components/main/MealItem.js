@@ -1,11 +1,13 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Button, ButtonGroup } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import AllergenIcon from "./AllergenIcon";
 import NutritionFact from "./NutritionFact";
 import List from "./List";
+import Text from "../Nav/Text";
+import Card from "../Nav/Card";
 
 export default class MealItem extends React.Component {
   constructor(props) {
@@ -173,11 +175,13 @@ export default class MealItem extends React.Component {
   }
 
   updateIndex = selectedIndex => {
-    this.setState({selectedIndex})
-  }
+    this.setState({ selectedIndex });
+  };
 
   componentWillMount() {
-    console.log(`Load menu item ${this.props.navigation.getParam("ID", "NO-ID")}`);
+    console.log(
+      `Load menu item ${this.props.navigation.getParam("ID", "NO-ID")}`
+    );
   }
 
   renderElement(item) {
@@ -188,25 +192,26 @@ export default class MealItem extends React.Component {
     if (this.state.selectedIndex == 0) {
       return (
         <View>
-          <Text style={styles.header}>Allergens</Text>
-          <View style={styles.allergens}>
-            {this.state.Allergens.filter(allergen => allergen.Value).map(
-              (allergen, index) => {
-                return <AllergenIcon key={index} {...allergen} />;
-              }
-            )}
-          </View>
-          <Text style={styles.header}>Nutrition Facts</Text>
-          <List
-            list={this.state.Nutrition}
-            type="element"
-            subList={false}
-            renderElement={this.renderElement}
-          />
-          <View style={styles.ingredients}>
-            <Text style={styles.header}>Ingredients: </Text>
-            <Text style={styles.ingredientsText}>{this.state.Ingredients}</Text>
-          </View>
+          <Card header="Allergens">
+            <View style={styles.allergens}>
+              {this.state.Allergens.filter(allergen => allergen.Value).map(
+                (allergen, index) => {
+                  return <AllergenIcon key={index} {...allergen} />;
+                }
+              )}
+            </View>
+          </Card>
+          <Card header="Nutrition Facts">
+            <List
+              list={this.state.Nutrition}
+              type="element"
+              subList={false}
+              renderElement={this.renderElement}
+            />
+          </Card>
+          <Card header="Ingredients">
+            <Text type="body" style={styles.ingredientsText}>{this.state.Ingredients}</Text>
+          </Card>
         </View>
       );
     }
@@ -224,8 +229,7 @@ export default class MealItem extends React.Component {
     }
   }
 
-  renderRatings() {
-  }
+  renderRatings() {}
 
   render() {
     const buttons = ["Nutrition", "Serving", "Ratings"];
@@ -236,7 +240,7 @@ export default class MealItem extends React.Component {
         backButton={true}
       >
         <ButtonGroup
-          onPress={(selectedIndex) => this.updateIndex(selectedIndex)}
+          onPress={selectedIndex => this.updateIndex(selectedIndex)}
           selectedIndex={this.state.selectedIndex}
           buttons={buttons}
           containerStyle={{ height: 40 }}
@@ -253,14 +257,14 @@ const styles = StyleSheet.create({
   allergens: { flex: 1, padding: 10, flexDirection: "row", flexWrap: "wrap" },
   ingredients: { padding: 10 },
   header: {
-    fontFamily: "Lobster",
-    fontSize: 24,
-    flex: 1,
-    backgroundColor: "orange",
+    backgroundColor: "#E86515",
     borderColor: "black",
-    borderWidth: 1,
-    borderStyle: "solid"
+    borderBottomWidth: 2,
+    borderStyle: "solid",
+    padding: 16
   },
-  ingredientsText: { fontSize: 16 },
+  ingredientsText: {
+    padding: 16
+  },
   button: {}
 });

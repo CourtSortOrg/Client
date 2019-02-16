@@ -23,7 +23,9 @@ export default class NutritionFact extends React.Component {
         style={{
           flex: 1,
           flexDirection: "row",
-          justifyContent: "space-between"
+          justifyContent: "space-between",
+          paddingRight: 8,
+          alignItems: "center",
         }}
       >
         <Text style={textStyle}>
@@ -37,13 +39,16 @@ export default class NutritionFact extends React.Component {
 
 const styles = StyleSheet.create({
   text: {
+    padding: 8,
     paddingLeft: 24,
-    flex: 1
+    flex: 7
   },
   bold: {
-    padding: 0,
+    fontFamily: "Quicksand-Bold",
+    paddingLeft: 0
   },
   end: {
-    flex: 1
+    flex: 1,
+    textAlign: "right",
   }
 });

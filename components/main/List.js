@@ -27,6 +27,7 @@ export default class List extends React.Component {
             key={index}
             id={index}
             {...element}
+            rank={0}
             expand={this.props.expand}
             navigation={this.props.navigation}
             renderElement={this.props.renderElement}

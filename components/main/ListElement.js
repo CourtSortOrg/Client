@@ -26,8 +26,8 @@ export default class ListElement extends React.Component {
 
   expandable = () => {
     return (
-      <View style={{ ...styles.listElement, ...styles.expandable }}>
-        <View style={styles.expandableHeader}>
+      <View style={{ ...this.styles.listElement, ...this.styles.expandable }}>
+        <View style={this.styles.expandableHeader}>
           <TouchableOpacity onPress={() => this.toggleExpansion()}>
             <Text type="header">{this.props.Name}</Text>
             {this.viewMore()}
@@ -40,9 +40,9 @@ export default class ListElement extends React.Component {
 
   dropDown = () => {
     return (
-      <View style={{ ...styles.listElement, ...styles.dropDown }}>
+      <View style={{ ...this.styles.listElement, ...this.styles.dropDown }}>
         <TouchableOpacity
-          style={styles.dropDownHeader}
+          style={this.styles.dropDownHeader}
           onPress={() => this.toggleExpansion()}
         >
           <View style={{ marginLeft: -12 }}>
@@ -69,22 +69,26 @@ export default class ListElement extends React.Component {
   };
 
   subList = () => {
-    return (
-      <View style={this.state.expand ? styles.subList : { display: "none" }}>
-        {this.props[this.props.subList.list].map((element, index) => (
-          <ListElement
-            key={index}
-            id={index}
-            expand={this.props.expand}
-            navigation={this.props.navigation}
-            renderElement={this.props.renderElement}
-            {...element}
-            {...this.props.subList}
-          />
-        ))}
-      </View>
-    );
-    //}
+    if (this.props.subList) {
+      return (
+        <View
+          style={this.state.expand ? this.styles.subList : { display: "none" }}
+        >
+          {this.props[this.props.subList.list].map((element, index) => (
+            <ListElement
+              key={index}
+              id={index}
+              rank={this.props.rank + 1}
+              expand={this.props.expand}
+              navigation={this.props.navigation}
+              renderElement={this.props.renderElement}
+              {...element}
+              {...this.props.subList}
+            />
+          ))}
+        </View>
+      );
+    }
   };
 
   navigate() {
@@ -113,11 +117,11 @@ export default class ListElement extends React.Component {
         style={
           this.props.id % 2 == 0
             ? {
-                ...styles.listElement,
-                ...styles.element,
-                ...styles.elementShaded
+                ...this.styles.listElement,
+                ...this.styles.element,
+                ...this.styles.elementShaded
               }
-            : { ...styles.listElement, ...styles.element }
+            : { ...this.styles.listElement, ...this.styles.element }
         }
       >
         <TouchableOpacity
@@ -150,41 +154,39 @@ export default class ListElement extends React.Component {
       </View>
     );
   }
-}
 
-const styles = StyleSheet.create({
-  listElement: {
-    flex: 1
-  },
-  expandable: {},
-  expandableHeader: {
-    backgroundColor: "#E86515",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: "black",
-    borderBottomWidth: 2,
-    borderStyle: "solid",
-    padding: 16
-  },
-  dropDown: {
-    backgroundColor: "white"
-  },
-  dropDownHeader: {
-    alignItems: "center",
-    flexDirection: "row"
-  },
-  element: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingLeft: 8
-  },
-  elementShaded: {
-    backgroundColor: "#ddd"
-  },
-  subList: {
-    marginLeft: 20
-  }
-});
+  styles = StyleSheet.create({
+    listElement: {
+      flex: 1,
+      paddingLeft: this.props.rank * 20
+    },
+    expandable: {},
+    expandableHeader: {
+      backgroundColor: "#E86515",
+      justifyContent: "space-between",
+      alignItems: "center",
+      flexDirection: "row",
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: "black",
+      borderBottomWidth: 2,
+      borderStyle: "solid",
+      padding: 16
+    },
+    dropDown: {
+      backgroundColor: "white"
+    },
+    dropDownHeader: {
+      alignItems: "center",
+      flexDirection: "row"
+    },
+    element: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center"
+    },
+    elementShaded: {
+      backgroundColor: "#ddd"
+    },
+    subList: {}
+  });
+}

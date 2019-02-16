@@ -8,7 +8,7 @@ export default class Text extends React.Component {
     if (this.props.type) {
       style = { ...styles[this.props.type], ...style };
     }
-    return <NativeText style={style}>{this.props.children}</NativeText>;
+    return <NativeText style={{...styles.default, ...style}}>{this.props.children}</NativeText>;
   }
 }
 
@@ -17,10 +17,15 @@ const styles = StyleSheet.create({
     fontFamily: "Lobster",
     fontSize: 24
   },
-  body: {},
+  body: {
+  },
   subHeader: {
     fontSize: 16
   },
-  default: {},
-  sectionName: {}
+  default: {
+    fontFamily: "Quicksand-Regular",
+  },
+  sectionName: {
+    fontFamily: "Quicksand-Bold",
+  }
 });

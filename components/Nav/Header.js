@@ -9,17 +9,20 @@ export default class Header extends React.Component {
     return (
       <View
         style={{
-          flex: 0.15,
+          flex: 0.1,
           flexDirection: "column",
-          justifyContent: "flex-end",
-          backgroundColor: "#e86515"
+          justifyContent: "space-between",
+          backgroundColor: "#e86515",
+          borderBottomWidth: 5,
+          borderColor: "black",
+          padding: 10
         }}
       >
-        <View style={{ flex: 0.33 }} />
+        <View style={{ flex: 0.13 }} />
         <View
           style={{
             flexDirection: "row",
-            flex: 0.67,
+            flex: 0.87,
             alignItems: "space-around"
           }}
         >
@@ -55,22 +58,30 @@ export default class Header extends React.Component {
               <Text type="header">{this.props.title}</Text>
             )}
           </View>
-          <TouchableOpacity
-            style={this.props.styles.button}
-            onPress={() => this.props.navigation.navigate("Notifications")}
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              justifyContent: "flex-end"
+            }}
           >
-            {this.props.active == "Notifications" ? (
-              <Image
-                style={this.props.styles.icon}
-                source={require("../../assets/icons/baseline-notifications-24px.png")}
-              />
-            ) : (
-              <Image
-                style={this.props.styles.icon}
-                source={require("../../assets/icons/outline-notifications-24px.png")}
-              />
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={{paddingTop: 10}}
+              onPress={() => this.props.navigation.navigate("Notifications")}
+            >
+              {this.props.active == "Notifications" ? (
+                <Image
+                  style={{ ...this.props.styles.icon, height: "100%" }}
+                  source={require("../../assets/icons/baseline-notifications-24px.png")}
+                />
+              ) : (
+                <Image
+                  style={{ ...this.props.styles.icon, height: "100%" }}
+                  source={require("../../assets/icons/outline-notifications-24px.png")}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
