@@ -2871,40 +2871,6 @@ export default class Meals extends React.Component {
     this.setState({
       filteredMeals
     });
-    this.updateMeals(0);
-  }
-
-  updateMeals(index) {
-    this.setState({ currentMeal: index });
-    this.onClearText();
-  }
-
-  filterMeals() {
-    let filteredMeals = JSON.parse(JSON.stringify(this.state.meals[this.state.currentMeal].Stations));
-    console.log(this.state.search)
-    if (this.state.search != "") {
-      for(let i = 0; i < filteredMeals.length; i++) {
-        console.log(`${filteredMeals[i].Items}.contains(${this.state.search})`);
-        filteredMeals[i].Items = filteredMeals[i].Items.filter(item => item.Name.includes(this.state.search))
-      }
-      filteredMeals = filteredMeals.filter(station => station.Items.length != 0);
-    }
-    this.setState({
-      filteredMeals
-    });
-  }
-
-  onChangeText(search) {
-    this.setState({
-      search
-    }, this.filterMeals);
-  }
-
-  onClearText() {
-    console.log("cleared!");
-    this.setState({
-      search: ""
-    }, this.filterMeals);
   }
 
   onChangeText(search) {
