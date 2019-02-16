@@ -2857,10 +2857,8 @@ export default class Meals extends React.Component {
     let filteredMeals = JSON.parse(
       JSON.stringify(this.state.meals[this.state.currentMeal].Stations)
     );
-    console.log(this.state.search);
     if (this.state.search != "") {
       for (let i = 0; i < filteredMeals.length; i++) {
-        console.log(`${filteredMeals[i].Items}.contains(${this.state.search})`);
         filteredMeals[i].Items = filteredMeals[i].Items.filter(item =>
           item.Name.includes(this.state.search)
         );
@@ -2970,7 +2968,6 @@ export default class Meals extends React.Component {
           placeholder="Filter"
           value={this.state.search}
         />
-        {console.log(this.state.filteredMeals.length)}
         {this.state.filteredMeals.length != 0 ? (
           <List
             navigation={this.props.navigation}
