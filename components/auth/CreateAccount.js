@@ -1,5 +1,5 @@
 import React from "react";
-import * as firebase from 'firebase';
+import * as firebase from "firebase";
 import {
   Alert,
   Button,
@@ -45,8 +45,22 @@ export default class CreateAccount extends React.Component {
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
-      .then((user) => {
+      .then(user => {
         var user = firebase.auth().currentUser;
+        fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: user.uid
+            })
+          }
+        );
+
         user
           .updateProfile({
             displayName: this.state.name
@@ -57,7 +71,7 @@ export default class CreateAccount extends React.Component {
           .catch(function(error) {
             alert(error.message);
           });
-          this.props.navigation.navigate("Home");
+        this.props.navigation.navigate("Home");
       })
       .catch(function(error) {
         var errorCode = error.code;
@@ -84,7 +98,10 @@ export default class CreateAccount extends React.Component {
 
         {/* The header for the CreateAccount Screen (purely visual) */}
         <View style={styles.header}>
-          <Image style={styles.logo} source={require("../../assets/logo.png")} />
+          <Image
+            style={styles.logo}
+            source={require("../../assets/logo.png")}
+          />
           <Text style={styles.greeting}>Create a new account!</Text>
         </View>
 
@@ -212,9 +229,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 15
   },
-  allergenList:  {
+  allergenList: {
     width: "100%"
   },
-  image: {
-  }
+  image: {}
 });

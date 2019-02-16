@@ -1,6 +1,12 @@
 import React from "react";
-import { StyleSheet, TextInput, View } from "react-native";
-import { Button } from "react-native-elements";
+import {
+  Button,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity
+} from "react-native";
 import * as firebase from "firebase";
 
 export default class ResetPassword extends React.Component {
@@ -25,25 +31,56 @@ export default class ResetPassword extends React.Component {
 
   render() {
     return (
-      <View
-        style={{
-          flex:1 ,
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center"
-        }}
+      <TouchableOpacity
+        style={styles.container}
+        activeOpacity={1}
+        onPress={Keyboard.dismiss}
       >
+        <Text style={styles.header}>Forgot your Password?</Text>
+        <Text style={{width: "70%", textAlign: "center", marginBottom: 15}}>Enter you email we'll send you an email to reset your password</Text>
         <TextInput
-          style={{ borderColor: "black" }}
+          style={styles.input}
           autoCapitalize="none"
           blurOnSubmit={false}
           placeholder="Email"
           placeholderTextColor="#999"
           onChangeText={text => this.setState({ email: text })}
+          onSubmitEditing={() => {
+           Keyboard.dismiss();
+          }}
           underlineColorAndroid="transparent"
         />
-        <Button onPress={this.resetPassword} title="Submit" />
-      </View>
+        <Button
+          color="#e9650d"
+          onPress={this.resetPassword}
+          title="Reset Password"
+        />
+      </TouchableOpacity>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  header: {
+    fontSize: 20,
+    fontWeight: "500",
+    marginVertical: 15
+  },
+  input: {
+    backgroundColor: "#eee",
+    borderColor: "#e9650d",
+    borderRadius: 5,
+    borderWidth: 2,
+    height: 40,
+    marginBottom: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    width: "70%"
+  }
+});

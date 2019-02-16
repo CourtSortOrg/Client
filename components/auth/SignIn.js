@@ -205,7 +205,6 @@ export default class SignIn extends React.Component {
             <View style={styles.divider} />
           </View>
 
-          {/* TODO: Set up Facebook authentication */}
           <View style={styles.authentication}>
             {/* The branded Button for Google Authentification */}
             <TouchableHighlight
