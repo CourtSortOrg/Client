@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#E86515",
     padding: 8,
     paddingLeft: 16,
-    borderBottomWidth: 5,
+    borderBottomWidth: 3,
     borderColor: "black"
   },
   card: {
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "white",
     borderColor: "black",
-    borderWidth: 5,
+    borderWidth: 3,
     margin: 10,
     borderRadius: 10
   }
