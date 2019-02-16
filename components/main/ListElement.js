@@ -69,25 +69,26 @@ export default class ListElement extends React.Component {
   };
 
   subList = () => {
-    return (
-      <View
-        style={this.state.expand ? this.styles.subList : { display: "none" }}
-      >
-        {this.props[this.props.subList.list].map((element, index) => (
-          <ListElement
-            key={index}
-            id={index}
-            rank={this.props.rank + 1}
-            expand={this.props.expand}
-            navigation={this.props.navigation}
-            renderElement={this.props.renderElement}
-            {...element}
-            {...this.props.subList}
-          />
-        ))}
-      </View>
-    );
-    //}
+    if (this.props.subList) {
+      return (
+        <View
+          style={this.state.expand ? this.styles.subList : { display: "none" }}
+        >
+          {this.props[this.props.subList.list].map((element, index) => (
+            <ListElement
+              key={index}
+              id={index}
+              rank={this.props.rank + 1}
+              expand={this.props.expand}
+              navigation={this.props.navigation}
+              renderElement={this.props.renderElement}
+              {...element}
+              {...this.props.subList}
+            />
+          ))}
+        </View>
+      );
+    }
   };
 
   navigate() {
@@ -181,7 +182,7 @@ export default class ListElement extends React.Component {
     element: {
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "center",
+      alignItems: "center"
     },
     elementShaded: {
       backgroundColor: "#ddd"
