@@ -15,15 +15,24 @@ import ResetPassword from "./components/auth/ResetPassword";
 
 const AuthNavigation = createStackNavigator({
   Signin: {
-    screen: SignIn
+    screen: SignIn,
+    navigationOptions: {
+      header: null //this will hide the header
+    },
   },
   ResetPassword: {
-    screen: ResetPassword
+    screen: ResetPassword,
+    navigationOptions: {
+      header: null //this will hide the header
+    },
   },
   CreateAccount: {
-    screen: CreateAccount
+    screen: CreateAccount,
+    navigationOptions: {
+      header: null //this will hide the header
+    },
   }
-});
+},);
 
 const AppNavigation = createSwitchNavigator(
   {
@@ -42,7 +51,8 @@ const AppNavigation = createSwitchNavigator(
   },
   {
     initialRouteName: "Auth"
-  }
+  },
+  
 );
 
 const Navigation = createAppContainer(AppNavigation);

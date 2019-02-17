@@ -1,13 +1,7 @@
 import React from "react";
 import * as firebase from "firebase";
-import {
-  Alert,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
-} from "react-native";
+import { Alert, FlatList, ScrollView, StyleSheet, View } from "react-native";
+import Text from "../Nav/Text";
 
 import { Card, ListItem, Rating, Button } from "react-native-elements";
 import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
@@ -79,17 +73,20 @@ export default class Profile extends React.Component {
   };
 
   createUser = async () => {
-    let response = await fetch('https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uid: "test-uid",
-      }),
-    });
-  }
+    let response = await fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          uid: "test-uid"
+        })
+      }
+    );
+  };
 
   render() {
     const buttons = ["Ratings", "Friends", "Groups"];
@@ -210,6 +207,7 @@ export default class Profile extends React.Component {
                   justifyContent: "space-between"
                 }}
               >
+
 
                 <Button
                   title="Sign Out"

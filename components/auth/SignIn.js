@@ -268,7 +268,7 @@ export default class SignIn extends React.Component {
                 activeOpacity={0.65}
                 underlayColor="#FFF"
               >
-                <Text style={styles.linkingText}>Create an Account</Text>
+                <Text style={styles.linkingText}>Create an account</Text>
               </TouchableHighlight>
               <TouchableHighlight
                 onPress={this.forgotPassword}
