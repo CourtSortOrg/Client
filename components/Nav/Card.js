@@ -1,7 +1,7 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 
-import Text from "../Nav/Text";
+import Text from "./Text";
 
 export default class Card extends React.Component {
   render() {
@@ -18,6 +18,15 @@ export default class Card extends React.Component {
           </View>
         )}
         {this.props.children}
+        {this.props.footer != undefined && Array.isArray(this.props.footer) && (
+          <View style={styles.footer}>
+            {this.props.footer.map((button, index) => (
+              <TouchableOpacity key={index} onPress={button.onPress} style={styles.button}>
+                <Text type="header">{button.text}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
     );
   }
@@ -30,6 +39,21 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     borderBottomWidth: 3,
     borderColor: "black"
+  },
+  footer: {
+    backgroundColor: "#E86515",
+    borderTopWidth: 3,
+    borderColor: "black",
+    flex: 1,
+    flexDirection: "row"
+  },
+  button: {
+    flex: 1,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 8,
   },
   card: {
     flex: 1,
