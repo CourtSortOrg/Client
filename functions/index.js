@@ -63,7 +63,7 @@ exports.updateUserDatabase = functions.https.onRequest((request, response) => {
     if (!checkUserExists(userRecord.uid)) {
       var updatedUser = {
         uid: userRecord.uid,
-        preferences: "hi",
+        preferences: "",
         dietaryRestrictions: "",
         friends: "",
         blockedUsers: ""
@@ -98,7 +98,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
   console.log(uid);
   if (uid == null) {
-    response.send("Must pass uid in request");
+    response.send("Must pass uid in body of request");
     return;
   }
 
@@ -123,7 +123,7 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
   var uid = request.body.uid;
   console.log(uid);
   if (uid == null) {
-    response.send("Must pass uid in request");
+    response.send("Must pass uid in body of request");
     return;
   }
 
@@ -132,6 +132,31 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
     response.send("success");
   }).catch(function(error) {
     console.error("Error deleting user: ", error);
+    response.send("error");
+  });
+});
+
+//get user profile information
+exports.getUserProfile = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+  console.log(uid);
+  if (uid == null) {
+    response.send("Must pass uid in body of request");
+  }
+
+  var userRef = db.collection("User").doc(uid);
+  var getDoc = userRef.get()
+  .then(doc => {
+    if (!doc.exists) {
+      console.log('No such document!');
+      response.send("does not exist");
+    } else {
+      console.log('Document data:', doc.data());
+      response.send(doc.data());
+    }
+  })
+  .catch(err => {
+    console.log('Error getting document', err);
     response.send("error");
   });
 });
