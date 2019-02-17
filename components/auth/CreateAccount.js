@@ -16,6 +16,9 @@ import {
   View
 } from "react-native";
 
+import { Ionicons } from "@expo/vector-icons";
+
+
 export default class CreateAccount extends React.Component {
   constructor(props) {
     super(props);
@@ -91,6 +94,15 @@ export default class CreateAccount extends React.Component {
         activeOpacity={1}
         onPress={Keyboard.dismiss}
       >
+        <Ionicons
+          color="black"
+          name="ios-arrow-back"
+          onPress={() => {
+            this.props.navigation.navigate("Signin");
+          }}
+          size={32}
+          style={{ position: "absolute", top: 16, left: 16 }}
+        />
         {/* Wrapped in a TouchableOpacity so the keyboard can dismiss upon clicking outside of the TextInputs */}
 
         {/* Hide the StatusBar for the CreateAccount Screen */}

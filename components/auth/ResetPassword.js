@@ -3,11 +3,12 @@ import {
   Button,
   Keyboard,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity
 } from "react-native";
 import * as firebase from "firebase";
+import { Ionicons } from "@expo/vector-icons";
+import Text from "../Nav/Text"
 
 export default class ResetPassword extends React.Component {
   constructor(props) {
@@ -36,8 +37,19 @@ export default class ResetPassword extends React.Component {
         activeOpacity={1}
         onPress={Keyboard.dismiss}
       >
+        <Ionicons
+          color="black"
+          name="ios-arrow-back"
+          onPress={() => {
+            this.props.navigation.navigate("Signin");
+          }}
+          size={32}
+          style={{ position: "absolute", top: 16, left: 16 }}
+        />
         <Text style={styles.header}>Forgot your Password?</Text>
-        <Text style={{width: "70%", textAlign: "center", marginBottom: 15}}>Enter you email we'll send you an email to reset your password</Text>
+        <Text style={{ width: "70%", textAlign: "center", marginBottom: 15 }}>
+          Enter you email we'll send you a link to reset your password
+        </Text>
         <TextInput
           style={styles.input}
           autoCapitalize="none"
@@ -46,7 +58,7 @@ export default class ResetPassword extends React.Component {
           placeholderTextColor="#999"
           onChangeText={text => this.setState({ email: text })}
           onSubmitEditing={() => {
-           Keyboard.dismiss();
+            Keyboard.dismiss();
           }}
           underlineColorAndroid="transparent"
         />
