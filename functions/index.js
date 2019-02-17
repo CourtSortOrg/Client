@@ -118,6 +118,118 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   });
 });
 
+exports.addFriend = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+  console.log(uid);
+  var friendID = request.query.friendID;
+  console.log(friendID);
+  var friendName = request.query.friendName;
+  console.log(friendName);
+
+  if(uid == null){
+    response.send("Must pass uid in request");
+    return;
+  }
+  if(friendID == null){
+    response.send("Must pass friendID in request");
+    return;
+  }
+  if(friendName == null){
+    response.send("Must pass friendName in request");
+    return;
+  }
+
+  var friendData = {
+    friendName: friendName
+  }
+
+  //check if the friend's ID exists
+  db.collection("User").doc(friendID).get().then(doc => {
+    if(!doc.exists){
+      console.log("Friend id is not valid");
+      response.send("Bad FriendID");
+    }
+    else{
+      db.collection("User").doc(uid).collection("Friends").doc(friendID).set(friendData).then(function(){
+        console.log("Friend successfully added!");
+        response.send("success");
+      }).catch(function(error){
+        console.error("Error getting")
+        response.send("error");
+      });
+    }
+  });
+});
+
+exports.getFriends = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+  console.log(uid);
+  if(uid == null){
+    response.send("Must pass uid in request");
+    return;
+  }
+
+  var listOfFriends = [];
+
+  db.collection("User").doc(uid).collection("Friends").get().then(list => {
+    list.forEach(doc => {
+      var friendID = doc.id;
+      var name = doc.data().friendName;
+      var userObj = {name : name, id : friendID};
+      listOfFriends.push(userObj);
+    });
+    response.send(listOfFriends);
+  }).catch(function(error){
+    console.error("Error getting list");
+    response.send(error.message);
+  });
+});
+
+exports.removeFriend = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+  console.log(uid);
+  var friendID = request.query.friendID;
+  console.log(friendID);
+
+  if(uid == null){
+    response.send("Must pass uid in request");
+    return;
+  }
+  if(friendID == null){
+    response.send("Must pass friendID in request");
+    return;
+  }
+
+  db.collection("User").doc(uid).collection("Friends").doc(friendID).delete().then(function(){
+    console.log("Friend successfully removed!");
+    response.send("success");
+  }).catch(function(error){
+    console.error("Error getting")
+    response.send("error");
+  });
+});
+
+exports.removeFromAllFriends = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+  console.log(uid);
+
+  if(uid == null){
+    response.send("Must pass uid in request");
+    return;
+  }
+
+  db.collection("User").doc(uid).collection("Friends").get().then(list =>{
+    list.forEach(doc => {
+      var friendID = doc.id;
+      db.collection("User").doc(friendID).collection("Friends").doc(uid).delete();
+    });
+    response.send("Success");
+  }).catch(function(error){
+    console.error(error.message);
+    response.send(error);
+  });
+});
+
 //remove user from database
 exports.removeUserFromDatabase = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
