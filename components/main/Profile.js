@@ -164,7 +164,7 @@ export default class Profile extends React.Component {
             )}
             {this.shouldRender(
               selectedIndex == 1,
-              <FriendsList friends={friends} />,
+              <FriendsList navigation={this.props.navigation} friends={friends} />,
               null
             )}
             {this.shouldRender(
@@ -200,7 +200,7 @@ export default class Profile extends React.Component {
                 style={styles.editInformation}
               />
               <Text>Edit Profile</Text>
-              <Button 
+              <Button
                   title="Create Account"
                   onPress={this.createUser}/>
               <View
@@ -210,7 +210,7 @@ export default class Profile extends React.Component {
                   justifyContent: "space-between"
                 }}
               >
-              
+
                 <Button
                   title="Sign Out"
                   onPress={this.signOut}
@@ -267,6 +267,7 @@ function FriendsList(props) {
           }}
           subtitle={`@${item.username}`}
           title={item.name}
+          onPress={() => props.navigation.navigate("Friend")}
           topDivider
         />
       )}
