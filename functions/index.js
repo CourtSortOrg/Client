@@ -95,9 +95,7 @@ exports.updateUserDatabase = functions.https.onRequest((request, response) => {
 
 //add user to database
 exports.addUserToDatabase = functions.https.onRequest((request, response) => {
-  console.log(request);
-  console.log(request.body.uid);
-  var uid = request.query.uid;
+  var uid = request.body.uid;
   console.log(uid);
   if (uid == null) {
     response.send("Must pass uid in request");
@@ -116,6 +114,24 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
     response.send("success");
   }).catch(function(error) {
     console.error("Error adding user: ", error);
+    response.send("error");
+  });
+});
+
+//remove user from database
+exports.removeUserFromDatabase = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+  console.log(uid);
+  if (uid == null) {
+    response.send("Must pass uid in request");
+    return;
+  }
+
+  db.collection("User").doc(uid).delete().then(function() {
+    console.log("User successfully deleted!");
+    response.send("success");
+  }).catch(function(error) {
+    console.error("Error deleting user: ", error);
     response.send("error");
   });
 });
