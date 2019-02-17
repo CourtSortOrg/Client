@@ -4,6 +4,8 @@ import { MapView } from "expo";
 
 import Screen from "../Nav/Screen";
 import Header from "../Nav/Header";
+import Footer from "../Nav/Footer";
+
 
 export default class Map extends React.Component {
   render() {
@@ -16,7 +18,7 @@ export default class Map extends React.Component {
           backButton={true}
         />
         <MapView
-          style={{flex: 1}}
+          style={{flex: 1, flexGrow: 1}}
           initialRegion={{
             latitude: 37.78825,
             longitude: -122.4324,
@@ -24,6 +26,10 @@ export default class Map extends React.Component {
             longitudeDelta: 0.0421
           }}
         />
+        <Footer
+        styles={styles}
+        navigation={{ ...this.props.navigation }}
+      />
       </View>
     );
   }
