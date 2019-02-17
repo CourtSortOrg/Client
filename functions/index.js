@@ -210,3 +210,24 @@ exports.removeFriend = functions.https.onRequest((request, response) => {
     response.send("error");
   });
 });
+
+exports.removeFromAllFriends = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+  console.log(uid);
+
+  if(uid == null){
+    response.send("Must pass uid in request");
+    return;
+  }
+
+  db.collection("User").doc(uid).collection("Friends").get().then(list =>{
+    list.forEach(doc => {
+      var friendID = doc.id;
+      db.collection("User").doc(friendID).collection("Friends").doc(uid).delete();
+    });
+    response.send("Success");
+  }).catch(function(error){
+    console.error(error.message);
+    response.send(error);
+  });
+});
