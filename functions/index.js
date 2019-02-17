@@ -138,7 +138,7 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
 
 //get user profile information
 exports.getUserProfile = functions.https.onRequest((request, response) => {
-  var uid = request.query.uid;
+  var uid = request.body.uid;
   console.log(uid);
   if (uid == null) {
     response.send("Must pass uid in body of request");
