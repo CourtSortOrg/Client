@@ -140,6 +140,11 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
 exports.getUserProfile = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
   console.log(uid);
+  getProfile(uid, response);
+});
+
+//function to get user profile information
+function getProfile(uid, response) {
   if (uid == null) {
     response.send("Must pass uid in body of request");
   }
@@ -158,5 +163,19 @@ exports.getUserProfile = functions.https.onRequest((request, response) => {
   .catch(err => {
     console.log('Error getting document', err);
     response.send("error");
+  });
+}
+
+//update user profile information
+exports.updateUserProfile = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid
+  var updates = JSON.parse(request.body.updates);
+  console.log(uid);
+  console.log(updates);
+
+  var userRef = db.collection("User").doc(uid);
+  userRef.update(updates).then(function() {
+    var updatedUser = db.collection("User").doc(uid)
+    getProfile(uid, response);
   });
 });
