@@ -1,6 +1,10 @@
 import React from "react";
 import { Alert, Button, StyleSheet, Text, View } from "react-native";
-import { createSwitchNavigator, createAppContainer } from "react-navigation";
+import {
+  createSwitchNavigator,
+  createStackNavigator,
+  createAppContainer
+} from "react-navigation";
 import { Font } from "expo";
 
 import Main from "./components/main/Main";
@@ -9,8 +13,19 @@ import SignIn from "./components/auth/SignIn";
 import CreateAccount from "./components/auth/CreateAccount";
 import ResetPassword from "./components/auth/ResetPassword";
 
+const AuthNavigation = createStackNavigator({
+  Signin: {
+    screen: SignIn
+  },
+  ResetPassword: {
+    screen: ResetPassword
+  },
+  CreateAccount: {
+    screen: CreateAccount
+  }
+});
 
-const AuthNavigation = createSwitchNavigator(
+const AppNavigation = createSwitchNavigator(
   {
     CreateAccount: {
       screen: CreateAccount
@@ -22,7 +37,7 @@ const AuthNavigation = createSwitchNavigator(
       screen: Main
     },
     Auth: {
-      screen: SignIn
+      screen: AuthNavigation
     }
   },
   {
@@ -30,7 +45,7 @@ const AuthNavigation = createSwitchNavigator(
   }
 );
 
-const Navigation = createAppContainer(AuthNavigation);
+const Navigation = createAppContainer(AppNavigation);
 
 export default class App extends React.Component {
   state = {
