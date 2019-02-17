@@ -1,19 +1,22 @@
 import React from "react";
-import { View, Text } from "react-native";
-import { MapView } from 'expo';
+import { View, StyleSheet, Text } from "react-native";
+import { MapView } from "expo";
 
 import Screen from "../Nav/Screen";
+import Header from "../Nav/Header";
 
 export default class Map extends React.Component {
   render() {
     return (
-      <Screen
-        title="Map"
-        navigation={{ ...this.props.navigation }}
-        backButton={true}
-      >
+      <View style={{ flex: 1 }}>
+        <Header
+          styles={styles}
+          title="Map"
+          navigation={{ ...this.props.navigation }}
+          backButton={true}
+        />
         <MapView
-          style={{ flex: 1 }}
+          style={{flex: 1}}
           initialRegion={{
             latitude: 37.78825,
             longitude: -122.4324,
@@ -21,7 +24,19 @@ export default class Map extends React.Component {
             longitudeDelta: 0.0421
           }}
         />
-      </Screen>
+      </View>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  button: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  icon: {
+    aspectRatio: 1,
+    height: "55%"
+  }
+});
