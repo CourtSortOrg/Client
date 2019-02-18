@@ -60,10 +60,10 @@ export default class SearchList extends React.Component {
               value={this.state.text}
             />
           </View>
-          {this.props.extendedSearch && (
+          {this.props.extendedSearch != undefined && (
             <TouchableOpacity
               style={{padding: 8}}
-              onPress={() => this.props.ButtonPress()}
+              onPress={() => this.props.extendedSearch()}
             >
               <AntDesign name="adduser" size={32} />
             </TouchableOpacity>
