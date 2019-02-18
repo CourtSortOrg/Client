@@ -13,7 +13,7 @@ export default class SearchList extends React.Component {
 
     this.state = {
       text: "",
-      reset: this.props.reset,
+      reset: this.props.reset || false,
       list: JSON.parse(JSON.stringify(props.list.list))
     };
   }
@@ -32,13 +32,13 @@ export default class SearchList extends React.Component {
   onClearText(text) {
     this.setState({
       text: "",
-      reset: this.props.reset,
+      reset: this.props.reset || false,
       list: JSON.parse(JSON.stringify(this.props.list.list))
     });
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.reset != this.props.reset)
+    if (prevProps.reset != undefined && prevProps.reset != this.props.reset)
       this.setState({
         text: "",
         reset: this.props.reset,
@@ -72,6 +72,8 @@ export default class SearchList extends React.Component {
             list={this.state.list}
             type={this.props.list.type}
             subList={this.props.list.subList}
+            viewMore={this.props.list.viewMore}
+            rank={this.props.list.rank}
           />
         ) : (
           <ListElement type={this.props.list.type} Name="No item found" />

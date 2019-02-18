@@ -1,35 +1,35 @@
 {
   "groups": [
     {
-      "name": "Group1",
+      "Name": "Group1",
       "id": "1"
     },
     {
-      "name": "Group2",
+      "Name": "Group2",
       "id": "2"
     },
     {
-      "name": "Group3",
+      "Name": "Group3",
       "id": "3"
     },
     {
-      "name": "Group4",
+      "Name": "Group4",
       "id": "4"
     },
     {
-      "name": "Group5",
+      "Name": "Group5",
       "id": "5"
     },
     {
-      "name": "Group6",
+      "Name": "Group6",
       "id": "6"
     },
     {
-      "name": "Group7",
+      "Name": "Group7",
       "id": "7"
     },
     {
-      "name": "Group8",
+      "Name": "Group8",
       "id": "8"
     }
   ]

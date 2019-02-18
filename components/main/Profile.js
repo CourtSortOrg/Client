@@ -8,6 +8,7 @@ import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
 import { EvilIcons } from "@expo/vector-icons";
 
 import Screen from "../Nav/Screen";
+import SearchList from "../Nav/SearchList";
 
 export default class Profile extends React.Component {
   constructor(props) {
@@ -161,12 +162,15 @@ export default class Profile extends React.Component {
             )}
             {this.shouldRender(
               selectedIndex == 1,
-              <FriendsList navigation={this.props.navigation} friends={friends} />,
+              <FriendsList
+                navigation={this.props.navigation}
+                friends={friends}
+              />,
               null
             )}
             {this.shouldRender(
               selectedIndex == 2,
-              <GroupsList groups={groups} />,
+              <GroupsList groups={groups} navigation={this.props.navigation} />,
               null
             )}
           </Card>
@@ -197,9 +201,7 @@ export default class Profile extends React.Component {
                 style={styles.editInformation}
               />
               <Text>Edit Profile</Text>
-              <Button
-                  title="Create Account"
-                  onPress={this.createUser}/>
+              <Button title="Create Account" onPress={this.createUser} />
               <View
                 style={{
                   flexDirection: "row",
@@ -207,8 +209,6 @@ export default class Profile extends React.Component {
                   justifyContent: "space-between"
                 }}
               >
-
-
                 <Button
                   title="Sign Out"
                   onPress={this.signOut}
@@ -273,14 +273,25 @@ function FriendsList(props) {
   );
 }
 
+function filterGroup(list, text) {
+  return list.filter(item => item.Name.includes(text));
+}
+
 function GroupsList(props) {
   return (
-    <FlatList
-      keyExtractor={item => item.id}
-      data={props.groups}
-      renderItem={({ item }) => (
-        <ListItem chevron bottomDivider title={item.name} topDivider />
-      )}
+    <SearchList
+      navigation={props.navigation}
+      filterFunction={filterGroup}
+      list={{
+        list: props.groups,
+        type: "element",
+        subList: false,
+        rank: 1,
+        viewMore: {
+          page: "Message",
+          item: "ID"
+        }
+      }}
     />
   );
 }
