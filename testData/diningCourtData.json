@@ -1,0 +1,19 @@
+{
+    "courts" : [
+        {
+            "name": "Earhart"
+        },
+        {
+            "name": "Hillenbrand"
+        },
+        {
+            "name": "Ford"
+        },
+        {
+            "name": "Wiley"
+        },
+        {
+            "name": "Windsor"
+        }
+    ]
+}
