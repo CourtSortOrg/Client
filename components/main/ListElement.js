@@ -140,13 +140,22 @@ export default class ListElement extends React.Component {
   };
 
   render() {
-    switch (this.props.type) {
-      case "expandable":
-        return this.expandable();
-      case "dropDown":
-        return this.dropDown();
-      case "element":
-        return this.element();
+    if (this.props.renderElement) {
+      return (
+        <View>
+          {this.props.renderElement(this.props)}
+          {this.subList()}
+        </View>
+      );
+    } else if (this.props.type) {
+      switch (this.props.type) {
+        case "expandable":
+          return this.expandable();
+        case "dropDown":
+          return this.dropDown();
+        case "element":
+          return this.element();
+      }
     }
     return (
       <View>
