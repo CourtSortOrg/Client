@@ -74,6 +74,7 @@ export default class SearchList extends React.Component {
             subList={this.props.list.subList}
             viewMore={this.props.list.viewMore}
             rank={this.props.list.rank}
+            renderElement={this.props.list.renderElement}
           />
         ) : (
           <ListElement type={this.props.list.type} Name="No item found" />

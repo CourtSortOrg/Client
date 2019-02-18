@@ -252,25 +252,39 @@ function RatingsList(props) {
 
 function FriendsList(props) {
   return (
-    <FlatList
-      keyExtractor={item => item.id}
-      data={props.friends}
-      renderItem={({ item }) => (
-        <ListItem
-          chevron
-          bottomDivider
-          leftAvatar={{
-            source: { uri: item.image },
-            containerStyle: styles.friendPicture
-          }}
-          subtitle={`@${item.username}`}
-          title={item.name}
-          onPress={() => props.navigation.navigate("Friend")}
-          topDivider
-        />
-      )}
+    <SearchList
+      navigation={props.navigation}
+      filterFunction={filterProfile}
+      list={{
+        list: props.friends,
+        type: "element",
+        subList: false,
+        rank: 1,
+        renderElement: item => (
+          <ListItem
+            chevron
+            bottomDivider
+            leftAvatar={{
+              source: { uri: item.image },
+              containerStyle: styles.friendPicture
+            }}
+            subtitle={`@${item.username}`}
+            title={item.name}
+            onPress={() => props.navigation.navigate("Friend")}
+            topDivider
+          />
+        ),
+        viewMore: {
+          page: "Message",
+          item: "ID"
+        }
+      }}
     />
   );
+}
+
+function filterProfile(list, text) {
+  return list.filter(item => item.name.includes(text));
 }
 
 function filterGroup(list, text) {
