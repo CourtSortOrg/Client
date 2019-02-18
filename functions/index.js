@@ -308,7 +308,7 @@ exports.blockUser = functions.https.onRequest((request, response) => {
 
   var userRef = db.collection("User").doc(uid);
   userRef.update({
-    blockedUsers: firebase.firestore.FieldValue.arrayUnion(blockedUid);
+    blockedUsers: firebase.firestore.FieldValue.arrayUnion(blockedUid)
   })
   .then(function() {
     console.log("Document successfully updated!");
