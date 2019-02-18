@@ -255,6 +255,7 @@ function FriendsList(props) {
     <SearchList
       navigation={props.navigation}
       filterFunction={filterProfile}
+      extendedSearch={true}
       list={{
         list: props.friends,
         type: "element",

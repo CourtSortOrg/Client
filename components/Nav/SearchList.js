@@ -49,18 +49,22 @@ export default class SearchList extends React.Component {
   render() {
     return (
       <View style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
-          <SearchBar
-            style={{ flex: 1, flexGrow: 1 }}
-            lightTheme
-            onChangeText={text => this.onChangeText(text)}
-            onClearText={() => this.onClearText()}
-            icon={{ type: "font-awesome", name: "search" }}
-            placeholder="Filter"
-            value={this.state.text}
-          />
+        <View style={{ flex: 1, flexDirection: "row", justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ flex: 1, flexGrow: 1 }}>
+            <SearchBar
+              lightTheme
+              onChangeText={text => this.onChangeText(text)}
+              onClearText={() => this.onClearText()}
+              icon={{ type: "font-awesome", name: "search" }}
+              placeholder="Filter"
+              value={this.state.text}
+            />
+          </View>
           {this.props.extendedSearch && (
-            <TouchableOpacity onPress={() => this.props.ButtonPress()}>
+            <TouchableOpacity
+              style={{padding: 8}}
+              onPress={() => this.props.ButtonPress()}
+            >
               <AntDesign name="adduser" size={32} />
             </TouchableOpacity>
           )}
