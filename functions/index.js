@@ -1,27 +1,20 @@
 const functions = require('firebase-functions');
-//var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const fetch = require("node-fetch");
 const req = require('request');
-//const algorithms = require('./algorithms.js')
 
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
 var db = admin.firestore();
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
-
 //this function is for testing
+//PARAMETERS: none
 exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
 //simple function to get menus from dining court
+//PARAMETERS: none
 exports.getMenus = functions.https.onRequest((request, response) => {
   function requestMenu(callback, resp) {
     req('https://api.hfs.purdue.edu/menus/v2/locations/hillenbrand/2019-02-06', function (error, res, body) {
@@ -37,7 +30,8 @@ exports.getMenus = functions.https.onRequest((request, response) => {
   requestMenu(processResult, response);
 });
 
-//weewoo get the user data and put in the database
+//get the user data and put in the database (DOESNT WORK)
+//PARAMETERS: none
 exports.updateUserDatabase = functions.https.onRequest((request, response) => {
   function listAllUsers(nextPageToken, resp) {
   // List batch of users, 1000 at a time.
@@ -94,6 +88,7 @@ exports.updateUserDatabase = functions.https.onRequest((request, response) => {
 });
 
 //add user to database
+//PARAMETERS: uid
 exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
   console.log(uid);
@@ -118,6 +113,8 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   });
 });
 
+//add friend to a user
+//PARAMETERS: uid, friendID
 exports.addFriend = functions.https.onRequest((request, response) => {
   var uid = request.query.uid;
   console.log(uid);
@@ -161,6 +158,8 @@ exports.addFriend = functions.https.onRequest((request, response) => {
   });
 });
 
+//get friends of a user
+//PARAMETERS: uid
 exports.getFriends = functions.https.onRequest((request, response) => {
   var uid = request.query.uid;
   console.log(uid);
@@ -185,6 +184,8 @@ exports.getFriends = functions.https.onRequest((request, response) => {
   });
 });
 
+//remove a friend from a user
+//PARAMETERS: uid, friendID
 exports.removeFriend = functions.https.onRequest((request, response) => {
   var uid = request.query.uid;
   console.log(uid);
@@ -209,6 +210,8 @@ exports.removeFriend = functions.https.onRequest((request, response) => {
   });
 });
 
+//remove a user from all Friends
+//PARAMETERS: uid
 exports.removeFromAllFriends = functions.https.onRequest((request, response) => {
   var uid = request.query.uid;
   console.log(uid);
@@ -231,6 +234,7 @@ exports.removeFromAllFriends = functions.https.onRequest((request, response) => 
 });
 
 //remove user from database
+//PARAMETERS: uid
 exports.removeUserFromDatabase = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
   console.log(uid);
@@ -249,6 +253,7 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
 });
 
 //get user profile information
+//PARAMETERS: uid
 exports.getUserProfile = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
   console.log(uid);
@@ -279,6 +284,7 @@ function getProfile(uid, response) {
 }
 
 //update user profile information
+//PARAMETERS: uid, updates (a JSON of updates to profile)
 exports.updateUserProfile = functions.https.onRequest((request, response) => {
   var uid = request.body.uid
   var updates = JSON.parse(request.body.updates);
@@ -289,5 +295,26 @@ exports.updateUserProfile = functions.https.onRequest((request, response) => {
   userRef.update(updates).then(function() {
     var updatedUser = db.collection("User").doc(uid)
     getProfile(uid, response);
+  });
+});
+
+//block a user
+//PARAMETERS: uid, blockedUid
+exports.blockUser = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+  var blockedUid = request.body.blockedUid;
+  console.log(uid);
+  console.log(blockedUid);
+
+  var userRef = db.collection("User").doc(uid);
+  userRef.update({
+    blockedUsers: firebase.firestore.FieldValue.arrayUnion(blockedUid);
+  })
+  .then(function() {
+    console.log("Document successfully updated!");
+  })
+  .catch(function(error) {
+    // The document probably doesn't exist.
+    console.error("Error updating document: ", error);
   });
 });
