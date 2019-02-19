@@ -37,6 +37,13 @@ export default class Profile extends React.Component {
     };
   }
 
+  componentDidMount() {
+    if(this.state.uid== undefined) {
+      console.log("HOME");
+      this.props.navigation.navigate("Auth");
+    }
+  }
+
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
   };

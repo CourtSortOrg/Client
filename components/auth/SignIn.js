@@ -62,6 +62,9 @@ export default class SignIn extends React.Component {
   forgotPassword = async () => {
     this.props.navigation.navigate("ResetPassword");
   };
+  useAsGuest = async () => {
+    this.props.navigation.navigate("Home");
+  };
 
   signInGoogleAsync = async () => {
     try {
@@ -267,6 +270,13 @@ export default class SignIn extends React.Component {
                 underlayColor="#FFF"
               >
                 <Text style={styles.linkingText}>Forgot your password?</Text>
+              </TouchableHighlight>
+              <TouchableHighlight
+                onPress={this.useAsGuest}
+                activeOpacity={0.65}
+                underlayColor="#FFF"
+              >
+                <Text style={styles.linkingText}>Use as guest</Text>
               </TouchableHighlight>
             </View>
           </View>
