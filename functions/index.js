@@ -116,11 +116,11 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
 //add friend to a user
 //PARAMETERS: uid, friendID
 exports.addFriend = functions.https.onRequest((request, response) => {
-  var uid = request.query.uid;
+  var uid = request.body.uid;
   console.log(uid);
-  var friendID = request.query.friendID;
+  var friendID = request.body.friendID;
   console.log(friendID);
-  var friendName = request.query.friendName;
+  var friendName = request.body.friendName;
   console.log(friendName);
 
   if(uid == null){
@@ -161,7 +161,7 @@ exports.addFriend = functions.https.onRequest((request, response) => {
 //get friends of a user
 //PARAMETERS: uid
 exports.getFriends = functions.https.onRequest((request, response) => {
-  var uid = request.query.uid;
+  var uid = request.body.uid;
   console.log(uid);
   if(uid == null){
     response.send("Must pass uid in request");
@@ -187,9 +187,9 @@ exports.getFriends = functions.https.onRequest((request, response) => {
 //remove a friend from a user
 //PARAMETERS: uid, friendID
 exports.removeFriend = functions.https.onRequest((request, response) => {
-  var uid = request.query.uid;
+  var uid = request.body.uid;
   console.log(uid);
-  var friendID = request.query.friendID;
+  var friendID = request.body.friendID;
   console.log(friendID);
 
   if(uid == null){
@@ -213,7 +213,7 @@ exports.removeFriend = functions.https.onRequest((request, response) => {
 //remove a user from all Friends
 //PARAMETERS: uid
 exports.removeFromAllFriends = functions.https.onRequest((request, response) => {
-  var uid = request.query.uid;
+  var uid = request.body.uid;
   console.log(uid);
 
   if(uid == null){
