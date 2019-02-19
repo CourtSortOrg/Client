@@ -53,6 +53,19 @@ export default class Profile extends React.Component {
       .delete()
       .then(() => {
         fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: this.state.uid,
+            })
+          }
+        );
+        fetch(
           "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
           {
             method: "POST",
