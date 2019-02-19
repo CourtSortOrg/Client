@@ -91,14 +91,21 @@ exports.updateUserDatabase = functions.https.onRequest((request, response) => {
 //PARAMETERS: uid
 exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
+  var name = request.body.name;
   console.log(uid);
+  console.log(name);
   if (uid == null) {
     response.send("Must pass uid in body of request");
+    return;
+  }
+  if (name == null) {
+    response.send("Must pass name in body of request");
     return;
   }
 
   var updatedUser = {
     uid: uid,
+    name: name,
     preferences: "",
     dietaryRestrictions: "",
     friends: "",
@@ -312,9 +319,11 @@ exports.blockUser = functions.https.onRequest((request, response) => {
   })
   .then(function() {
     console.log("Document successfully updated!");
+    response.send("success");
   })
   .catch(function(error) {
     // The document probably doesn't exist.
     console.error("Error updating document: ", error);
+    response.send("error");
   });
 });
