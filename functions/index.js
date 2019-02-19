@@ -318,3 +318,19 @@ exports.blockUser = functions.https.onRequest((request, response) => {
     console.error("Error updating document: ", error);
   });
 });
+
+//check if a user exists
+//PARAMETERS: uid
+exports.userExists = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+  console.log(uid);
+
+  db.collection("User").doc(uid).get().then(doc => {
+    if(!doc.exists){
+      response.send("Does Not Exist");
+    }
+    else{
+      response.send("User Exists");
+    }
+  });
+});
