@@ -54,6 +54,22 @@ export default class Profile extends React.Component {
     ).then(data => {
       this.setState({ ...JSON.parse(data._bodyText) });
     });
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          uid: this.state.uid
+        })
+      }
+    ).then(data => {
+      this.setState({ ...JSON.parse(data._bodyText) });
+    });
   }
 
   updateIndex = selectedIndex => {
