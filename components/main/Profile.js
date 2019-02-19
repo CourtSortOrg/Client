@@ -19,7 +19,10 @@ export default class Profile extends React.Component {
     var friendData = require("../../testData/friendData.json");
     var groupData = require("../../testData/groupData.json");
 
+    const user = firebase.auth().currentUser;
+
     this.state = {
+      uid: user ? user.uid : undefined,
       selectedIndex: 0,
       isEditing: false,
 
@@ -49,6 +52,19 @@ export default class Profile extends React.Component {
     user
       .delete()
       .then(() => {
+        fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: this.state.uid,
+            })
+          }
+        );
         //navigate to SignIn Screen
         this.props.navigation.navigate("Auth");
         this.setState({ isEditing: false });
