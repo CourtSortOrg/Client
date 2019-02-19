@@ -106,10 +106,13 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   var updatedUser = {
     uid: uid,
     name: name,
+    initials: "",
+    image: "",
+    groups: "",
+    blockedUsers: "",
     preferences: "",
     dietaryRestrictions: "",
-    friends: "",
-    blockedUsers: ""
+    ratings: ""
   }
   db.collection("User").doc(uid).set(updatedUser).then(function() {
     console.log("User successfully added!");
