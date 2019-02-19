@@ -36,12 +36,6 @@ const AuthNavigation = createStackNavigator({
 
 const AppNavigation = createSwitchNavigator(
   {
-    CreateAccount: {
-      screen: CreateAccount
-    },
-    ResetPassword: {
-      screen: ResetPassword
-    },
     Home: {
       screen: Main
     },
@@ -52,7 +46,7 @@ const AppNavigation = createSwitchNavigator(
   {
     initialRouteName: "Auth"
   },
-  
+
 );
 
 const Navigation = createAppContainer(AppNavigation);

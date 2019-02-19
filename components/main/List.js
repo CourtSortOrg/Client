@@ -33,7 +33,7 @@ export default class List extends React.Component {
             navigation={this.props.navigation}
             renderElement={this.props.renderElement}
             type={this.props.type}
-            subList={{ ...this.props.subList }}
+            subList={this.props.subList}
           />
         ))}
       </View>
