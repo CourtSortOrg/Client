@@ -14,6 +14,7 @@ import SearchList from "../Nav/SearchList";
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
+
     var userData = require("../../testData/userData.json");
     var ratingData = require("../../testData/ratingData.json");
     var friendData = require("../../testData/friendData.json");
@@ -41,7 +42,40 @@ export default class Profile extends React.Component {
     if(this.state.uid== undefined) {
       console.log("HOME");
       this.props.navigation.navigate("Auth");
+      return;
     }
+    
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          uid: this.state.uid
+        })
+      }
+    ).then(data => {
+      this.setState({ ...JSON.parse(data._bodyText) });
+    });
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          uid: this.state.uid
+        })
+      }
+    ).then(data => {
+      this.setState({ ...JSON.parse(data._bodyText) });
+    });
   }
 
   updateIndex = selectedIndex => {
