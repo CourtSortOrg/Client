@@ -14,12 +14,16 @@ import SearchList from "../Nav/SearchList";
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
+
     var userData = require("../../testData/userData.json");
     var ratingData = require("../../testData/ratingData.json");
     var friendData = require("../../testData/friendData.json");
     var groupData = require("../../testData/groupData.json");
 
+    const user = firebase.auth().currentUser;
+
     this.state = {
+      uid: user ? user.uid : undefined,
       selectedIndex: 0,
       isEditing: false,
 
@@ -32,6 +36,24 @@ export default class Profile extends React.Component {
       friends: friendData.users,
       groups: groupData.groups
     };
+  }
+
+  componentDidMount() {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          uid: this.state.uid
+        })
+      }
+    ).then(data => {
+      this.setState({ ...JSON.parse(data._bodyText) });
+    });
   }
 
   updateIndex = selectedIndex => {
