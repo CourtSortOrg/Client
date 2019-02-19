@@ -102,7 +102,9 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
     preferences: "",
     dietaryRestrictions: "",
     friends: "",
-    blockedUsers: ""
+    blockedUsers: "",
+    outgoingFriendReq: [],
+    incomingFriendReq: []
   }
   db.collection("User").doc(uid).set(updatedUser).then(function() {
     console.log("User successfully added!");
@@ -332,5 +334,153 @@ exports.userExists = functions.https.onRequest((request, response) => {
     else{
       response.send("User Exists");
     }
+  });
+});
+
+//sends a friend request
+//PARAMETERS: uid, friendID
+exports.sendFriendRequest = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+  console.log(uid);
+  var friendID = request.query.friendID;
+  console.log(friendID);
+
+  if (uid == null) {
+    response.send("Must pass uid in body of request");
+  }
+  if (friendID == null) {
+    response.send("Must pass friendID in body of request");
+  }
+
+  //check if the friend's id exists
+  db.collection("User").doc(friendID).get().then(doc => {
+    if(!doc.exists){
+      console.log("Friend id is not valid");
+      response.send("Bad FriendID");
+    }
+    else{
+      db.collection("User").doc(uid).update({
+        outgoingFriendReq: admin.firestore.FieldValue.arrayUnion(friendID)
+      }).catch(function(error){
+        response.send("error");
+      });
+
+      db.collection("User").doc(friendID).update({
+        incomingFriendReq: admin.firestore.FieldValue.arrayUnion(uid)
+      }).catch(function(error){
+        response.send("error");
+      });
+
+      response.send("success");
+    }
+  });
+});
+
+//accepts a friend request
+//PARAMETERS: uid, friendID
+exports.acceptFriendRequest = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+  console.log(uid);
+  var friendID = request.query.friendID;
+  console.log(friendID);
+
+  if (uid == null) {
+    response.send("Must pass uid in body of request");
+  }
+  if (friendID == null) {
+    response.send("Must pass friendID in body of request");
+  }
+
+  db.collection("User").doc(uid).update({
+    incomingFriendReq: admin.firestore.FieldValue.arrayRemove(friendID)
+  }).catch(function(error){
+    response.send("error");
+  });
+
+  db.collection("User").doc(friendID).update({
+    outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(uid)
+  }).catch(function(error){
+    response.send("error");
+  });
+
+
+  db.collection("User").doc(friendID).get().then(doc => {
+    var friendData = {
+      friendName: doc.data().name
+    }
+    db.collection("User").doc(uid).collection("Friends").doc(friendID).set(friendData).catch(function(error){
+      console.error("Error adding friend to user")
+      response.send("error");
+    });
+  });
+
+  db.collection("User").doc(uid).get().then(doc => {
+    var userData = {
+      friendName: doc.data().name
+    }
+    db.collection("User").doc(friendID).collection("Friends").doc(uid).set(userData).then(function() {
+      response.send("success");
+    }).catch(function(error){
+      console.error("Error adding user to friend");
+      response.send("error");
+    });
+  });
+});
+
+//Denies a friend request (Removes the friend request from both users)
+//PARAMETERS: uid, friendID
+exports.denyFriendRequest = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+  console.log(uid);
+  var friendID = request.query.friendID;
+  console.log(friendID);
+
+  if (uid == null) {
+    response.send("Must pass uid in body of request");
+  }
+  if (friendID == null) {
+    response.send("Must pass friendID in body of request");
+  }
+
+  db.collection("User").doc(uid).update({
+    incomingFriendReq: admin.firestore.FieldValue.arrayRemove(friendID)
+  }).catch(function(error){
+    response.send("error");
+  });
+
+  db.collection("User").doc(friendID).update({
+    outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(uid)
+  }).then(function() {
+    response.send("success");
+  }).catch(function(error){
+    response.send("error");
+  });
+})
+
+//returns a list of friend requests for the user to accept or deny
+//PARAMETERS: uid
+exports.getIncomingFriendRequests = functions.https.onRequest((request, response) => {
+  var uid = request.query.uid;
+
+  if(uid == null){
+    response.send("Must pass uid in body of request");
+  }
+
+  var listOfRequests = [];
+
+  db.collection("User").doc(uid).get().then(function(doc) {
+    var requests = doc.data().incomingFriendReq;
+    for(var i = 0; i < requests.length; i++){
+      db.collection("User").doc(requests[i]).get().then(doc2 => {
+        var userObj = {name : doc2.data().name, id : requests[i]};
+        listOfRequests.push(userObj);
+        if(i == requests.length - 1){
+          response.send(listOfRequests);
+        }
+      });
+    }
+  }).catch(function(error){
+    console.error("Error getting list");
+    response.send(error.message);
   });
 });
