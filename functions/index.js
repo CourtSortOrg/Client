@@ -24,8 +24,8 @@ exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
 	}
 	
 	console.log("Querying data");
-	var collectionRef = await db.collection("DateDishes").doc(date);
-	var getDishes = await collectionRef.get().then(
+	var docRef = await db.collection("DateDishes").doc(date);
+	var getDishes = await docRef.get().then(
 		doc => {
 			if(!doc.exists){
 				response.send({error: "no matches"});
@@ -38,6 +38,32 @@ exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
   });
 });
 
+// this function returns all the times that a dish is offered and where
+// PARAMETERS: name: name of dish
+exports.fetchAllOffered = functions.https.onRequest(async (request, response) => {
+  var name = request.body.name;
+
+  if(name == null){
+    // sets as default for testing
+    name = "Bacon";
+  }
+
+  console.log("Querying for dish: "+name);
+
+  var docRef = await db.collection("Dish").doc(name);
+  var getOfferings = await docRef.get().then(
+    doc => {
+      if(!doc.exists){
+        response.send({error: "no such dish"});
+      }else{
+        response.send(doc.data());
+      }
+    }
+  )
+})
+
+// this function adds all the offerings to the dishes for a particular date
+// PARAMETERS: date (as a string)
 exports.individualItemPopulate = functions.https.onRequest(async (request, response)=>{
   var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
   var date = request.body.date;
@@ -123,7 +149,7 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
   response.send("Finished Population of dishes for "+date);
 })
 
-// this function populates the database with new dishes
+// this function populates the database with the API infor for a particular date
 // PARAMETERS: date (as a string)
 exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
@@ -170,21 +196,6 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
               Name: currStation['Items'][j]['Name']
             };
             items.push(item);
-            /*
-            var itemRef = db.collection('Dish').doc(item['name']);
-            var getItem = await itemRef.get().then(async doc => {
-              if (!doc.exists) {
-                itemRef.set(item);   
-                console.log("SET new item: "+item['name']);     
-              } else {
-                console.log("Modify: "+item['name']);
-                var arrayUnion = await itemRef.update({ dates: admin.firestore.FieldValue.arrayUnion(date)});
-                console.log("modified");
-              }
-            }).catch(err => {
-              console.log('Error getting document', err);
-            });
-            */
           } // for all items
           stations.push({Items: items, Name: currStation['Name']});
         } // for all stations
