@@ -6,7 +6,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Screen from "../Nav/Screen";
 import List from "./List";
 import ListElement from "./ListElement";
-import Text from "../Nav/Text"
+import Text from "../Nav/Text";
+import SearchList from "../Nav/SearchList";
 
 const Ford = {
   Meals: [
@@ -2820,75 +2821,43 @@ export default class Meals extends React.Component {
       date: 0,
       meals: Ford.Meals,
       currentMeal: 0,
-      search: "",
-      filteredMeals: Ford.Meals[0].Stations
+      resetSearch: false
     };
   }
 
   previousDate() {
-    this.setState(
-      {
-        date: this.state.date - 1,
-        currentMeal: 0
-      },
-      this.onClearText
-    );
-  }
-
-  nextDate() {
-    this.setState(
-      {
-        date: this.state.date + 1,
-        currentMeal: 0
-      },
-      this.onClearText
-    );
-  }
-
-  updateMeals(index) {
-    this.setState(
-      {
-        currentMeal: index
-      },
-      this.filterMeals
-    );
-  }
-
-  filterMeals() {
-    let filteredMeals = JSON.parse(
-      JSON.stringify(this.state.meals[this.state.currentMeal].Stations)
-    );
-    if (this.state.search != "") {
-      for (let i = 0; i < filteredMeals.length; i++) {
-        filteredMeals[i].Items = filteredMeals[i].Items.filter(item =>
-          item.Name.includes(this.state.search)
-        );
-      }
-      filteredMeals = filteredMeals.filter(
-        station => station.Items.length != 0
-      );
-    }
     this.setState({
-      filteredMeals
+      date: this.state.date - 1,
+      currentMeal: 0,
+      resetSearch: !this.state.resetSearch
     });
   }
 
-  onChangeText(search) {
-    this.setState(
-      {
-        search
-      },
-      this.filterMeals
-    );
+  nextDate() {
+    this.setState({
+      date: this.state.date + 1,
+      currentMeal: 0,
+      resetSearch: !this.state.resetSearch
+    });
   }
 
-  onClearText() {
-    this.setState(
-      {
-        search: ""
-      },
-      this.filterMeals
-    );
+  updateMeals(index) {
+    this.setState({
+      currentMeal: index,
+      resetSearch: !this.state.resetSearch
+    });
+  }
+
+  filterMeals(meals, text) {
+    if (text.length != 0) {
+      for (let i = 0; i < meals.length; i++) {
+        meals[i].Items = meals[i].Items.filter(item =>
+          item.Name.includes(text)
+        );
+      }
+      meals = meals.filter(station => station.Items.length != 0);
+    }
+    return meals;
   }
 
   render() {
@@ -2961,21 +2930,14 @@ export default class Meals extends React.Component {
             />
           </TouchableOpacity>
         </View>
-        <SearchBar
-          lightTheme
-          onChangeText={text => this.onChangeText(text)}
-          onClearText={() => this.onClearText()}
-          icon={{ type: "font-awesome", name: "search" }}
-          placeholder="Filter"
-          value={this.state.search}
-        />
-        {this.state.filteredMeals.length != 0 ? (
-          <List
-            navigation={this.props.navigation}
-            list={this.state.filteredMeals}
-            type={"expandable"}
-            expand={this.state.search.length != 0}
-            subList={{
+        <SearchList
+          navigation={this.props.navigation}
+          filterFunction={this.filterMeals}
+          reset={this.state.resetSearch}
+          list={{
+            list: this.state.meals[this.state.currentMeal].Stations,
+            type: "expandable",
+            subList: {
               list: "Items",
               type: "element",
               subList: false,
@@ -2983,11 +2945,9 @@ export default class Meals extends React.Component {
                 page: "MealItem",
                 item: "ID"
               }
-            }}
-          />
-        ) : (
-          <ListElement type="expandable" Name="No item found" />
-        )}
+            }
+          }}
+        />
       </Screen>
     );
   }
