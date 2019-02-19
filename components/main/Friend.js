@@ -1,6 +1,6 @@
 import React from "react";
 import * as firebase from "firebase";
-import { View, TouchableOpacity } from "react-native";
+import { View, Alert, TouchableOpacity } from "react-native";
 
 import Screen from "../Nav/Screen";
 import List from "./List";
@@ -78,6 +78,52 @@ export default class Friend extends React.Component {
   }
 
   unFriend() {
+    Alert.alert(
+      "Unfriend",
+      `You are about to unfriend ${
+        this.state.name
+      }. You will remain in shared groups, but to make a new group with ${
+        this.state.name
+      }, they will have to consent.`,
+      [
+        {
+          text: "Yes",
+          onPress: () => unFriendFirebaseFunction()
+        },
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
+  block() {
+    Alert.alert(
+      "Block",
+      `You are about to block ${
+        this.state.name
+      }. You will be removed from shared groups, and ${
+        this.state.name
+      } cannot send you any messages.`,
+      [
+        {
+          text: "Yes",
+          onPress: () => blockFirebaseFunction()
+        },
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
+  unFriendFirebaseFunction() {
     console.log("Unfriend");
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/blockUser", {
       method: "POST",
@@ -94,8 +140,7 @@ export default class Friend extends React.Component {
     //TODO: success or error.
   }
 
-  block() {
-    console.log("Block");
+  blockFirebaseFunction() {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFriend",
       {
@@ -110,7 +155,7 @@ export default class Friend extends React.Component {
         })
       }
     );
-    
+
     //TODO: success or error.
   }
 
