@@ -18,5 +18,6 @@
     "xml2js": "^0.4.19",
     "xmlhttprequest": "^1.8.0"
   },
-  "private": true
+  "private": true,
+  "engines": {"node": "8"}
 }
