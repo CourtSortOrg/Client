@@ -15,7 +15,15 @@ export default class Map extends React.Component {
     var diningData = require("../../testData/diningCourtData.json");
 
     this.state = {
-      diningCourts: diningData.courts
+      diningCourts: diningData.courts,
+      currLatitute: diningData.courts[0].latitude,
+      currLongitude: diningData.courts[1].latitude,
+      region: {
+        latitude: diningData.courts[0].latitude - 0.0005,
+        longitude: diningData.courts[1].latitude,
+        latitudeDelta: 0.004,
+        longitudeDelta: 0.003
+      }
     };
   }
 
@@ -43,12 +51,8 @@ export default class Map extends React.Component {
         <View style={{ flex: 1, flexGrow: 1 }}>
           <MapView
             style={{ flex: 1 }}
-            initialRegion={{
-              latitude: 37.78825,
-              longitude: -122.4324,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421
-            }}
+            initialRegion={this.state.region}
+            region={this.state.region}
           />
           <View style={{ position: "absolute", bottom: 25 }}>
             <Carousel
@@ -59,6 +63,16 @@ export default class Map extends React.Component {
               renderItem={this.renderDiningCard}
               sliderWidth={width}
               itemWidth={width * 0.75}
+              onSnapToItem={index => {
+                this.setState({
+                  region: {
+                    latitude: this.state.diningCourts[index].latitude - 0.0005,
+                    longitude: this.state.diningCourts[index].longitude,
+                    latitudeDelta: 0.004,
+                    longitudeDelta: 0.003
+                  }
+                });
+              }}
             />
           </View>
         </View>
