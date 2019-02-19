@@ -88,7 +88,7 @@ export default class Friend extends React.Component {
       [
         {
           text: "Yes",
-          onPress: () => unFriendFirebaseFunction()
+          onPress: () => this.unFriendFirebaseFunction()
         },
         {
           text: "No",
@@ -111,7 +111,7 @@ export default class Friend extends React.Component {
       [
         {
           text: "Yes",
-          onPress: () => blockFirebaseFunction()
+          onPress: () => this.blockFirebaseFunction()
         },
         {
           text: "No",
@@ -135,7 +135,7 @@ export default class Friend extends React.Component {
         uid: this.state.uid,
         blockedUid: this.state.otherUid
       })
-    });
+    }).then(data => console.log(data)).then(() => this.props.navigation.goBack());
 
     //TODO: success or error.
   }
@@ -151,10 +151,10 @@ export default class Friend extends React.Component {
         },
         body: JSON.stringify({
           uid: this.state.uid,
-          friendUid: this.state.otherUid
+          friendId: this.state.otherUid
         })
       }
-    );
+    ).then(data => console.log(data)).then(() => this.props.navigation.goBack());
 
     //TODO: success or error.
   }
