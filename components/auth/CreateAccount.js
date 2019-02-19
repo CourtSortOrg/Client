@@ -59,7 +59,8 @@ export default class CreateAccount extends React.Component {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              uid: user.uid
+              uid: user.uid,
+              name: this.state.name
             })
           }
         );

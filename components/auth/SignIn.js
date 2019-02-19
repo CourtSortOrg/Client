@@ -61,15 +61,6 @@ export default class SignIn extends React.Component {
 
   forgotPassword = async () => {
     this.props.navigation.navigate("ResetPassword");
-    // firebase
-    //   .auth()
-    //   .sendPasswordResetEmail(this.state.username.toString())
-    //   .then(function() {
-    //     alert("Email Sent");
-    //   })
-    //   .catch(function(error) {
-    //     alert(error.message);
-    //   });
   };
 
   signInGoogleAsync = async () => {
