@@ -39,6 +39,12 @@ export default class Profile extends React.Component {
   }
 
   componentDidMount() {
+    if(this.state.uid== undefined) {
+      console.log("HOME");
+      this.props.navigation.navigate("Auth");
+      return;
+    }
+    
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
       {
@@ -87,6 +93,32 @@ export default class Profile extends React.Component {
     user
       .delete()
       .then(() => {
+        fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: this.state.uid,
+            })
+          }
+        );
+        fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: this.state.uid,
+            })
+          }
+        );
         //navigate to SignIn Screen
         this.props.navigation.navigate("Auth");
         this.setState({ isEditing: false });
