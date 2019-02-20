@@ -13,8 +13,82 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
+// this function fetches the timings for dining courts on a particular day
+// PARAMETERS: date (as a string "YYYY-MM-DD")
+exports.fetchDiningTimes = functions.https.onRequest(async (request, response)=>{
+  var date = request.body.date;
+
+  if(date == null){
+    // sets as default for testing
+    date = "2019-02-18";
+  }
+
+  console.log("Querying data");
+	var docRef = await db.collection("DateTimes").doc(date);
+	var getDishes = await docRef.get().then(
+		doc => {
+			if(!doc.exists){
+				response.send({error: "no matches"});
+			}else{
+				response.send(doc.data());
+			}
+		}
+	).catch(err => {
+    console.log('Error getting documents', err);
+  });
+
+})
+
+// this function populates the timings for dining courts on a particular day
+// PARAMETERS: date (as a string "YYYY-MM-DD")
+exports.populateDiningTimes = functions.https.onRequest(async (request, response)=>{
+  var date = request.body.date;
+  var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
+
+  if(date == null){
+    // sets as default for testing
+    date = "2019-02-18";
+  }
+
+  const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
+  const getData = async (url, location) => {
+    try {
+      const response = await fetch(url + "" + location + "/" + date);
+      const json = await response.json();
+      console.log(json);
+      return json;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  async function updateDatabase(data) {
+    var toPush = {locations: []};
+    for(var currLoc = 0; currLoc < data.length; currLoc++){
+      var menuJSON = data[currLoc];
+      var location = {name: menuJSON['Location'], meals: []}
+
+      for(var currMeal = 0; currMeal < menuJSON['Meals'].length; currMeal++){
+        var mealInfo = {name: menuJSON['Meals'][currMeal]["Name"], hours: menuJSON['Meals'][currMeal]["Hours"]};
+        location['meals'].push(mealInfo);
+      }
+      toPush['locations'].push(location);
+    }
+
+    await db.collection("DateTimes").doc(date).set(toPush);
+  }
+
+  var data = []
+  for(var i = 0; i< locations.length; i++){
+    data.push(await getData(url, locations[i]));
+  }
+  var updated = await updateDatabase(data);
+  console.log("done");
+  response.send("Finished Population of timings for "+date);
+})
+
 // this function returns a JSON of all dishes given a location and date
-// PARAMETERS: date (as a string)
+// PARAMETERS: date (as a string "YYYY-MM-DD")
 exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
   var date = request.body.date;
 
@@ -63,7 +137,7 @@ exports.fetchAllOffered = functions.https.onRequest(async (request, response) =>
 })
 
 // this function adds all the offerings to the dishes for a particular date
-// PARAMETERS: date (as a string)
+// PARAMETERS: date (as a string "YYYY-MM-DD")
 exports.individualItemPopulate = functions.https.onRequest(async (request, response)=>{
   var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
   var date = request.body.date;
@@ -151,7 +225,7 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
 })
 
 // this function populates the database with the API infor for a particular date
-// PARAMETERS: date (as a string)
+// PARAMETERS: date (as a string "YYYY-MM-DD")
 exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
   var date = request.body.date;
