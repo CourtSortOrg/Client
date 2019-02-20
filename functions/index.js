@@ -251,6 +251,22 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
     return;
   }
 
+  admin.auth().getUser(uid)
+  .then(function(userRecord) {
+    console.log("Successfully fetched user data:", userRecord.toJSON());
+  })
+  .catch(function(error) {
+    console.log("Error fetching user data:", error);
+    response.send("uid is incorrect");
+    return;
+  });
+
+  if (checkUserExists(uid)) {
+    console.log("user already exists");
+    response.send("user already exists");
+    return;
+  }
+
   var updatedUser = {
     uid: uid,
     name: name,
@@ -273,6 +289,17 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
     response.send("error");
   });
 });
+
+function checkUserExists(uid, name) {
+  db.collection("User").doc(name).get().then(doc => {
+    if(!doc.exists){
+      return false;
+    }
+    else{
+      return true;
+    }
+  });
+}
 
 //get friends of a user
 //PARAMETERS: name
