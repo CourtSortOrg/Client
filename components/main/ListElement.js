@@ -71,13 +71,13 @@ export default class ListElement extends React.Component {
   subList = () => {
     if (this.props.subList) {
       let list = this.props[this.props.subList.list];
+      if (this.props.subList.extend)
+        list = list[0][this.props.subList.extend]
       return (
         <View
           style={this.state.expand ? this.styles.subList : { display: "none" }}
         >
           {list.map((element, index) => {
-            if (this.props.subList.extend)
-              element = element[this.props.subList.extend][0];
             return (
               <ListElement
                 key={index}
