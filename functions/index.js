@@ -318,62 +318,60 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   console.log(name);
   if (uid == null) {
     response.send("Must pass uid in body of request");
-    return;
   }
   if (name == null) {
     response.send("Must pass name in body of request");
-    return;
   }
 
   admin.auth().getUser(uid)
   .then(function(userRecord) {
     console.log("Successfully fetched user data:", userRecord.toJSON());
+    checkUserExists(name);
   })
   .catch(function(error) {
     console.log("Error fetching user data:", error);
     response.send("uid is incorrect");
-    return;
   });
 
-  if (checkUserExists(name)) {
-    console.log("user already exists");
+  function checkUserExists(name) {
+    db.collection("User").doc(name).get().then(doc => {
+      if(!doc.exists){
+        addUser();
+      }
+      else {
+        userDoesExist();
+      }
+    });
+  }
+
+  function userDoesExist() {
     response.send("user already exists");
-    return;
   }
 
-  var updatedUser = {
-    uid: uid,
-    name: name,
-    initials: "",
-    image: "",
-    groups: "",
-    preferences: "",
-    dietaryRestrictions: "",
-    friends: [],
-    blockedUsers: [],
-    outgoingFriendReq: [],
-    incomingFriendReq: [],
-    ratings: ""
+  function addUser() {
+    var updatedUser = {
+      uid: uid,
+      name: name,
+      initials: "",
+      image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
+      groups: [],
+      preferences: [],
+      dietaryRestrictions: [],
+      friends: [],
+      blockedUsers: [],
+      outgoingFriendReq: [],
+      incomingFriendReq: [],
+      ratings: []
+    }
+    db.collection("User").doc(name).set(updatedUser).then(function() {
+      console.log("User successfully added!");
+      response.send("success");
+    }).catch(function(error) {
+      console.error("Error adding user: ", error);
+      response.send("error");
+    });
   }
-  db.collection("User").doc(name).set(updatedUser).then(function() {
-    console.log("User successfully added!");
-    response.send("success");
-  }).catch(function(error) {
-    console.error("Error adding user: ", error);
-    response.send("error");
-  });
 });
-
-function checkUserExists(name) {
-  db.collection("User").doc(name).get().then(doc => {
-    if(!doc.exists){
-      return false;
-    }
-    else{
-      return true;
-    }
-  });
-}
 
 //get friends of a user
 //PARAMETERS: name
