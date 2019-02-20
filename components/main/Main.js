@@ -54,7 +54,7 @@ const Stack = createStackNavigator(
     }
   },
   {
-    initialRouteName: "Map",
+    initialRouteName: "Home",
     headerMode: "none",
     transitionConfig: () => ({
       transitionSpec: {
