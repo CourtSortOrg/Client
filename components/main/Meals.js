@@ -2436,18 +2436,20 @@ export default class Meals extends React.Component {
   }
 
   updateMeals(index) {
-    let dateFilteredMeals;
-    if (
-      this.state.meals.length > this.state.date &&
-      this.state.meals[this.state.date].Courts != undefined
-    ) {
-      dateFilteredMeals = this.state.meals[this.state.date].Courts.map(court =>
-        court.Meals.filter(meal => meal.Order == this.state.times[index].Order)
-      );
-      dateFilteredMeals = dateFilteredMeals.filter(arr => arr.length != 0);
-    } else {
-      dateFilteredMeals = undefined;
-    }
+    let dateFilteredMeals = this.state.meals[this.state.date].Courts.map(
+      court => {
+        return {
+          Name: court.Name,
+          Meals: court.Meals.filter(
+            meal => meal.Order == this.state.times[index].Order
+          )
+        };
+      }
+    );
+    dateFilteredMeals = dateFilteredMeals.filter(
+      obj => obj.Meals.length != 0
+    );
+
     this.setState({
       dateFilteredMeals,
       currentMeal: index,
