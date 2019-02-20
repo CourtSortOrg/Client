@@ -261,7 +261,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
     return;
   });
 
-  if (checkUserExists(uid)) {
+  if (checkUserExists(name)) {
     console.log("user already exists");
     response.send("user already exists");
     return;
@@ -290,7 +290,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   });
 });
 
-function checkUserExists(uid, name) {
+function checkUserExists(name) {
   db.collection("User").doc(name).get().then(doc => {
     if(!doc.exists){
       return false;
