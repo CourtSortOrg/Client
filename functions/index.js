@@ -137,63 +137,6 @@ exports.getMenus = functions.https.onRequest((request, response) => {
   requestMenu(processResult, response);
 });
 
-//get the user data and put in the database (DOESNT WORK)
-//PARAMETERS: none
-exports.updateUserDatabase = functions.https.onRequest((request, response) => {
-  function listAllUsers(nextPageToken, resp) {
-  // List batch of users, 1000 at a time.
-  admin.auth().listUsers(1000, nextPageToken)
-    .then(function(listUsersResult) {
-      listUsersResult.users.forEach(function(userRecord) {
-        //console.log("user", userRecord.toJSON());
-        userIntoDatabase(userRecord);
-      });
-      if (listUsersResult.pageToken) {
-        // List next batch of users.
-        listAllUsers(listUsersResult.pageToken)
-      }
-    })
-    .catch(function(error) {
-      console.log("Error listing users:", error);
-    });
-    resp.send("done");
-  }
-
-  //insert user into database
-  function userIntoDatabase(userRecord) {
-    if (!checkUserExists(userRecord.uid)) {
-      var updatedUser = {
-        uid: userRecord.uid,
-        preferences: "",
-        dietaryRestrictions: "",
-        friends: "",
-        blockedUsers: ""
-      }
-      db.collection("User").doc(userRecord.uid).set(updatedUser);
-    }
-  }
-
-  //check if the user exists already
-  function checkUserExists(uid) {
-    var userRef = db.collection("User").doc(uid);
-    var getDoc = userRef.get().then(doc => {
-      if(!doc.exists()) {
-        console.log("User doesn't exist");
-        return false
-      }
-      else {
-        console.log("User exists");
-        return true;
-      }
-    }).catch(err => {
-      console.log("Error getting document: " + err);
-    });
-  }
-
-  // Start listing users from the beginning, 1000 at a time.
-  listAllUsers(undefined, response);
-});
-
 //add user to database
 //PARAMETERS: uid, name
 exports.addUserToDatabase = functions.https.onRequest((request, response) => {
@@ -228,50 +171,6 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
     response.send("error");
   });
 });
-
-/*//PARAMETERS: uid, friendID
-exports.addFriend = functions.https.onRequest((request, response) => {
-  var uid = request.body.uid;
-  console.log(uid);
-  var friendID = request.body.friendID;
-  console.log(friendID);
-  var friendName = request.body.friendName;
-  console.log(friendName);
-
-  if(uid == null){
-    response.send("Must pass uid in request");
-    return;
-  }
-  if(friendID == null){
-    response.send("Must pass friendID in request");
-    return;
-  }
-  if(friendName == null){
-    response.send("Must pass friendName in request");
-    return;
-  }
-
-  var friendData = {
-    friendName: friendName
-  }
-
-  //check if the friend's ID exists
-  db.collection("User").doc(friendID).get().then(doc => {
-    if(!doc.exists){
-      console.log("Friend id is not valid");
-      response.send("Bad FriendID");
-    }
-    else{
-      db.collection("User").doc(uid).collection("Friends").doc(friendID).set(friendData).then(function(){
-        console.log("Friend successfully added!");
-        response.send("success");
-      }).catch(function(error){
-        console.error("Error getting")
-        response.send("error");
-      });
-    }
-  });
-});*/
 
 //get friends of a user
 //PARAMETERS: name
