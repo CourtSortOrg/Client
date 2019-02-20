@@ -10,10 +10,9 @@ export default class Notifications extends React.Component {
     super(props);
     this.state = {
       loading: true,
-      friendRequests: []
+      friendRequests: [],
+      displayName: firebase.auth().currentUser.displayName
     };
-
-    const id = firebase.auth().currentUser.uid;
   }
 
   removeFriendRequest = index => {
@@ -34,7 +33,7 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: "user6", //TODO: Don't hardcode this value
+          name: this.state.displayName,
           friendName: friendName
         })
       }
@@ -54,7 +53,7 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: "user6", //TODO: Don't hardcode this value
+          name: this.setState.displayName,
           friendName: friendName
         })
       }
@@ -65,22 +64,6 @@ export default class Notifications extends React.Component {
   };
 
   componentDidMount() {
-    // fetch(
-    //   "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
-    //   {
-    //     method: "POST",
-    //     headers: {
-    //       Accept: "application/json",
-    //       "Content-Type": "application/json"
-    //     },
-    //     body: JSON.stringify({
-    //       uid: this.id
-    //     })
-    //   }
-    // ).then(data => {
-    //   console.log(data._bodyText);
-
-    // });
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getIncomingFriendRequests",
       {
@@ -90,7 +73,7 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: "user6" //TODO: Don't hardcode this value
+          name: this.state.displayName
         })
       }
     ).then(data => {

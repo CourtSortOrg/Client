@@ -19,6 +19,7 @@ import * as firebase from "firebase";
 
 import config from "../../config";
 
+//Only initialize the app config if there are no apps running
 if (!firebase.apps.length) {
   firebase.initializeApp(config);
 }
@@ -27,42 +28,59 @@ export default class SignIn extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      username: "",
+      email: "",
       password: ""
     };
+
+    //If the authentification state changes
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
+        console.log(user.uid);
+        console.log(user.displayName);
+        fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: user.uid,
+              name: user.displayName
+            })
+          }
+        ).then(data => console.log(data._bodyText));
         props.navigation.navigate("Home");
       }
     });
   }
 
   signInNative = () => {
-    // Alert.alert('Clicked Sign In', 'Attempt to login user, for now will
-    // automagically continue to main');
+    //Dismiss the keyboard
     Keyboard.dismiss();
-    //Alert.alert("Credentials", this.state.username+"\n"+this.state.password)
 
-    var username = this.state.username.toString();
-    var pass = this.state.password.toString();
+    //Attempt to sign the user in with firebase
     firebase
       .auth()
-      .signInWithEmailAndPassword(username, pass)
+      .signInWithEmailAndPassword(this.state.email, this.state.password)
       .then(() => {
+        //If they successfully signed in, navigate to the home screen
         this.props.navigation.navigate("Home");
       })
       .catch(function(error) {
         alert(error.message);
       });
   };
-  createAccount = async () => {
+
+  createAccount = () => {
     this.props.navigation.navigate("CreateAccount");
   };
 
-  forgotPassword = async () => {
+  forgotPassword = () => {
     this.props.navigation.navigate("ResetPassword");
   };
-  useAsGuest = async () => {
+  useAsGuest = () => {
     this.props.navigation.navigate("Home");
   };
 
@@ -76,7 +94,7 @@ export default class SignIn extends React.Component {
         scopes: ["profile", "email"]
       });
 
-      this.props.navigation.navigate("Home");
+      //this.props.navigation.navigate("Home");
 
       if (result.type === "success") {
         firebase
@@ -168,7 +186,7 @@ export default class SignIn extends React.Component {
             placeholder="Email"
             placeholderTextColor="#999"
             returnKeyType={"next"}
-            onChangeText={username => this.setState({ username })}
+            onChangeText={email => this.setState({ email: email })}
             underlineColorAndroid="transparent"
           />
 

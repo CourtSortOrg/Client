@@ -16,14 +16,15 @@ export default class Profile extends React.Component {
     super(props);
 
     var userData = require("../../testData/userData.json");
-    var ratingData = require("../../testData/ratingData.json");
+    const ratingData = require("../../testData/ratingData.json");
     var friendData = require("../../testData/friendData.json");
     var groupData = require("../../testData/groupData.json");
 
     const user = firebase.auth().currentUser;
-
+    console.log(user.displayName);
     this.state = {
       uid: user ? user.uid : undefined,
+      displayName: user ? user.displayName : undefined,
       selectedIndex: 0,
       isEditing: false,
 
@@ -39,12 +40,12 @@ export default class Profile extends React.Component {
   }
 
   componentDidMount() {
-    if(this.state.uid== undefined) {
+    if (this.state.uid == undefined) {
       console.log("HOME");
       this.props.navigation.navigate("Auth");
       return;
     }
-    
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
       {
@@ -54,26 +55,31 @@ export default class Profile extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          uid: this.state.uid
+          name: this.state.displayName
         })
       }
     ).then(data => {
-      this.setState({ ...JSON.parse(data._bodyText) });
+      console.log(data._bodyText);
+      this.setState({
+        ...JSON.parse(data._bodyText),
+        ratings: this.ratingData.ratings
+      }, () => {
+        console.log("this");
+        console.log(this.state.friends)
+      });
     });
 
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          uid: this.state.uid
-        })
-      }
-    ).then(data => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: this.state.displayName
+      })
+    }).then(data => {
+      console.log(data._bodyText);
       this.setState({ ...JSON.parse(data._bodyText) });
     });
   }
@@ -102,10 +108,10 @@ export default class Profile extends React.Component {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              uid: this.state.uid,
+              name: this.state.displayName
             })
           }
-        );
+        ).then(data => console.log(data._bodyText));
         fetch(
           "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
           {
@@ -115,15 +121,13 @@ export default class Profile extends React.Component {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              uid: this.state.uid,
+              name: this.state.displayName
             })
           }
-        );
+        ).then(data => console.log(data._bodyText));
         //navigate to SignIn Screen
         this.props.navigation.navigate("Auth");
         this.setState({ isEditing: false });
-        //remove this user from all lists of friends
-        //remove this user's individual ratings
       })
       .catch(function(error) {
         alert("ERROR: " + error.message);
@@ -142,22 +146,6 @@ export default class Profile extends React.Component {
       .catch(error => {
         alert(error.message);
       });
-  };
-
-  createUser = async () => {
-    let response = await fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          uid: "test-uid"
-        })
-      }
-    );
   };
 
   render() {
@@ -184,7 +172,7 @@ export default class Profile extends React.Component {
             source={{ uri: this.state.image }}
             title={this.state.initials}
           />
-          <Text style={styles.profileName}>{this.state.name}</Text>
+          <Text style={styles.profileName}>{this.state.displayName}</Text>
           <EvilIcons
             color="gray"
             name="pencil"
@@ -268,7 +256,6 @@ export default class Profile extends React.Component {
               style={styles.editInformation}
             />
             <Text>Edit Profile</Text>
-            <Button title="Create Account" onPress={this.createUser} />
             <View
               style={{
                 flexDirection: "row",
