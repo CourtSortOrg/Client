@@ -1,5 +1,6 @@
 import React from "react";
-import { View, TouchableOpacity } from "react-native";
+import * as firebase from "firebase";
+import { View, Alert, TouchableOpacity } from "react-native";
 
 import Screen from "../Nav/Screen";
 import List from "./List";
@@ -10,6 +11,8 @@ import Separator from "../Nav/Separator";
 export default class Friend extends React.Component {
   constructor(props) {
     super(props);
+
+    const user = firebase.auth().currentUser;
 
     var userData = require("../../testData/userData.json");
     var ratingData = require("../../testData/ratingData.json");
@@ -43,6 +46,7 @@ export default class Friend extends React.Component {
     let sharedGroups = [{ Name: "Shared Messages", groups: groupData.groups }]; //.filter(group => group.members.includes("USER") && group.members.includes(userData.name));
 
     this.state = {
+      uid: user.uid,
       name: userData.name,
       initials: userData.initials,
       image: userData.image,
@@ -52,15 +56,107 @@ export default class Friend extends React.Component {
   }
 
   componentWillMount() {
-    console.log(`Load friend ${this.props.navigation.getParam("ID", "NO-ID")}`);
+    this.setState({ otherUid: this.props.navigation.getParam("ID", "NO-ID") });
+  }
+
+  componentDidMount() {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          otherUid: this.state.uid
+        })
+      }
+    ).then(data => {
+      this.setState({ ...JSON.parse(data._bodyText) });
+    });
   }
 
   unFriend() {
-    console.log("Unfriend");
+    Alert.alert(
+      "Unfriend",
+      `You are about to unfriend ${
+        this.state.name
+      }. You will remain in shared groups, but to make a new group with ${
+        this.state.name
+      }, they will have to consent.`,
+      [
+        {
+          text: "Yes",
+          onPress: () => this.unFriendFirebaseFunction()
+        },
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
   }
 
   block() {
-    console.log("Block");
+    Alert.alert(
+      "Block",
+      `You are about to block ${
+        this.state.name
+      }. You will be removed from shared groups, and ${
+        this.state.name
+      } cannot send you any messages.`,
+      [
+        {
+          text: "Yes",
+          onPress: () => this.blockFirebaseFunction()
+        },
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
+  unFriendFirebaseFunction() {
+    console.log("Unfriend");
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/blockUser", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        uid: this.state.uid,
+        blockedUid: this.state.otherUid
+      })
+    }).then(data => console.log(data)).then(() => this.props.navigation.goBack());
+
+    //TODO: success or error.
+  }
+
+  blockFirebaseFunction() {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFriend",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          uid: this.state.uid,
+          friendId: this.state.otherUid
+        })
+      }
+    ).then(data => console.log(data)).then(() => this.props.navigation.goBack());
+
+    //TODO: success or error.
   }
 
   render() {

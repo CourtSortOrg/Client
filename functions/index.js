@@ -14,30 +14,23 @@ exports.test = functions.https.onRequest((request, response) => {
 });
 
 // this function returns a JSON of all dishes given a location and date
-// PARAMETERS: location, date (as a string)
+// PARAMETERS: date (as a string)
 exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
-	var location = request.body.location;
   var date = request.body.date;
 
-  if(location == null || date == null){
+  if(date == null){
     // sets as default for testing
-    location = "hillenbrand";
     date = "2019-02-18";
 	}
 
 	console.log("Querying data");
-	var collectionRef = await db.collection("Dish");
-	var setOfDishes = await collectionRef.get().where("diningHall", "==", location).where("date", "array-contains", date).then(
-		querySnapshot => {
-			if(querySnapshot.empty){
-				response.send({error: "no matches", size: querySnapshot.size});
+	var docRef = await db.collection("DateDishes").doc(date);
+	var getDishes = await docRef.get().then(
+		doc => {
+			if(!doc.exists){
+				response.send({error: "no matches"});
 			}else{
-				console.log("size: "+querySnapshot.size);
-				var items = [];
-				querySnapshot.forEach(doc => {
-					items.push(doc.data());
-				})
-				response.send(items);
+				response.send(doc.data());
 			}
 		}
 	).catch(err => {
@@ -45,22 +38,45 @@ exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
   });
 });
 
-// this function populates the database with new dishes
-// PARAMETERS: location, date (as a string)
-exports.populateDishes = functions.https.onRequest(async (request, response)=>{
-  var location = request.body.location;
+// this function returns all the times that a dish is offered and where
+// PARAMETERS: name: name of dish
+exports.fetchAllOffered = functions.https.onRequest(async (request, response) => {
+  var name = request.body.name;
+
+  if(name == null){
+    // sets as default for testing
+    name = "Bacon";
+  }
+
+  console.log("Querying for dish: "+name);
+
+  var docRef = await db.collection("Dish").doc(name);
+  var getOfferings = await docRef.get().then(
+    doc => {
+      if(!doc.exists){
+        response.send({error: "no such dish"});
+      }else{
+        response.send(doc.data());
+      }
+    }
+  )
+})
+
+// this function adds all the offerings to the dishes for a particular date
+// PARAMETERS: date (as a string)
+exports.individualItemPopulate = functions.https.onRequest(async (request, response)=>{
+  var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
   var date = request.body.date;
 
-  if(location == null || date == null){
+  if(date == null){
     // sets as default for testing
-    location = "hillenbrand";
     date = "2019-02-18";
   }
 
-  const url = "https://api.hfs.purdue.edu/menus/v2/locations/" + location + "/" + date;
-  const getData = async url => {
+  const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
+  const getData = async (url, location) => {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url + "" + location + "/" + date);
       const json = await response.json();
       console.log(json);
       return json;
@@ -70,6 +86,7 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   };
 
   async function updateDatabase(data) {
+<<<<<<< HEAD
     var menuJSON = data;
     console.log(JSON.stringify(menuJSON));
 
@@ -102,19 +119,141 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
 							console.log("Modify: "+item['name']);
 							var arrayUnion = await itemRef.update({ dates: admin.firestore.FieldValue.arrayUnion(date)});
 							console.log("modified");
-            }
-          }).catch(err => {
-            console.log('Error getting document', err);
-          });
-        }
-      }
-    }
-  }
+=======
+    for(var m = 0; m< data.length; m++){
+      var menuJSON = data[m];
+      console.log(JSON.stringify(menuJSON));
 
-  var data = await getData(url);
+      // sets basic info for hall for now such as menu items for particular meal
+      // ideally we would pass in the meal (lunch or dinner, etc), and this would then fill in the database
+      for(var k = 0; k<menuJSON['Meals'].length; k++){
+        var mealInfo = menuJSON['Meals'][k];
+        // add every item for every station for particular meal
+        // also adds every meal to meal Collection if it exists
+        for(var i=0; i < mealInfo['Stations'].length; i++){
+          var currStation = mealInfo['Stations'][i];
+          for(var j=0; j<currStation['Items'].length; j++){
+            console.log("at: "+currStation['Items'][j]['Name']);
+            var item = {
+              offered: [{
+                date: date,
+                location: menuJSON['Location'],
+                meal: mealInfo['Name'],
+                station: currStation['Name'],
+                id: currStation['Items'][j]['ID']
+              }]
+            };
+            if(currStation['Items'][j]['Name'] == "Deli w/Fresh Baked Breads"){
+              console.log("skipping");
+              continue;
+>>>>>>> ac0f18900d36ff61aa51d228991ced0a0b9e524b
+            }
+            var itemRef = db.collection('Dish').doc(String(currStation['Items'][j]['Name']));
+            var getItem = await itemRef.get().then(async doc => {
+              if (!doc.exists) {
+                itemRef.set(item);   
+                console.log("SET new item: " + currStation['Items'][j]['Name']);     
+              } else {
+                console.log("Modify: " + currStation['Items'][j]['Name']);
+                var getItem = await doc.data();
+                await console.log(getItem);
+                var containsItem = false;
+                for(var e = 0; e<getItem['offered'].length; e++){
+                  if(getItem['offered'][e] == item)
+                    containsItem = true;
+                }
+                if(!containsItem)
+                  var arrayUnion = await itemRef.update({ offered: admin.firestore.FieldValue.arrayUnion(item['offered'][0])});
+              }
+            }).catch(err => {
+              console.log('Error getting document', err);
+            });
+          } // for all items
+        } // for all stations
+      } // for all meals
+    }
+    console.log(date);
+  }
+  
+  var data = []
+  for(var i = 0; i< locations.length; i++){
+    data.push(await getData(url, locations[i]));
+  }
   var updated = await updateDatabase(data);
   console.log("done");
-  response.send("Finished Population for "+location+" on "+date);
+  response.send("Finished Population of dishes for "+date);
+})
+
+// this function populates the database with the API infor for a particular date
+// PARAMETERS: date (as a string)
+exports.populateDishes = functions.https.onRequest(async (request, response)=>{
+  var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
+  var date = request.body.date;
+
+  if(date == null){
+    // sets as default for testing
+    date = "2019-02-18";
+  }
+
+
+  const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
+  const getData = async (url, location) => {
+    try {
+      const response = await fetch(url + "" + location + "/" + date);
+      const json = await response.json();
+      console.log(json);
+      return json;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  async function updateDatabase(data) {
+    var allCourts = {Courts: []};
+    for(var m = 0; m< data.length; m++){
+      var menuJSON = data[m];
+      console.log(JSON.stringify(menuJSON));
+
+      var meals = [];
+      // sets basic info for hall for now such as menu items for particular meal
+      // ideally we would pass in the meal (lunch or dinner, etc), and this would then fill in the database
+      for(var k = 0; k<menuJSON['Meals'].length; k++){
+        var mealInfo = menuJSON['Meals'][k];
+        var stations = [];
+        // add every item for every station for particular meal
+        // also adds every meal to meal Collection if it exists
+        for(var i=0; i < mealInfo['Stations'].length; i++){
+          var currStation = mealInfo['Stations'][i];
+          var items = [];
+          for(var j=0; j<currStation['Items'].length; j++){
+            var item = {
+              ID: currStation['Items'][j]['ID'],
+              Name: currStation['Items'][j]['Name']
+            };
+            items.push(item);
+          } // for all items
+          stations.push({Items: items, Name: currStation['Name']});
+        } // for all stations
+        meals.push({Stations: stations, Name: mealInfo['Name'], Order: mealInfo['Order']});
+      } // for all meals
+      allCourts['Courts'].push({Name: menuJSON['Location'], Meals: meals});
+    }
+    console.log(date);
+    db.collection("DateDishes").doc(date).set(allCourts);
+  }
+<<<<<<< HEAD
+
+  var data = await getData(url);
+=======
+  
+  var data = []
+  for(var i = 0; i< locations.length; i++){
+    data.push(await getData(url, locations[i]));
+  }
+>>>>>>> ac0f18900d36ff61aa51d228991ced0a0b9e524b
+  var updated = await updateDatabase(data);
+  console.log("done");
+  response.send("Finished Population for "+date);
 });
 
 //simple function to get menus from dining court
@@ -456,5 +595,192 @@ exports.userExists = functions.https.onRequest((request, response) => {
     else{
       response.send("User Exists");
     }
+  });
+});
+
+//check if a user exists
+//PARAMETERS: uid
+exports.userExists = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+  console.log(uid);
+
+  db.collection("User").doc(uid).get().then(doc => {
+    if(!doc.exists){
+      response.send("Does Not Exist");
+    }
+    else{
+      response.send("User Exists");
+    }
+  });
+});
+
+//sends a friend request
+//PARAMETERS: uid, friendID
+exports.sendFriendRequest = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+  console.log(uid);
+  var friendID = request.body.friendID;
+  console.log(friendID);
+
+  if (uid == null) {
+    response.send("Must pass uid in body of request");
+  }
+  if (friendID == null) {
+    response.send("Must pass friendID in body of request");
+  }
+
+  //check if the friend's id exists
+  db.collection("User").doc(friendID).get().then(doc => {
+    if(!doc.exists){
+      console.log("Friend id is not valid");
+      response.send("Bad FriendID");
+    }
+    else{
+      //check if they are already friends
+      db.collection("User").doc(uid).collection("Friends").doc(friendID).get().then(doc2 => {
+        if(doc2.exists){
+          response.send("Already friends");
+        }
+        else{
+          var friendData = {friendName: doc.data().name};
+          db.collection("User").doc(uid).collection("outgoingFriendReq").doc(friendID).set(friendData).catch(function(error){
+            response.send("error");
+          });
+
+          db.collection("User").doc(uid).get().then(doc2 => {
+            var userData = {friendName: doc2.data().name};
+            db.collection("User").doc(friendID).collection("incomingFriendReq").doc(uid).set(userData).then(function(error) {
+              response.send("success");
+            }).catch(function(error){
+              response.send("error");
+            });
+          });
+        }
+      });
+    }
+  });
+});
+
+//accepts a friend request
+//PARAMETERS: uid, friendID
+exports.acceptFriendRequest = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+  console.log(uid);
+  var friendID = request.body.friendID;
+  console.log(friendID);
+
+  if (uid == null) {
+    response.send("Must pass uid in body of request");
+  }
+  if (friendID == null) {
+    response.send("Must pass friendID in body of request");
+  }
+
+  db.collection("User").doc(uid).collection("incomingFriendReq").doc(friendID).delete().catch(function(error){
+    response.send("error");
+  });
+
+  db.collection("User").doc(friendID).collection("outgoingFriendReq").doc(uid).delete().catch(function(error){
+    response.send("error");
+  });
+
+
+  db.collection("User").doc(friendID).get().then(doc => {
+    var friendData = {
+      friendName: doc.data().name
+    }
+    db.collection("User").doc(uid).collection("Friends").doc(friendID).set(friendData).catch(function(error){
+      console.error("Error adding friend to user")
+      response.send("error");
+    });
+  });
+
+  db.collection("User").doc(uid).get().then(doc => {
+    var userData = {
+      friendName: doc.data().name
+    }
+    db.collection("User").doc(friendID).collection("Friends").doc(uid).set(userData).then(function() {
+      response.send("success");
+    }).catch(function(error){
+      console.error("Error adding user to friend");
+      response.send("error");
+    });
+  });
+});
+
+//Denies a friend request (Removes the friend request from both users)
+//PARAMETERS: uid, friendID
+exports.denyFriendRequest = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+  console.log(uid);
+  var friendID = request.body.friendID;
+  console.log(friendID);
+
+  if (uid == null) {
+    response.send("Must pass uid in body of request");
+  }
+  if (friendID == null) {
+    response.send("Must pass friendID in body of request");
+  }
+
+  db.collection("User").doc(uid).collection("incomingFriendReq").doc(friendID).delete().catch(function(error){
+    response.send("error");
+  });
+
+  db.collection("User").doc(friendID).collection("outgoingFriendReq").doc(uid).delete().then(function() {
+    response.send("success");
+  }).catch(function(error){
+    console.log(error.message);
+    response.send("error");
+  });
+})
+
+//returns a list of friend requests for the user to accept or deny
+//PARAMETERS: uid
+exports.getIncomingFriendRequests = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+
+  if(uid == null){
+    response.send("Must pass uid in body of request");
+  }
+
+  var listOfRequests = [];
+
+  db.collection("User").doc(uid).collection("incomingFriendReq").get().then(list => {
+    list.forEach(doc => {
+      var friendID = doc.id;
+      var name = doc.data().friendName;
+      var userObj = {name : name, id : friendID};
+      listOfRequests.push(userObj);
+    });
+    response.send(listOfRequests);
+  }).catch(function(error){
+    console.error("Error getting list");
+    response.send(error.message);
+  });
+});
+
+//returns a list of friend requests the user has sent
+//PARAMETERS: uid
+exports.getOutgoingFriendRequests = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+
+  if(uid == null){
+    response.send("Must pass uid in body of request");
+  }
+
+  var listOfRequests = [];
+
+  db.collection("User").doc(uid).collection("outgoingFriendReq").get().then(list => {
+    list.forEach(doc => {
+      var friendID = doc.id;
+      var name = doc.data().friendName;
+      var userObj = {name : name, id : friendID};
+      listOfRequests.push(userObj);
+    });
+    response.send(listOfRequests);
+  }).catch(function(error){
+    console.error("Error getting list");
+    response.send(error.message);
   });
 });
