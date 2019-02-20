@@ -2429,7 +2429,7 @@ export default class Meals extends React.Component {
   nextDate() {
     this.setState(
       {
-        date: this.state.date + 1 > 6 ? 6 : this.state.date + 1
+        date: this.state.date + 1 >= this.state.meals.length ? this.state.meals.length - 1 : this.state.date + 1
       },
       this.updateMeals(0)
     );
