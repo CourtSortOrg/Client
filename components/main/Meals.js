@@ -2429,7 +2429,10 @@ export default class Meals extends React.Component {
   nextDate() {
     this.setState(
       {
-        date: this.state.date + 1 >= this.state.meals.length ? this.state.meals.length - 1 : this.state.date + 1
+        date:
+          this.state.date + 1 >= this.state.meals.length
+            ? this.state.meals.length - 1
+            : this.state.date + 1
       },
       this.updateMeals(0)
     );
@@ -2446,9 +2449,7 @@ export default class Meals extends React.Component {
         };
       }
     );
-    dateFilteredMeals = dateFilteredMeals.filter(
-      obj => obj.Meals.length != 0
-    );
+    dateFilteredMeals = dateFilteredMeals.filter(obj => obj.Meals.length != 0);
 
     this.setState({
       dateFilteredMeals,
@@ -2458,13 +2459,21 @@ export default class Meals extends React.Component {
   }
 
   filterMeals(meals, text) {
+    console.log(meals);
     if (text.length != 0) {
       for (let i = 0; i < meals.length; i++) {
-        meals[i].Items = meals[i].Items.filter(item =>
-          item.Name.includes(text)
+        for (let j = 0; j < meals[i].Meals[0].Stations.length; j++) {
+          meals[i].Meals[0].Stations[j].Items = meals[i].Meals[0].Stations[
+            j
+          ].Items.filter(item => item.Name.includes(text));
+        }
+        meals[i].Meals[0].Stations = meals[i].Meals[0].Stations.filter(
+          station => station.Items.length != 0
         );
       }
-      meals = meals.filter(station => station.Items.length != 0);
+      meals = meals.filter(court => {
+        return court.Meals[0].Stations.length != 0;
+      });
     }
     return meals;
   }
@@ -2546,7 +2555,6 @@ export default class Meals extends React.Component {
             />
           </TouchableOpacity>
         </View>
-        {console.log(this.state.dateFilteredMeals)}
         {this.state.dateFilteredMeals[0].length != 0 ? (
           <SearchList
             navigation={this.props.navigation}
