@@ -307,14 +307,17 @@ function RatingsList(props) {
 
 function FriendsList(props) {
   console.log("Friends List");
-  console.log(props);
+  console.log(props.friends);
+  let friends = props.friends.map(friend => {
+    return {Name: friend};
+  });
   return (
     <SearchList
       navigation={props.navigation}
       filterFunction={filterProfile}
       extendedSearch={() => props.navigation.navigate("Home")}
       list={{
-        list: props.friends,
+        list: friends,
         type: "element",
         subList: false,
         rank: 1,
@@ -329,7 +332,7 @@ function FriendsList(props) {
               //   containerStyle: styles.friendPicture
               // }}
               // subtitle={`@${item.username}`}
-              title={item}
+              title={item.Name}
               onPress={() => props.navigation.navigate("Friend")}
               topDivider
             />
@@ -345,7 +348,7 @@ function FriendsList(props) {
 }
 
 function filterProfile(list, text) {
-  return list.filter(item => item.name.includes(text));
+  return list.filter(item => item.Name.includes(text));
 }
 
 function filterGroup(list, text) {
