@@ -24,7 +24,7 @@ exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
     location = "hillenbrand";
     date = "2019-02-18";
 	}
-	
+
 	console.log("Querying data");
 	var collectionRef = await db.collection("Dish");
 	var setOfDishes = await collectionRef.get().where("diningHall", "==", location).where("date", "array-contains", date).then(
@@ -83,7 +83,7 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
       // also adds every meal to meal Collection if it exists
       for(var i=0; i < mealInfo['Stations'].length; i++){
         var currStation = mealInfo['Stations'][i];
-        
+
         for(var j=0; j<currStation['Items'].length; j++){
           var item = {
             name: currStation['Items'][j]['Name'],
@@ -96,8 +96,8 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
           var itemRef = db.collection('Dish').doc(item['name']);
           var getItem = await itemRef.get().then(async doc => {
             if (!doc.exists) {
-              itemRef.set(item);   
-              console.log("SET new item: "+item['name']);     
+              itemRef.set(item);
+              console.log("SET new item: "+item['name']);
             } else {
 							console.log("Modify: "+item['name']);
 							var arrayUnion = await itemRef.update({ dates: admin.firestore.FieldValue.arrayUnion(date)});
@@ -110,7 +110,7 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
       }
     }
   }
-  
+
   var data = await getData(url);
   var updated = await updateDatabase(data);
   console.log("done");
@@ -420,9 +420,17 @@ exports.blockUser = functions.https.onRequest((request, response) => {
   console.log(uid);
   console.log(blockedUid);
 
+  if (uid == null) {
+    response.send("You must pass in the uid of the current user");
+  }
+
+  if (blockedUid == null) {
+    response.send("You must pass in the uid of the user to be blocked");
+  }
+
   var userRef = db.collection("User").doc(uid);
   userRef.update({
-    blockedUsers: firebase.firestore.FieldValue.arrayUnion(blockedUid)
+    blockedUsers: admin.firestore.FieldValue.arrayUnion(blockedUid)
   })
   .then(function() {
     console.log("Document successfully updated!");
