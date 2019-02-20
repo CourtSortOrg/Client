@@ -2386,7 +2386,7 @@ export default class Meals extends React.Component {
 
   componentDidMount() {
     const date = new Date();
-    for (let i = 8; i < 7; i++) {
+    for (let i = 0; i < 7; i++) {
       console.log(
         `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
       );
@@ -2403,16 +2403,20 @@ export default class Meals extends React.Component {
               1}-${date.getDate()}`
           })
         }
-      ).then(data => {
-        this.setState(
-          {
-            meals: this.state.meals.push({
-              ...JSON.parse(data._bodyText)
-            })
-          },
-          () => this.updateMeals()
-        );
-      });
+      )
+        .then(data => {
+          console.log(data._bodyText);
+          JSON.parse(data._bodyText).then(data => {
+            console.log(data);
+            this.setState(
+              {
+                meals: this.state.meals.push(data)
+              },
+              () => this.updateMeals()
+            );
+          });
+        })
+        .catch(err => console.err(err));
       date.setDate(date.getDate() + 1);
     }
   }
