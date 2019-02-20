@@ -11,6 +11,8 @@ import Card from "../Nav/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../Nav/SearchList";
 
+let userName;
+
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
@@ -18,6 +20,7 @@ export default class Profile extends React.Component {
     var groupData = require("../../testData/groupData.json");
 
     const user = firebase.auth().currentUser;
+    userName = user.displayName;
     console.log(user.displayName);
     this.state = {
       uid: user ? user.uid : undefined,
@@ -38,6 +41,8 @@ export default class Profile extends React.Component {
 
   ratingData = require("../../testData/ratingData.json");
   userData = require("../../testData/userData.json");
+
+  
 
   componentDidMount() {
     if (this.state.uid == undefined) {
@@ -305,6 +310,24 @@ function RatingsList(props) {
   );
 }
 
+function sendFriendRequest(text) {
+  console.log(text);
+  fetch(
+    "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: userName,
+        friendName: text
+      })
+    }
+  );
+ }
+
 function FriendsList(props) {
   console.log("Friends List");
   console.log(props.friends);
@@ -315,7 +338,7 @@ function FriendsList(props) {
     <SearchList
       navigation={props.navigation}
       filterFunction={filterProfile}
-      extendedSearch={() => props.navigation.navigate("Home")}
+      extendedSearch={(text) => sendFriendRequest(text)}
       list={{
         list: friends,
         type: "element",
