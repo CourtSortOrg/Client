@@ -19,5 +19,7 @@
     "xmlhttprequest": "^1.8.0"
   },
   "private": true,
-  "engines": {"node": "8"}
+  "engines": {
+    "node": "8"
+  }
 }
