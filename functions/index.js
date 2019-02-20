@@ -24,8 +24,8 @@ exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
 	}
 
 	console.log("Querying data");
-	var collectionRef = await db.collection("DateDishes").doc(date);
-	var getDishes = await collectionRef.get().then(
+	var docRef = await db.collection("DateDishes").doc(date);
+	var getDishes = await docRef.get().then(
 		doc => {
 			if(!doc.exists){
 				response.send({error: "no matches"});
@@ -38,7 +38,119 @@ exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
   });
 });
 
-// this function populates the database with new dishes
+// this function returns all the times that a dish is offered and where
+// PARAMETERS: name: name of dish
+exports.fetchAllOffered = functions.https.onRequest(async (request, response) => {
+  var name = request.body.name;
+
+  if(name == null){
+    // sets as default for testing
+    name = "Bacon";
+  }
+
+  console.log("Querying for dish: "+name);
+
+  var docRef = await db.collection("Dish").doc(name);
+  var getOfferings = await docRef.get().then(
+    doc => {
+      if(!doc.exists){
+        response.send({error: "no such dish"});
+      }else{
+        response.send(doc.data());
+      }
+    }
+  )
+})
+
+// this function adds all the offerings to the dishes for a particular date
+// PARAMETERS: date (as a string)
+exports.individualItemPopulate = functions.https.onRequest(async (request, response)=>{
+  var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
+  var date = request.body.date;
+
+  if(date == null){
+    // sets as default for testing
+    date = "2019-02-18";
+  }
+
+  const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
+  const getData = async (url, location) => {
+    try {
+      const response = await fetch(url + "" + location + "/" + date);
+      const json = await response.json();
+      console.log(json);
+      return json;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  async function updateDatabase(data) {
+
+    for(var m = 0; m< data.length; m++){
+      var menuJSON = data[m];
+      console.log(JSON.stringify(menuJSON));
+
+      // sets basic info for hall for now such as menu items for particular meal
+      // ideally we would pass in the meal (lunch or dinner, etc), and this would then fill in the database
+      for(var k = 0; k<menuJSON['Meals'].length; k++){
+        var mealInfo = menuJSON['Meals'][k];
+        // add every item for every station for particular meal
+        // also adds every meal to meal Collection if it exists
+        for(var i=0; i < mealInfo['Stations'].length; i++){
+          var currStation = mealInfo['Stations'][i];
+          for(var j=0; j<currStation['Items'].length; j++){
+            console.log("at: "+currStation['Items'][j]['Name']);
+            var item = {
+              offered: [{
+                date: date,
+                location: menuJSON['Location'],
+                meal: mealInfo['Name'],
+                station: currStation['Name'],
+                id: currStation['Items'][j]['ID']
+              }]
+            };
+            if(currStation['Items'][j]['Name'] == "Deli w/Fresh Baked Breads"){
+              console.log("skipping");
+              continue;
+            }
+            var itemRef = db.collection('Dish').doc(String(currStation['Items'][j]['Name']));
+            var getItem = await itemRef.get().then(async doc => {
+              if (!doc.exists) {
+                itemRef.set(item);
+                console.log("SET new item: " + currStation['Items'][j]['Name']);
+              } else {
+                console.log("Modify: " + currStation['Items'][j]['Name']);
+                var getItem = await doc.data();
+                await console.log(getItem);
+                var containsItem = false;
+                for(var e = 0; e<getItem['offered'].length; e++){
+                  if(getItem['offered'][e] == item)
+                    containsItem = true;
+                }
+                if(!containsItem)
+                  var arrayUnion = await itemRef.update({ offered: admin.firestore.FieldValue.arrayUnion(item['offered'][0])});
+              }
+            }).catch(err => {
+              console.log('Error getting document', err);
+            });
+          } // for all items
+        } // for all stations
+      } // for all meals
+    }
+    console.log(date);
+  }
+
+  var data = []
+  for(var i = 0; i< locations.length; i++){
+    data.push(await getData(url, locations[i]));
+  }
+  var updated = await updateDatabase(data);
+  console.log("done");
+  response.send("Finished Population of dishes for "+date);
+})
+
+// this function populates the database with the API infor for a particular date
 // PARAMETERS: date (as a string)
 exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
@@ -85,21 +197,7 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
               Name: currStation['Items'][j]['Name']
             };
             items.push(item);
-            /*
-            var itemRef = db.collection('Dish').doc(item['name']);
-            var getItem = await itemRef.get().then(async doc => {
-              if (!doc.exists) {
-                itemRef.set(item);
-                console.log("SET new item: "+item['name']);
-              } else {
-                console.log("Modify: "+item['name']);
-                var arrayUnion = await itemRef.update({ dates: admin.firestore.FieldValue.arrayUnion(date)});
-                console.log("modified");
-              }
-            }).catch(err => {
-              console.log('Error getting document', err);
-            });
-            */
+
           } // for all items
           stations.push({Items: items, Name: currStation['Name']});
         } // for all stations
@@ -156,12 +254,16 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   var updatedUser = {
     uid: uid,
     name: name,
+    initials: "",
+    image: "",
+    groups: "",
     preferences: "",
     dietaryRestrictions: "",
     friends: [],
     blockedUsers: [],
     outgoingFriendReq: [],
-    incomingFriendReq: []
+    incomingFriendReq: [],
+    ratings: ""
   }
   db.collection("User").doc(name).set(updatedUser).then(function() {
     console.log("User successfully added!");
