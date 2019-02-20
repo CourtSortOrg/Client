@@ -195,7 +195,7 @@ exports.updateUserDatabase = functions.https.onRequest((request, response) => {
 });
 
 //add user to database
-//PARAMETERS: uid
+//PARAMETERS: uid, name
 exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
   var name = request.body.name;
@@ -292,7 +292,7 @@ exports.getFriends = functions.https.onRequest((request, response) => {
 });
 
 //remove a friend from a user
-//PARAMETERS: uid, friendID
+//PARAMETERS: name, friendName
 exports.removeFriend = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
@@ -326,7 +326,7 @@ exports.removeFriend = functions.https.onRequest((request, response) => {
 });
 
 //remove a user from all Friends
-//PARAMETERS: uid
+//PARAMETERS: name
 exports.removeFromAllFriends = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
@@ -353,7 +353,7 @@ exports.removeFromAllFriends = functions.https.onRequest((request, response) => 
 });
 
 //remove user from database
-//PARAMETERS: uid
+//PARAMETERS: name
 exports.removeUserFromDatabase = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
@@ -372,7 +372,7 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
 });
 
 //get user profile information
-//PARAMETERS: uid
+//PARAMETERS: name
 exports.getUserProfile = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
@@ -403,7 +403,7 @@ function getProfile(name, response) {
 }
 
 //update user profile information
-//PARAMETERS: uid, updates (a JSON of updates to profile)
+//PARAMETERS: name, updates (a JSON of updates to profile)
 exports.updateUserProfile = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   var updates = JSON.parse(request.body.updates);
@@ -418,7 +418,7 @@ exports.updateUserProfile = functions.https.onRequest((request, response) => {
 });
 
 //block a user
-//PARAMETERS: uid, blockedUid
+//PARAMETERS: name, blockedName
 exports.blockUser = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   var blockedName = request.body.blockedName;
@@ -477,7 +477,7 @@ exports.getBlockedUsers = functions.https.onRequest((request, response) => {
 });
 
 //check if a user exists
-//PARAMETERS: uid
+//PARAMETERS: name
 exports.userExists = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
@@ -493,7 +493,7 @@ exports.userExists = functions.https.onRequest((request, response) => {
 });
 
 //sends a friend request
-//PARAMETERS: uid, friendID
+//PARAMETERS: name, friendName
 exports.sendFriendRequest = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
@@ -543,7 +543,7 @@ exports.sendFriendRequest = functions.https.onRequest((request, response) => {
 });
 
 //accepts a friend request
-//PARAMETERS: uid, friendID
+//PARAMETERS: name, friendName
 exports.acceptFriendRequest = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
@@ -571,7 +571,7 @@ exports.acceptFriendRequest = functions.https.onRequest((request, response) => {
 });
 
 //Denies a friend request (Removes the friend request from both users)
-//PARAMETERS: uid, friendID
+//PARAMETERS: name, friendName
 exports.denyFriendRequest = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
@@ -597,7 +597,7 @@ exports.denyFriendRequest = functions.https.onRequest((request, response) => {
 })
 
 //returns a list of friend requests for the user to accept or deny
-//PARAMETERS: uid
+//PARAMETERS: name
 exports.getIncomingFriendRequests = functions.https.onRequest((request, response) => {
   var name = request.body.name;
 
@@ -614,7 +614,7 @@ exports.getIncomingFriendRequests = functions.https.onRequest((request, response
 });
 
 //returns a list of friend requests the user has sent
-//PARAMETERS: uid
+//PARAMETERS: name
 exports.getOutgoingFriendRequests = functions.https.onRequest((request, response) => {
   var name = request.body.name;
 
