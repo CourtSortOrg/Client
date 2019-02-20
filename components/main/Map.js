@@ -1,7 +1,9 @@
 import React from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
-import { MapView } from "expo";
+import { Button, Dimensions, StyleSheet, View } from "react-native";
 import Carousel from "react-native-snap-carousel";
+
+import { MapView } from "expo";
+const { Marker } = MapView;
 
 import Header from "../Nav/Header";
 import Footer from "../Nav/Footer";
@@ -17,29 +19,35 @@ export default class Map extends React.Component {
     this.state = {
       diningCourts: diningData.courts,
       currLatitute: diningData.courts[0].latitude,
-      currLongitude: diningData.courts[1].latitude,
+      currLongitude: diningData.courts[0].latitude,
       region: {
-        latitude: diningData.courts[0].latitude - 0.0005,
-        longitude: diningData.courts[1].latitude,
+        latitude: diningData.courts[0].latitude,
+        longitude: diningData.courts[0].longitude,
         latitudeDelta: 0.004,
         longitudeDelta: 0.003
       }
     };
   }
 
-  renderDiningCard = ({ item, index }) => {
+  renderDiningCard = ({ item }) => {
     return (
       <Card header={item.name}>
-        <Text>This is where data will go</Text>
-        <Text>This is where data will go</Text>
-        <Text>This is where data will go</Text>
-        <Text>This is where data will go</Text>
+        <Text>Breakfast:</Text>
+        <Text>Lunch: </Text>
+        <Text>Dinner: </Text>
+        <Button
+          title="View Court"
+          color="#E86515"
+          onPress={() => {
+            alert(`Navigate to ${item.name}`);
+          }}
+        />
       </Card>
     );
   };
 
   render() {
-    var { height, width } = Dimensions.get("window");
+    var { width } = Dimensions.get("window");
     return (
       <View style={{ flex: 1 }}>
         <Header
@@ -50,10 +58,43 @@ export default class Map extends React.Component {
         />
         <View style={{ flex: 1, flexGrow: 1 }}>
           <MapView
+            ref={ref => {
+              this.mapView = ref;
+            }}
+            showsPointsOfInterest={false}
             style={{ flex: 1 }}
             initialRegion={this.state.region}
-            region={this.state.region}
-          />
+            customMapStyle={[
+              {
+                featureType: "poi.business",
+                stylers: [
+                  {
+                    visibility: "off"
+                  }
+                ]
+              },
+              {
+                featureType: "poi.park",
+                elementType: "labels.text",
+                stylers: [
+                  {
+                    visibility: "off"
+                  }
+                ]
+              }
+            ]}
+          >
+            {this.state.diningCourts.map((marker, index) => (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: marker.latitude,
+                  longitude: marker.longitude
+                }}
+                title={marker.name}
+              />
+            ))}
+          </MapView>
           <View style={{ position: "absolute", bottom: 25 }}>
             <Carousel
               ref={c => {
@@ -64,14 +105,15 @@ export default class Map extends React.Component {
               sliderWidth={width}
               itemWidth={width * 0.75}
               onSnapToItem={index => {
-                this.setState({
-                  region: {
-                    latitude: this.state.diningCourts[index].latitude - 0.0005,
+                this.mapView.animateToRegion(
+                  {
+                    latitude: this.state.diningCourts[index].latitude,
                     longitude: this.state.diningCourts[index].longitude,
                     latitudeDelta: 0.004,
                     longitudeDelta: 0.003
-                  }
-                });
+                  },
+                  500
+                );
               }}
             />
           </View>
