@@ -1,6 +1,6 @@
 import React from "react";
 import * as firebase from "firebase";
-import { Alert, FlatList, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
 import Text from "../Nav/Text";
 
 import { ListItem, Rating, Button } from "react-native-elements";
@@ -14,10 +14,7 @@ import SearchList from "../Nav/SearchList";
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
-
-    var userData = require("../../testData/userData.json");
-    const ratingData = require("../../testData/ratingData.json");
-    var friendData = require("../../testData/friendData.json");
+    var ratingData = require("../../testData/ratingData.json");
     var groupData = require("../../testData/groupData.json");
 
     const user = firebase.auth().currentUser;
@@ -28,16 +25,19 @@ export default class Profile extends React.Component {
       selectedIndex: 0,
       isEditing: false,
 
-      name: userData.name,
-      initials: userData.initials,
-      image: userData.image,
-      restrictions: userData.restrictions,
+      name: "",
+      initials: "",
+      image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
+      restrictions: "",
 
       ratings: ratingData.ratings,
-      friends: friendData.users,
+      friends: [],
       groups: groupData.groups
     };
   }
+
+  ratingData = require("../../testData/ratingData.json");
+  userData = require("../../testData/userData.json");
 
   componentDidMount() {
     if (this.state.uid == undefined) {
@@ -59,29 +59,31 @@ export default class Profile extends React.Component {
         })
       }
     ).then(data => {
-      console.log(data._bodyText);
-      this.setState({
-        ...JSON.parse(data._bodyText),
-        ratings: this.ratingData.ratings
-      }, () => {
-        console.log("this");
-        console.log(this.state.friends)
-      });
+      this.setState(
+        {
+          ...JSON.parse(data._bodyText)
+        },
+        () => {
+          console.log(this.state.friends);
+          this.setState({
+            ratings: this.ratingData.ratings
+          });
+        }
+      );
     });
 
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name: this.state.displayName
-      })
-    }).then(data => {
-      console.log(data._bodyText);
-      this.setState({ ...JSON.parse(data._bodyText) });
-    });
+    // fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
+    //   method: "POST",
+    //   headers: {
+    //     Accept: "application/json",
+    //     "Content-Type": "application/json"
+    //   },
+    //   body: JSON.stringify({
+    //     name: this.state.displayName
+    //   })
+    // }).then(data => {
+    //   this.setState({ ...JSON.parse(data._bodyText) });
+    // });
   }
 
   updateIndex = selectedIndex => {
@@ -304,6 +306,8 @@ function RatingsList(props) {
 }
 
 function FriendsList(props) {
+  console.log("Friends List");
+  console.log(props);
   return (
     <SearchList
       navigation={props.navigation}
@@ -314,20 +318,23 @@ function FriendsList(props) {
         type: "element",
         subList: false,
         rank: 1,
-        renderElement: item => (
-          <ListItem
-            chevron
-            bottomDivider
-            leftAvatar={{
-              source: { uri: item.image },
-              containerStyle: styles.friendPicture
-            }}
-            subtitle={`@${item.username}`}
-            title={item.name}
-            onPress={() => props.navigation.navigate("Friend")}
-            topDivider
-          />
-        ),
+        renderElement: item => {
+          console.log(item);
+          return (
+            <ListItem
+              chevron
+              bottomDivider
+              // leftAvatar={{
+              //   source: { uri: item.image },
+              //   containerStyle: styles.friendPicture
+              // }}
+              // subtitle={`@${item.username}`}
+              title={item}
+              onPress={() => props.navigation.navigate("Friend")}
+              topDivider
+            />
+          );
+        },
         viewMore: {
           page: "Message",
           item: "ID"
