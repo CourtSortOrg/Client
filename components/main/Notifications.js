@@ -65,8 +65,24 @@ export default class Notifications extends React.Component {
   };
 
   componentDidMount() {
+    // fetch(
+    //   "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+    //   {
+    //     method: "POST",
+    //     headers: {
+    //       Accept: "application/json",
+    //       "Content-Type": "application/json"
+    //     },
+    //     body: JSON.stringify({
+    //       uid: this.id
+    //     })
+    //   }
+    // ).then(data => {
+    //   console.log(data._bodyText);
+
+    // });
     fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getIncomingFriendRequests",
       {
         method: "POST",
         headers: {
@@ -74,29 +90,14 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          uid: this.id
+          name: "user6" //TODO: Don't hardcode this value
         })
       }
     ).then(data => {
-      console.log(data._bodyText);
-      // fetch(
-      //   "https://us-central1-courtsort-e1100.cloudfunctions.net/getIncomingFriendRequests",
-      //   {
-      //     method: "POST",
-      //     headers: {
-      //       Accept: "application/json",
-      //       "Content-Type": "application/json"
-      //     },
-      //     body: JSON.stringify({
-      //       name: "user6" //TODO: Don't hardcode this value
-      //     })
-      //   }
-      // ).then(data => {
-      //   this.setState({
-      //     friendRequests: JSON.parse(data._bodyText),
-      //     loading: false
-      //   });
-      // });
+      this.setState({
+        friendRequests: JSON.parse(data._bodyText),
+        loading: false
+      });
     });
   }
 
