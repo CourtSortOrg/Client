@@ -86,40 +86,7 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
   };
 
   async function updateDatabase(data) {
-<<<<<<< HEAD
-    var menuJSON = data;
-    console.log(JSON.stringify(menuJSON));
 
-    // sets basic info for hall for now such as menu items for particular meal
-    // ideally we would pass in the meal (lunch or dinner, etc), and this would then fill in the database
-    var hall = menuJSON['Location'];
-    for(var k = 0; k<menuJSON['Meals'].length; k++){
-      var mealInfo = menuJSON['Meals'][k];
-
-      // add every item for every station for particular meal
-      // also adds every meal to meal Collection if it exists
-      for(var i=0; i < mealInfo['Stations'].length; i++){
-        var currStation = mealInfo['Stations'][i];
-
-        for(var j=0; j<currStation['Items'].length; j++){
-          var item = {
-            name: currStation['Items'][j]['Name'],
-            diningHall: location,
-            station: currStation['Name'],
-						dates: [date],
-						meal: k
-          };
-
-          var itemRef = db.collection('Dish').doc(item['name']);
-          var getItem = await itemRef.get().then(async doc => {
-            if (!doc.exists) {
-              itemRef.set(item);
-              console.log("SET new item: "+item['name']);
-            } else {
-							console.log("Modify: "+item['name']);
-							var arrayUnion = await itemRef.update({ dates: admin.firestore.FieldValue.arrayUnion(date)});
-							console.log("modified");
-=======
     for(var m = 0; m< data.length; m++){
       var menuJSON = data[m];
       console.log(JSON.stringify(menuJSON));
@@ -146,13 +113,12 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
             if(currStation['Items'][j]['Name'] == "Deli w/Fresh Baked Breads"){
               console.log("skipping");
               continue;
->>>>>>> ac0f18900d36ff61aa51d228991ced0a0b9e524b
             }
             var itemRef = db.collection('Dish').doc(String(currStation['Items'][j]['Name']));
             var getItem = await itemRef.get().then(async doc => {
               if (!doc.exists) {
-                itemRef.set(item);   
-                console.log("SET new item: " + currStation['Items'][j]['Name']);     
+                itemRef.set(item);
+                console.log("SET new item: " + currStation['Items'][j]['Name']);
               } else {
                 console.log("Modify: " + currStation['Items'][j]['Name']);
                 var getItem = await doc.data();
@@ -174,7 +140,7 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
     }
     console.log(date);
   }
-  
+
   var data = []
   for(var i = 0; i< locations.length; i++){
     data.push(await getData(url, locations[i]));
@@ -241,16 +207,11 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
     console.log(date);
     db.collection("DateDishes").doc(date).set(allCourts);
   }
-<<<<<<< HEAD
 
-  var data = await getData(url);
-=======
-  
   var data = []
   for(var i = 0; i< locations.length; i++){
     data.push(await getData(url, locations[i]));
   }
->>>>>>> ac0f18900d36ff61aa51d228991ced0a0b9e524b
   var updated = await updateDatabase(data);
   console.log("done");
   response.send("Finished Population for "+date);
