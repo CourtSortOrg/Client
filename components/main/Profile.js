@@ -20,8 +20,7 @@ export default class Profile extends React.Component {
     var groupData = require("../../testData/groupData.json");
 
     const user = firebase.auth().currentUser;
-    userName = user.displayName;
-    console.log(user.displayName);
+    userName = user ? user.displayName : undefined;
     this.state = {
       uid: user ? user.uid : undefined,
       displayName: user ? user.displayName : undefined,
@@ -309,7 +308,6 @@ function RatingsList(props) {
 }
 
 function sendFriendRequest(text) {
-  console.log(text);
   fetch(
     "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
     {
@@ -350,8 +348,6 @@ function sendFriendRequest(text) {
 }
 
 function FriendsList(props) {
-  console.log("Friends List");
-  console.log(props.friends);
   let friends = props.friends.map(friend => {
     return { Name: friend };
   });
@@ -366,7 +362,6 @@ function FriendsList(props) {
         subList: false,
         rank: 1,
         renderElement: item => {
-          console.log(item);
           return (
             <ListItem
               chevron

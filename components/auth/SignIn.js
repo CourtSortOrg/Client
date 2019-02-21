@@ -124,28 +124,19 @@ export default class SignIn extends React.Component {
   signInFacebookAsync = async () => {
     // TODO: Maybe need to add Android hashes?? APPID 279514589383224
     try {
-      const {
-        type,
-        token,
-        expires,
-        permissions,
-        declinedPermissions
-      } = await Facebook.logInWithReadPermissionsAsync("279514589383224", {
-        permissions: ["public_profile"]
-      });
+      const { type, token } = await Facebook.logInWithReadPermissionsAsync(
+        "279514589383224",
+        {
+          permissions: ["public_profile"]
+        }
+      );
       if (type === "success") {
         // Get the user's name using Facebook's Graph API
-        const response = await fetch(
-          `https://graph.facebook.com/me?access_token=${token}`
-        );
-        Alert.alert("Logged in!", `Hi ${(await response.json()).name}!`);
         firebase
           .auth()
           .signInAndRetrieveDataWithCredential(
             firebase.auth.FacebookAuthProvider.credential(token)
           );
-      } else {
-        // type === 'cancel'
       }
     } catch ({ message }) {
       alert(`Facebook Login Error: ${message}`);
