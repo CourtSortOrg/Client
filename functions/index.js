@@ -20,7 +20,9 @@ exports.fetchDiningTimes = functions.https.onRequest(async (request, response)=>
 
   if(date == null){
     // sets as default for testing
-    date = "2019-02-18";
+    var error = {error: "No date provided!"};
+    response.send(error);
+    return;
   }
 
   console.log("Querying data");
@@ -28,7 +30,7 @@ exports.fetchDiningTimes = functions.https.onRequest(async (request, response)=>
 	var getDishes = await docRef.get().then(
 		doc => {
 			if(!doc.exists){
-				response.send({error: "no matches"});
+				response.send({error: "No such data in Database. Please populate with given date."});
 			}else{
 				response.send(doc.data());
 			}
@@ -47,7 +49,9 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
 
   if(date == null){
     // sets as default for testing
-    date = "2019-02-18";
+    var error = {error: "No date provided!"};
+    response.send(error);
+    return;
   }
 
   const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
@@ -59,6 +63,8 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
       return json;
     } catch (error) {
       console.log(error);
+      response.send({error: "invalid date!"});
+      return;
     }
   };
 
@@ -94,7 +100,9 @@ exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
 
   if(date == null){
     // sets as default for testing
-    date = "2019-02-18";
+    var error = {error: "No date provided!"};
+    response.send(error);
+    return;
 	}
 
 	console.log("Querying data");
@@ -102,7 +110,7 @@ exports.fetchDishes = functions.https.onRequest(async (request, response)=> {
 	var getDishes = await docRef.get().then(
 		doc => {
 			if(!doc.exists){
-				response.send({error: "no matches"});
+				response.send({error: "No such data in Database. Please populate with given date first!"});
 			}else{
 				response.send(doc.data());
 			}
@@ -119,7 +127,9 @@ exports.fetchAllOffered = functions.https.onRequest(async (request, response) =>
 
   if(name == null){
     // sets as default for testing
-    name = "Bacon";
+    var error = {error: "No meal name provided!"}
+    response.send(error);
+    return;
   }
 
   console.log("Querying for dish: "+name);
@@ -128,7 +138,7 @@ exports.fetchAllOffered = functions.https.onRequest(async (request, response) =>
   var getOfferings = await docRef.get().then(
     doc => {
       if(!doc.exists){
-        response.send({error: "no such dish"});
+        response.send({error: "No such dish in the database!"});
       }else{
         response.send(doc.data());
       }
@@ -144,7 +154,9 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
 
   if(date == null){
     // sets as default for testing
-    date = "2019-02-18";
+    var error = {error: "No date provided!"};
+    response.send(error);
+    return;
   }
 
   const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
@@ -232,7 +244,9 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
 
   if(date == null){
     // sets as default for testing
-    date = "2019-02-18";
+    var error = {error: "No date provided!"};
+    response.send(error);
+    return;
   }
 
 
@@ -292,22 +306,6 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   response.send("Finished Population for "+date);
 });
 
-//simple function to get menus from dining court
-//PARAMETERS: none
-exports.getMenus = functions.https.onRequest((request, response) => {
-  function requestMenu(callback, resp) {
-    req('https://api.hfs.purdue.edu/menus/v2/locations/hillenbrand/2019-02-06', function (error, res, body) {
-      console.log('error:', error);
-      console.log('statusCode:', res && res.statusCode);
-      console.log('body:', body);
-      callback(body, resp);
-    });
-  }
-  function processResult(body, resp) {
-    resp.send(body);
-  }
-  requestMenu(processResult, response);
-});
 
 //add user to database
 //PARAMETERS: uid, name
