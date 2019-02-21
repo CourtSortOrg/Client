@@ -8,6 +8,7 @@ import NutritionFact from "./NutritionFact";
 import List from "./List";
 import Text from "../Nav/Text";
 import Card from "../Nav/Card";
+import ListElement from "./ListElement";
 
 export default class MealItem extends React.Component {
   constructor(props) {
@@ -51,11 +52,9 @@ export default class MealItem extends React.Component {
         })
       }
     ).then(data =>
-      this.setState(
-        {
-          ...JSON.parse(data._bodyText)
-        },
-      )
+      this.setState({
+        ...JSON.parse(data._bodyText)
+      })
     );
   }
 
@@ -68,26 +67,48 @@ export default class MealItem extends React.Component {
       return (
         <View>
           <Card header="Allergens">
-            <View style={styles.allergens}>
-              {this.state.allergens
-                .filter(allergen => allergen.Value)
-                .map((allergen, index) => {
-                  return <AllergenIcon key={index} {...allergen} />;
-                })}
-            </View>
+            {this.state.allergens.length != 0 ? (
+              <View style={styles.allergens}>
+                {this.state.allergens
+                  .filter(allergen => allergen.Value)
+                  .map((allergen, index) => {
+                    return <AllergenIcon key={index} {...allergen} />;
+                  })}
+              </View>
+            ) : (
+              <ListElement rank={1} Name="No listed allergens" type="element" />
+            )}
           </Card>
           <Card header="Nutrition Facts">
-            <List
-              list={this.state.nutrition}
-              type="element"
-              subList={false}
-              renderElement={this.renderElement}
-            />
+            {this.state.nutrition.length != 0 ? (
+              <List
+                list={this.state.nutrition}
+                type="element"
+                subList={false}
+                renderElement={this.renderElement}
+              />
+            ) : (
+              <ListElement
+                rank={1}
+                Name="No listed nutrition facts"
+                type="element"
+              />
+            )}
           </Card>
           <Card header="Ingredients">
-            <Text type="body" style={styles.ingredientsText}>
-              {this.state.ingredients}
-            </Text>
+            {this.state.ingredients.length != 0 ? (
+              <Text type="body" style={styles.ingredientsText}>
+                {this.state.ingredients == ""
+                  ? "No listed ingredients"
+                  : this.state.ingredients}
+              </Text>
+            ) : (
+              <ListElement
+                rank={1}
+                Name="No listed nutrition facts"
+                type="element"
+              />
+            )}
           </Card>
         </View>
       );
