@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { Button, ButtonGroup } from "react-native-elements";
+import { Button, ButtonGroup, ListItem } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import AllergenIcon from "./AllergenIcon";
@@ -14,7 +14,8 @@ export default class MealItem extends React.Component {
     super(props);
 
     this.state = {
-      selectedIndex: 1,
+      passedInName: this.props.navigation.getParam("ID", "NO-ID"),
+      selectedIndex: 0,
       Nutrition: [
         {
           Name: "Serving Size",
@@ -170,6 +171,15 @@ export default class MealItem extends React.Component {
           Name: "Wheat",
           Value: true
         }
+      ],
+      offered: [
+        {
+          meal: "Breakfast",
+          station: "BoilerQ",
+          date: "2019-02-18",
+          id: "05ef89df-d9d3-4d6e-ab9e-39b3e908b5f7",
+          location: "Ford"
+        }
       ]
     };
   }
@@ -178,8 +188,8 @@ export default class MealItem extends React.Component {
     this.setState({ selectedIndex });
   };
 
-  componentWillMount() {
-    fetch(
+  componentDidMount() {
+    /*fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
       {
         method: "POST",
@@ -190,13 +200,27 @@ export default class MealItem extends React.Component {
         body: JSON.stringify({})
       }
     ).then(data =>
-      JSON.parse(data._bodyText).then(
-        this.setState({ ...data }, () => this.updateMeals())
-      )
+      this.setState({
+        ...JSON.parse(data._bodyText)
+      })
     );
-
-    console.log(
-      `Load menu item ${this.props.navigation.getParam("ID", "NO-ID")}`
+*/
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchAllOffered",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: this.state.passedInName
+        })
+      }
+    ).then(data =>
+      this.setState({
+        ...JSON.parse(data._bodyText)
+      })
     );
   }
 
@@ -238,10 +262,30 @@ export default class MealItem extends React.Component {
   renderServing() {
     if (this.state.selectedIndex == 1) {
       return (
-        <Button
-          style={styles.button}
-          title="Go to dining court"
-          onPress={() => this.props.navigation.push("DiningCourt")}
+        <List
+          list={this.state.offered}
+          type="element"
+          subList={false}
+          rank={1}
+          renderElement={item => {
+            console.log(item);
+            return (
+              <ListItem
+                chevron
+                bottomDivider
+                // leftAvatar={{
+                //   source: { uri: item.image },
+                //   containerStyle: styles.friendPicture
+                // }}
+                subtitle={item.date + " " + item.meal}
+                title={item.location}
+                onPress={() =>
+                  this.props.navigation.navigate("Map", { ID: item.location})
+                }
+                topDivider
+              />
+            );
+          }}
         />
       );
     }
