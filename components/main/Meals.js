@@ -143,7 +143,6 @@ export default class Meals extends React.Component {
           <Text>Loading</Text>
         </View>
       );*/
-    //console.log(this.state.dateFilteredMeals);
     const date = new Date();
     date.setDate(date.getDate() + this.state.date);
     const days = [

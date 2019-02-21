@@ -55,7 +55,6 @@ export default class MealItem extends React.Component {
         {
           ...JSON.parse(data._bodyText)
         },
-        () => console.log(this.state)
       )
     );
   }
