@@ -42,7 +42,7 @@ export default class Profile extends React.Component {
   ratingData = require("../../testData/ratingData.json");
   userData = require("../../testData/userData.json");
 
-  
+
 
   componentDidMount() {
     if (this.state.uid == undefined) {
@@ -326,6 +326,18 @@ function sendFriendRequest(text) {
       })
     }
   );
+  Alert.alert(
+      "Friend Request",
+      `You sent a friend request to ${
+      text
+      }.`,
+      [
+        {
+          text: "Ok",
+        },
+      ],
+      { cancelable: false }
+    );
  }
 
 function FriendsList(props) {
