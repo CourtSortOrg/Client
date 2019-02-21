@@ -47,7 +47,8 @@ export default class Friend extends React.Component {
 
     this.state = {
       uid: user.uid,
-      name: userData.name,
+      name: user.displayName,
+      currUser: user.displayName,
       initials: userData.initials,
       image: userData.image,
       groups: sharedGroups,
@@ -69,7 +70,7 @@ export default class Friend extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          otherUid: this.state.uid
+          name: this.state.otherUid
         })
       }
     ).then(data => {
@@ -125,24 +126,26 @@ export default class Friend extends React.Component {
 
   unFriendFirebaseFunction() {
     console.log("Unfriend");
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/blockUser", {
+    console.log(this.state.name);
+    console.log(this.state.otherUid);
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/removeFriend", {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        uid: this.state.uid,
-        blockedUid: this.state.otherUid
+        name: this.state.currUser,
+        friendName: this.state.otherUid
       })
-    }).then(data => console.log(data)).then(() => this.props.navigation.goBack());
+    }).then(data => console.log(data._bodyText)).then(() => this.props.navigation.goBack());
 
     //TODO: success or error.
   }
 
   blockFirebaseFunction() {
     fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFriend",
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/blockUser",
       {
         method: "POST",
         headers: {
@@ -150,8 +153,8 @@ export default class Friend extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          uid: this.state.uid,
-          friendId: this.state.otherUid
+          name: this.state.currUser,
+          blockedName: this.state.otherUid
         })
       }
     ).then(data => console.log(data)).then(() => this.props.navigation.goBack());
@@ -179,7 +182,7 @@ export default class Friend extends React.Component {
           <Separator />
           <List
             navigation={this.props.navigation}
-            list={this.state.groups}
+            list={[]}
             type={"expandable"}
             expand={true}
             rank={0}
