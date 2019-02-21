@@ -528,8 +528,25 @@ exports.blockUser = functions.https.onRequest((request, response) => {
     blockedUsers: admin.firestore.FieldValue.arrayUnion(blockedName)
   })
   .then(function() {
-    console.log("Document successfully updated!");
-    response.send("success");
+    db.collection("User").doc(name).update({
+      friends: admin.firestore.FieldValue.arrayRemove(blockedName),
+      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedName),
+      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedName)
+    }).catch(function(error){
+      console.error("Error removing friend from user")
+      response.send("error");
+    });
+
+    db.collection("User").doc(blockedName).update({
+      friends: admin.firestore.FieldValue.arrayRemove(name),
+      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(name),
+      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(name)
+    }).then(function(){
+      response.send("success");
+    }).catch(function(error){
+      console.error("Error removing user from friend")
+      response.send("error");
+    });
   })
   .catch(function(error) {
     // The document probably doesn't exist.
@@ -613,8 +630,14 @@ exports.sendFriendRequest = functions.https.onRequest((request, response) => {
       console.log("Friend name is not valid");
       response.send("Bad FriendName");
     }
+    //check if the sender is blocked
+    else if(doc.data().blockedUsers.indexOf(name) > -1){
+      response.send("You cannot add a user who has blocked you.");
+    }
+    else if(doc.data().outgoingFriendReq.indexOf(name) > -1){
+      response.send("You cannot send a friend request to someone who has sent you a friend request");
+    }
     else{
-      //check if they are already friends
       userDoc.get().then(doc => {
         if(doc.data().friends.indexOf(friendName) > -1){
           response.send("Already friends");
@@ -660,11 +683,28 @@ exports.acceptFriendRequest = functions.https.onRequest((request, response) => {
     friends: admin.firestore.FieldValue.arrayUnion(friendName)
   });
 
-  db.collection("User").doc(friendName).update({
+  //remove the user from the friend's blockUser list
+  var friendDoc = db.collection("User").doc(friendName);
+
+  friendDoc.update({
     outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(name),
     friends: admin.firestore.FieldValue.arrayUnion(name)
   }).then(function(){
-    response.send("success");
+    friendDoc.get().then(doc => {
+      if(doc.data().blockedUsers.indexOf(name) > -1){
+        friendDoc.update({
+          blockedUsers: admin.firestore.FieldValue.arrayRemove(name)
+        }).then(function(){
+          response.send("success");
+        }).catch(function(error){
+          console.log(error.message);
+          response.send(error.message);
+        });
+      }
+      else{
+        response.send("success");
+      }
+    });
   });
 });
 
