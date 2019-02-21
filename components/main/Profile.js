@@ -42,8 +42,6 @@ export default class Profile extends React.Component {
   ratingData = require("../../testData/ratingData.json");
   userData = require("../../testData/userData.json");
 
-
-
   componentDidMount() {
     if (this.state.uid == undefined) {
       console.log("HOME");
@@ -325,32 +323,43 @@ function sendFriendRequest(text) {
         friendName: text
       })
     }
-  );
-  Alert.alert(
-      "Friend Request",
-      `You sent a friend request to ${
-      text
-      }.`,
-      [
-        {
-          text: "Ok",
-        },
-      ],
-      { cancelable: false }
-    );
- }
+  ).then(data => {
+    if (data._bodyText == "success")
+      Alert.alert(
+        "Friend Request",
+        `You sent a friend request to ${text}.`,
+        [
+          {
+            text: "Ok"
+          }
+        ],
+        { cancelable: false }
+      );
+    else
+      Alert.alert(
+        "Friend Request",
+        `Friend request to ${text} could not be sent.`,
+        [
+          {
+            text: "Ok"
+          }
+        ],
+        { cancelable: false }
+      );
+  });
+}
 
 function FriendsList(props) {
   console.log("Friends List");
   console.log(props.friends);
   let friends = props.friends.map(friend => {
-    return {Name: friend};
+    return { Name: friend };
   });
   return (
     <SearchList
       navigation={props.navigation}
       filterFunction={filterProfile}
-      extendedSearch={(text) => sendFriendRequest(text)}
+      extendedSearch={text => sendFriendRequest(text)}
       list={{
         list: friends,
         type: "element",
@@ -368,7 +377,9 @@ function FriendsList(props) {
               // }}
               // subtitle={`@${item.username}`}
               title={item.Name}
-              onPress={() => props.navigation.navigate("Friend", {ID: item.Name})}
+              onPress={() =>
+                props.navigation.navigate("Friend", { ID: item.Name })
+              }
               topDivider
             />
           );
