@@ -2387,9 +2387,8 @@ export default class Meals extends React.Component {
   componentDidMount() {
     const date = new Date();
     for (let i = 0; i < 7; i++) {
-      console.log(
-        `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-      );
+      const dateStr = `${date.getFullYear()}-${date.getMonth() +
+        1}-${date.getDate()}`;
       fetch(
         "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
         {
@@ -2399,24 +2398,18 @@ export default class Meals extends React.Component {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            date: `${date.getFullYear()}-${date.getMonth() +
-              1}-${date.getDate()}`
+            date: dateStr
           })
         }
       )
-        .then(data => {
-          console.log(data._bodyText);
-          JSON.parse(data._bodyText).then(data => {
-            console.log(data);
-            this.setState(
-              {
-                meals: this.state.meals.push(data)
-              },
-              () => this.updateMeals()
-            );
-          });
-        })
-        .catch(err => console.err(err));
+        .then(data =>
+          this.setState(
+            {
+              meals: [...this.state.meals, JSON.parse(data._bodyText)]
+            }
+          )
+        )
+        .catch(err => console.log(err));
       date.setDate(date.getDate() + 1);
     }
   }
@@ -2490,6 +2483,9 @@ export default class Meals extends React.Component {
         </View>
       );*/
     //console.log(this.state.dateFilteredMeals);
+    const date = new Date();
+    date.setDate(date.getDate() + this.state.date);
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     return (
       <Screen
         title="Meals"
@@ -2517,7 +2513,7 @@ export default class Meals extends React.Component {
                 alignItems: "center"
               }}
             >
-              <Text>{this.state.date}</Text>
+              <Text>{days[date.getDay()]}</Text>
             </View>
             <View style={{ flex: 1, flexDirection: "row" }}>
               {this.state.times.map((meal, index) => (
