@@ -110,7 +110,6 @@ export default class Meals extends React.Component {
       dateFilteredMeals = dateFilteredMeals.filter(
         obj => obj.Meals.length != 0
       );
-      console.log(dateFilteredMeals);
     } catch (error) {
       dateFilteredMeals = [];
     }
