@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, TextInput } from "react-native";
+import { View, ScrollView, TouchableOpacity, TextInput } from "react-native";
 import { Button, SearchBar } from "react-native-elements";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -2403,11 +2403,9 @@ export default class Meals extends React.Component {
         }
       )
         .then(data =>
-          this.setState(
-            {
-              meals: [...this.state.meals, JSON.parse(data._bodyText)]
-            }
-          )
+          this.setState({
+            meals: [...this.state.meals, JSON.parse(data._bodyText)]
+          })
         )
         .catch(err => console.log(err));
       date.setDate(date.getDate() + 1);
@@ -2485,7 +2483,15 @@ export default class Meals extends React.Component {
     //console.log(this.state.dateFilteredMeals);
     const date = new Date();
     date.setDate(date.getDate() + this.state.date);
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ];
     return (
       <Screen
         title="Meals"
@@ -2515,7 +2521,10 @@ export default class Meals extends React.Component {
             >
               <Text>{days[date.getDay()]}</Text>
             </View>
-            <View style={{ flex: 1, flexDirection: "row" }}>
+            <ScrollView
+              style={{ flex: 1, flexDirection: "row" }}
+              horizontal={true}
+            >
               {this.state.times.map((meal, index) => (
                 <TouchableOpacity
                   style={
@@ -2526,12 +2535,16 @@ export default class Meals extends React.Component {
                           borderBottomWidth: 3,
                           flex: 1,
                           justifyContent: "center",
-                          alignItems: "center"
+                          alignItems: "center",
+                          paddingLeft: 8,
+                          paddingRight: 8,
                         }
                       : {
                           flex: 1,
                           justifyContent: "center",
-                          alignItems: "center"
+                          alignItems: "center",
+                          paddingLeft: 8,
+                          paddingRight: 8,
                         }
                   }
                   key={index}
@@ -2542,7 +2555,7 @@ export default class Meals extends React.Component {
                   <Text>{meal.Name}</Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
           </View>
           <TouchableOpacity
             style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
