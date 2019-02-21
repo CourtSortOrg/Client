@@ -159,10 +159,20 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
     return;
   }
 
-  const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
+  const urlMenu = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
   const getData = async (url, location) => {
     try {
-      const response = await fetch(url + "" + location + "/" + date);
+      const opts = {
+        headers: {
+            cookie: 'BIGipServer~WEB~pool_wpvwebasp02-05-05_api.hfs.purdue.edu_web=!93X4jSd5ZpI16MqZHhMmHff5GgkAM9WTEE8eQfC/rDij560kyhNRecoriqBmdTBn875q7WyeXQ==; path=/; domain=.api.hfs.purdue.edu; Secure; HttpOnly; Expires=Tue, 19 Jan 2038 03:14:07 GMT;'
+        }
+      };
+      const response = await fetch(url + "" + location + "/" + date, opts);
+      if(response.status != 200){
+        console.log("error in reading menu!");
+        response.send("Error in reading one of the menus!")
+        return;
+      }
       const json = await response.json();
       console.log(json);
       return json;
@@ -170,6 +180,29 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
       console.log(error);
     }
   };
+
+  const urlDish = "https://api.hfs.purdue.edu/menus/v2/items/"; // + item ID
+  const getDishData = async (url, itemID) => {
+    try {
+      const opts = {
+        headers: {
+            cookie: 'BIGipServer~WEB~pool_wpvwebasp02-05-05_api.hfs.purdue.edu_web=!93X4jSd5ZpI16MqZHhMmHff5GgkAM9WTEE8eQfC/rDij560kyhNRecoriqBmdTBn875q7WyeXQ==; path=/; domain=.api.hfs.purdue.edu; Secure; HttpOnly; Expires=Tue, 19 Jan 2038 03:14:07 GMT;'
+        }
+      };
+      const response = await fetch(url + "" + itemID, opts);
+      if(response.status != 200){
+        console.log("error in reading dish!");
+        response.send("Error in reading one of the dishes!")
+        return;
+      }
+      const json = await response.json();
+      console.log(json);
+      return json;
+    } catch(error){
+      console.log(error);
+    }
+  };
+
 
   async function updateDatabase(data) {
 
@@ -192,9 +225,9 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
                 date: date,
                 location: menuJSON['Location'],
                 meal: mealInfo['Name'],
-                station: currStation['Name'],
-                id: currStation['Items'][j]['ID']
-              }]
+                station: currStation['Name']
+              }],
+              id: currStation['Items'][j]['ID']
             };
             if(currStation['Items'][j]['Name'] == "Deli w/Fresh Baked Breads"){
               console.log("skipping");
@@ -203,8 +236,14 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
             var itemRef = db.collection('Dish').doc(String(currStation['Items'][j]['Name']));
             var getItem = await itemRef.get().then(async doc => {
               if (!doc.exists) {
+                var additionalInfo = await getDishData(urlDish, item['id']);
+                item['allergens'] = additionalInfo['Allergens'] != undefined? additionalInfo['Allergens'] : [];
+                item['isVeg'] = additionalInfo['IsVegetarian'];
+                item['nutrition'] = additionalInfo['Nutrition'] != undefined? additionalInfo['Nutrition'] : [];
+                item['ingredients'] = additionalInfo['Ingredients'] != undefined? additionalInfo['Ingredients'] : "";
                 itemRef.set(item);
                 console.log("SET new item: " + currStation['Items'][j]['Name']);
+                console.log(item);
               } else {
                 console.log("Modify: " + currStation['Items'][j]['Name']);
                 var getItem = await doc.data();
@@ -229,7 +268,7 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
 
   var data = []
   for(var i = 0; i< locations.length; i++){
-    data.push(await getData(url, locations[i]));
+    data.push(await getData(urlMenu, locations[i]));
   }
   var updated = await updateDatabase(data);
   console.log("done");
