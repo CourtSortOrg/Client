@@ -56,7 +56,7 @@ export default class Meals extends React.Component {
             {
               meals
             },
-            () => this.updateMeals(0)
+            this.updateMeals
           );
         })
         .catch(err => console.log(err));
@@ -69,7 +69,7 @@ export default class Meals extends React.Component {
       {
         date: this.state.date - 1 < 0 ? 0 : this.state.date - 1
       },
-      this.updateMeals(0)
+      this.updateMeals
     );
   }
 
@@ -81,33 +81,42 @@ export default class Meals extends React.Component {
             ? this.state.meals.length - 1
             : this.state.date + 1
       },
-      this.updateMeals(0)
+      this.updateMeals
     );
   }
 
-  updateMeals(index) {
+  differentMeal(index) {
+    this.setState(
+      {
+        currentMeal: index
+      },
+      this.updateMeals
+    );
+  }
+
+  updateMeals() {
     let dateFilteredMeals;
     try {
-      dateFilteredMeals = this.state.meals[this.state.date].Courts.map(
-        court => {
-          return {
-            Name: court.Name,
-            Meals: court.Meals.filter(
-              meal => meal.Order == this.state.times[index].Order
-            )
-          };
-        }
-      );
+      dateFilteredMeals = this.state.meals[this.state.date].Courts.map(court => {
+        return {
+          Name: court.Name,
+          Meals: court.Meals.filter(
+            meal =>
+              meal.Order == this.state.times[this.state.currentMeal].Order &&
+              meal.Stations.length != 0
+          )
+        };
+      });
       dateFilteredMeals = dateFilteredMeals.filter(
         obj => obj.Meals.length != 0
       );
+      console.log(dateFilteredMeals);
     } catch (error) {
       dateFilteredMeals = [];
     }
 
     this.setState({
       dateFilteredMeals,
-      currentMeal: index,
       resetSearch: !this.state.resetSearch
     });
   }
@@ -137,12 +146,6 @@ export default class Meals extends React.Component {
   }
 
   render() {
-    /*if (true)
-      return (
-        <View>
-          <Text>Loading</Text>
-        </View>
-      );*/
     const date = new Date();
     date.setDate(date.getDate() + this.state.date);
     const days = [
@@ -211,7 +214,7 @@ export default class Meals extends React.Component {
                   }
                   key={index}
                   onPress={event => {
-                    this.updateMeals(index);
+                    this.differentMeal(index);
                   }}
                 >
                   <Text>{meal.Name}</Text>
