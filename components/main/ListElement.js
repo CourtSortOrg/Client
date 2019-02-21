@@ -30,8 +30,8 @@ export default class ListElement extends React.Component {
         <View style={this.styles.expandableHeader}>
           <TouchableOpacity onPress={() => this.toggleExpansion()}>
             <Text type="header">{this.props.Name}</Text>
-            {this.viewMore()}
           </TouchableOpacity>
+            {this.viewMore()}
         </View>
         {this.subList()}
       </View>
@@ -109,7 +109,7 @@ export default class ListElement extends React.Component {
           <MaterialIcons
             size={32}
             name="keyboard-arrow-right"
-            color="#E86515"
+            color={this.props.type == "expandable" ? "black" : "#E86515"}
           />
         </TouchableOpacity>
       );

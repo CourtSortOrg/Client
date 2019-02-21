@@ -179,6 +179,22 @@ export default class MealItem extends React.Component {
   };
 
   componentWillMount() {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+      }
+    ).then(data =>
+      JSON.parse(data._bodyText).then(
+        this.setState({ ...data }, () => this.updateMeals())
+      )
+    );
+
     console.log(
       `Load menu item ${this.props.navigation.getParam("ID", "NO-ID")}`
     );
@@ -210,7 +226,9 @@ export default class MealItem extends React.Component {
             />
           </Card>
           <Card header="Ingredients">
-            <Text type="body" style={styles.ingredientsText}>{this.state.Ingredients}</Text>
+            <Text type="body" style={styles.ingredientsText}>
+              {this.state.Ingredients}
+            </Text>
           </Card>
         </View>
       );
