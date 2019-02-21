@@ -9,6 +9,7 @@ import Header from "../Nav/Header";
 import Footer from "../Nav/Footer";
 import Card from "../Nav/Card";
 import Text from "../Nav/Text";
+import List from "./List";
 
 const locations = {
   Earhart: { latitude: 40.4256, longitude: -86.9249 },
@@ -82,13 +83,18 @@ export default class Map extends React.Component {
   renderDiningCard = ({ item }) => {
     return (
       <Card header={item.name}>
-        {item.meals.map((meal, index) => {
-          return (
-            <Text key={index}>
-              {meal.name}: {meal.hours.StartTime} - {meal.hours.EndTime}
-            </Text>
-          );
-        })}
+        <List
+          list={item.meals.map((meal, index) => {
+            return {
+              Name: `${meal.name}: ${meal.hours.StartTime} - ${
+                meal.hours.EndTime
+              }`
+            };
+          })}
+          type="element"
+          subList={false}
+          rank={1}
+        />
       </Card>
     );
   };
