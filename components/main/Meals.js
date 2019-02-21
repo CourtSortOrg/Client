@@ -2567,6 +2567,10 @@ export default class Meals extends React.Component {
             list={{
               list: this.state.dateFilteredMeals,
               type: "expandable",
+              viewMore: {
+                page: "Map",
+                item: "Name"
+              },
               subList: {
                 list: "Meals",
                 extend: "Stations",
