@@ -10,38 +10,85 @@ import Footer from "../Nav/Footer";
 import Card from "../Nav/Card";
 import Text from "../Nav/Text";
 
+const locations = {
+  Earhart: { latitude: 40.4256, longitude: -86.9249 },
+  Hillenbrand: {
+    latitude: 40.4269,
+    longitude: -86.9264
+  },
+  Ford: { latitude: 40.4321, longitude: -86.9196 },
+  Wiley: {
+    latitude: 40.4285,
+    longitude: -86.9208
+  },
+  Windsor: {
+    latitude: 40.4266,
+    longitude: -86.9213
+  }
+};
+
+const mapStyle = [
+  {
+    featureType: "poi.business",
+    stylers: [
+      {
+        visibility: "off"
+      }
+    ]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text",
+    stylers: [
+      {
+        visibility: "off"
+      }
+    ]
+  }
+];
+
 export default class Map extends React.Component {
   constructor(props) {
     super(props);
-
-    var diningData = require("../../testData/diningCourtData.json");
-
     this.state = {
-      diningCourts: diningData.courts,
-      currLatitute: diningData.courts[0].latitude,
-      currLongitude: diningData.courts[0].latitude,
+      diningLocations: { locations: [] },
       region: {
-        latitude: diningData.courts[0].latitude,
-        longitude: diningData.courts[0].longitude,
+        latitude: locations["Hillenbrand"].latitude,
+        longitude: locations["Hillenbrand"].longitude,
         latitudeDelta: 0.004,
         longitudeDelta: 0.003
       }
     };
   }
 
+  componentDidMount() {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDiningTimes",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          date: "2019-02-18" //TODO: Don't hardcode this
+        })
+      }
+    ).then(data => {
+      this.setState({ diningLocations: JSON.parse(data._bodyText) });
+    });
+  }
+
   renderDiningCard = ({ item }) => {
     return (
       <Card header={item.name}>
-        <Text>Breakfast:</Text>
-        <Text>Lunch: </Text>
-        <Text>Dinner: </Text>
-        <Button
-          title="View Court"
-          color="#E86515"
-          onPress={() => {
-            alert(`Navigate to ${item.name}`);
-          }}
-        />
+        {item.meals.map((meal, index) => {
+          return (
+            <Text key={index}>
+              {meal.name}: {meal.hours.StartTime} - {meal.hours.EndTime}
+            </Text>
+          );
+        })}
       </Card>
     );
   };
@@ -61,37 +108,18 @@ export default class Map extends React.Component {
             ref={ref => {
               this.mapView = ref;
             }}
-            showsPointsOfInterest={false}
             style={{ flex: 1 }}
             initialRegion={this.state.region}
-            customMapStyle={[
-              {
-                featureType: "poi.business",
-                stylers: [
-                  {
-                    visibility: "off"
-                  }
-                ]
-              },
-              {
-                featureType: "poi.park",
-                elementType: "labels.text",
-                stylers: [
-                  {
-                    visibility: "off"
-                  }
-                ]
-              }
-            ]}
+            customMapStyle={mapStyle}
           >
-            {this.state.diningCourts.map((marker, index) => (
+            {Object.keys(locations).map((key, index) => (
               <Marker
                 key={index}
                 coordinate={{
-                  latitude: marker.latitude,
-                  longitude: marker.longitude
+                  latitude: locations[key].latitude,
+                  longitude: locations[key].longitude
                 }}
-                title={marker.name}
+                title={key}
               />
             ))}
           </MapView>
@@ -100,15 +128,17 @@ export default class Map extends React.Component {
               ref={c => {
                 this._carousel = c;
               }}
-              data={this.state.diningCourts}
+              data={this.state.diningLocations.locations}
               renderItem={this.renderDiningCard}
               sliderWidth={width}
               itemWidth={width * 0.75}
               onSnapToItem={index => {
+                var latlng =
+                  locations[this.state.diningLocations.locations[index].name];
                 this.mapView.animateToRegion(
                   {
-                    latitude: this.state.diningCourts[index].latitude,
-                    longitude: this.state.diningCourts[index].longitude,
+                    latitude: latlng.latitude,
+                    longitude: latlng.longitude,
                     latitudeDelta: 0.004,
                     longitudeDelta: 0.003
                   },

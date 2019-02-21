@@ -21,7 +21,7 @@ export default class ResetPassword extends React.Component {
   resetPassword = () => {
     firebase
       .auth()
-      .sendPasswordResetEmail(this.state.email.toString())
+      .sendPasswordResetEmail(this.state.email)
       .then(function() {
         alert("Email Sent");
       })
@@ -59,6 +59,7 @@ export default class ResetPassword extends React.Component {
           onChangeText={text => this.setState({ email: text })}
           onSubmitEditing={() => {
             Keyboard.dismiss();
+            this.resetPassword();
           }}
           underlineColorAndroid="transparent"
         />
