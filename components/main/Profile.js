@@ -368,7 +368,7 @@ function FriendsList(props) {
               // }}
               // subtitle={`@${item.username}`}
               title={item.Name}
-              onPress={() => props.navigation.navigate("Friend")}
+              onPress={() => props.navigation.navigate("Friend", {ID: item.Name})}
               topDivider
             />
           );
