@@ -29,39 +29,44 @@ export default class Meals extends React.Component {
   }
 
   componentDidMount() {
-    const date = new Date();
-    for (let i = 0; i < 7; i++) {
-      const dateStr = `${date.getFullYear()}-${
-        date.getMonth() + 1 < 10
-          ? `0${date.getMonth() + 1}`
-          : date.getMonth() + 1
-      }-${date.getDate()}`;
-      fetch(
-        "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            date: dateStr
-          })
-        }
-      )
-        .then(data => {
-          const meals = this.state.meals.slice(0);
-          meals.push(JSON.parse(data._bodyText));
-          this.setState(
-            {
-              meals
-            },
-            this.updateMeals
-          );
+    this.fetchDates(0, 7);
+  }
+
+  fetchDates(from, left) {
+    if (left == 0) return;
+    let date = new Date();
+    date.setDate(date.getDate() + from);
+    const dateStr = `${date.getFullYear()}-${
+      date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
+    }-${date.getDate()}`;
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          date: dateStr
         })
-        .catch(err => console.log(err));
-      date.setDate(date.getDate() + 1);
-    }
+      }
+    )
+      .then(data => {
+        const meals = this.state.meals.slice(0);
+        meals.push(JSON.parse(data._bodyText));
+        this.setState(
+          {
+            meals
+          },
+          () => {
+            this.updateMeals();
+            date = date.setDate(date.getDate() + 1)
+            this.fetchDates(from+1, left - 1);
+          }
+        );
+      })
+      .catch(err => console.log(err));
   }
 
   previousDate() {
@@ -97,16 +102,18 @@ export default class Meals extends React.Component {
   updateMeals() {
     let dateFilteredMeals;
     try {
-      dateFilteredMeals = this.state.meals[this.state.date].Courts.map(court => {
-        return {
-          Name: court.Name,
-          Meals: court.Meals.filter(
-            meal =>
-              meal.Order == this.state.times[this.state.currentMeal].Order &&
-              meal.Stations.length != 0
-          )
-        };
-      });
+      dateFilteredMeals = this.state.meals[this.state.date].Courts.map(
+        court => {
+          return {
+            Name: court.Name,
+            Meals: court.Meals.filter(
+              meal =>
+                meal.Order == this.state.times[this.state.currentMeal].Order &&
+                meal.Stations.length != 0
+            )
+          };
+        }
+      );
       dateFilteredMeals = dateFilteredMeals.filter(
         obj => obj.Meals.length != 0
       );
