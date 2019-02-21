@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Dimensions, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
 import Carousel from "react-native-snap-carousel";
 
 import { MapView } from "expo";
@@ -12,20 +12,23 @@ import Text from "../Nav/Text";
 import List from "./List";
 
 const locations = {
-  Earhart: { latitude: 40.4256, longitude: -86.9249 },
   Hillenbrand: {
     latitude: 40.4269,
-    longitude: -86.9264
+    longitude: -86.9264,
+    index: 0
   },
-  Ford: { latitude: 40.4321, longitude: -86.9196 },
+  Ford: { latitude: 40.4321, longitude: -86.9196, index: 1 },
   Wiley: {
     latitude: 40.4285,
-    longitude: -86.9208
+    longitude: -86.9208,
+    index: 2
   },
   Windsor: {
     latitude: 40.4266,
-    longitude: -86.9213
-  }
+    longitude: -86.9213,
+    index: 3
+  },
+  Earhart: { latitude: 40.4256, longitude: -86.9249, index: 4 }
 };
 
 const mapStyle = [
@@ -51,14 +54,17 @@ const mapStyle = [
 export default class Map extends React.Component {
   constructor(props) {
     super(props);
+    const initialCourt = this.props.navigation.getParam("ID", "NO-ID");
     this.state = {
       diningLocations: { locations: [] },
+      initialIndex: locations[initialCourt].index,
       region: {
-        latitude: locations["Hillenbrand"].latitude,
-        longitude: locations["Hillenbrand"].longitude,
+        latitude: locations[initialCourt].latitude,
+        longitude: locations[initialCourt].longitude,
         latitudeDelta: 0.004,
         longitudeDelta: 0.003
-      }
+      },
+      loading: true
     };
   }
 
@@ -76,7 +82,10 @@ export default class Map extends React.Component {
         })
       }
     ).then(data => {
-      this.setState({ diningLocations: JSON.parse(data._bodyText) });
+      this.setState({
+        diningLocations: JSON.parse(data._bodyText),
+        loading: false
+      });
     });
   }
 
@@ -100,7 +109,7 @@ export default class Map extends React.Component {
   };
 
   render() {
-    var { width } = Dimensions.get("window");
+    var { height, width } = Dimensions.get("window");
     return (
       <View style={{ flex: 1 }}>
         <Header
@@ -130,28 +139,31 @@ export default class Map extends React.Component {
             ))}
           </MapView>
           <View style={{ position: "absolute", bottom: 25 }}>
-            <Carousel
-              ref={c => {
-                this._carousel = c;
-              }}
-              data={this.state.diningLocations.locations}
-              renderItem={this.renderDiningCard}
-              sliderWidth={width}
-              itemWidth={width * 0.75}
-              onSnapToItem={index => {
-                var latlng =
-                  locations[this.state.diningLocations.locations[index].name];
-                this.mapView.animateToRegion(
-                  {
-                    latitude: latlng.latitude,
-                    longitude: latlng.longitude,
-                    latitudeDelta: 0.004,
-                    longitudeDelta: 0.003
-                  },
-                  500
-                );
-              }}
-            />
+            {this.state.loading ? null : (
+              <Carousel
+                ref={c => {
+                  this._carousel = c;
+                }}
+                data={this.state.diningLocations.locations}
+                renderItem={this.renderDiningCard}
+                sliderWidth={width}
+                itemWidth={width * 0.75}
+                firstItem={this.state.initialIndex}
+                onSnapToItem={index => {
+                  var latlng =
+                    locations[this.state.diningLocations.locations[index].name];
+                  this.mapView.animateToRegion(
+                    {
+                      latitude: latlng.latitude,
+                      longitude: latlng.longitude,
+                      latitudeDelta: 0.004,
+                      longitudeDelta: 0.003
+                    },
+                    500
+                  );
+                }}
+              />
+            )}
           </View>
         </View>
 
