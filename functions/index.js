@@ -57,7 +57,17 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
   const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
   const getData = async (url, location) => {
     try {
-      const response = await fetch(url + "" + location + "/" + date);
+      const opts = {
+        headers: {
+            cookie: 'BIGipServer~WEB~pool_wpvwebasp02-05-05_api.hfs.purdue.edu_web=!93X4jSd5ZpI16MqZHhMmHff5GgkAM9WTEE8eQfC/rDij560kyhNRecoriqBmdTBn875q7WyeXQ==; path=/; domain=.api.hfs.purdue.edu; Secure; HttpOnly; Expires=Tue, 19 Jan 2038 03:14:07 GMT;'
+        }
+      };
+      const response = await fetch(url + "" + location + "/" + date, opts);
+      if(response.status != 200){
+        console.log("error in reading menu!");
+        response.send("Error in reading one of the menus!")
+        return;
+      }
       const json = await response.json();
       console.log(json);
       return json;
@@ -292,7 +302,17 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
   const getData = async (url, location) => {
     try {
-      const response = await fetch(url + "" + location + "/" + date);
+      const opts = {
+        headers: {
+            cookie: 'BIGipServer~WEB~pool_wpvwebasp02-05-05_api.hfs.purdue.edu_web=!93X4jSd5ZpI16MqZHhMmHff5GgkAM9WTEE8eQfC/rDij560kyhNRecoriqBmdTBn875q7WyeXQ==; path=/; domain=.api.hfs.purdue.edu; Secure; HttpOnly; Expires=Tue, 19 Jan 2038 03:14:07 GMT;'
+        }
+      };
+      const response = await fetch(url + "" + location + "/" + date, opts);
+      if(response.status != 200){
+        console.log("error in reading menu!");
+        response.send("Error in reading one of the menus!")
+        return;
+      }
       const json = await response.json();
       console.log(json);
       return json;
