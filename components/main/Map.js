@@ -31,6 +31,11 @@ const locations = {
   Earhart: { latitude: 40.4256, longitude: -86.9249, index: 4 }
 };
 
+let date = new Date();
+const dateStr = `${date.getFullYear()}-${
+  date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
+}-${date.getDate()}`;
+
 const mapStyle = [
   {
     featureType: "poi.business",
@@ -78,7 +83,7 @@ export default class Map extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          date: "2019-02-18" //TODO: Don't hardcode this
+          date: dateStr //TODO: Don't hardcode this
         })
       }
     ).then(data => {
