@@ -5,7 +5,7 @@ import Text from "../Nav/Text";
 
 import { ListItem, Rating, Button } from "react-native-elements";
 import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
-import { EvilIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import Card from "../Nav/Card";
 import Screen from "../Nav/Screen";
@@ -16,11 +16,14 @@ let userName;
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
+
+    // Dummy data used for now, should not be hardcoded
     var ratingData = require("../../testData/ratingData.json");
     var groupData = require("../../testData/groupData.json");
 
     const user = firebase.auth().currentUser;
     userName = user ? user.displayName : undefined;
+
     this.state = {
       uid: user ? user.uid : undefined,
       displayName: user ? user.displayName : undefined,
@@ -38,104 +41,93 @@ export default class Profile extends React.Component {
     };
   }
 
-  ratingData = require("../../testData/ratingData.json");
-  userData = require("../../testData/userData.json");
-
   componentDidMount() {
+    // If the user is a guest, send them to the sign in screen
     if (this.state.uid == undefined) {
-      console.log("HOME");
       this.props.navigation.navigate("Auth");
-      return;
-    }
-
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: this.state.displayName
-        })
-      }
-    ).then(data => {
-      this.setState(
+    } else {
+      //Fetch the user profile data
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
         {
-          ...JSON.parse(data._bodyText)
-        },
-        () => {
-          console.log(this.state.friends);
-          this.setState({
-            ratings: this.ratingData.ratings
-          });
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: this.state.displayName
+          })
         }
-      );
-    });
-
-    // fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
-    //   method: "POST",
-    //   headers: {
-    //     Accept: "application/json",
-    //     "Content-Type": "application/json"
-    //   },
-    //   body: JSON.stringify({
-    //     name: this.state.displayName
-    //   })
-    // }).then(data => {
-    //   this.setState({ ...JSON.parse(data._bodyText) });
-    // });
+      ).then(data => {
+        this.setState(
+          {
+            ...JSON.parse(data._bodyText)
+          },
+          () => {
+            // TODO: Get rid of this in favor of real rating data
+            this.setState({
+              ratings: this.ratingData.ratings
+            });
+          }
+        );
+      });
+    }
   }
 
+  // Method to change the currently selected index of the button group
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
   };
 
+  // Helper method to choose whether to render a component
   shouldRender = (expr, comp1, comp2) => {
     return expr ? comp1 : comp2;
   };
 
   deleteAccount = () => {
+    //TODO: Delete user's ratings
+    //TODO: Remove user from all groups
+
     user = firebase.auth().currentUser;
-    //get list of friends
-    //get list of individual ratings
-    user
-      .delete()
-      .then(() => {
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.state.displayName
-            })
-          }
-        ).then(data => console.log(data._bodyText));
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.state.displayName
-            })
-          }
-        ).then(data => console.log(data._bodyText));
-        //navigate to SignIn Screen
-        this.props.navigation.navigate("Auth");
-        this.setState({ isEditing: false });
-      })
-      .catch(function(error) {
-        alert("ERROR: " + error.message);
-      });
+
+    user.delete().then(() => {
+      // Remove all the friends of the user
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: this.state.displayName
+          })
+        }
+      );
+
+      // Remove the user from the database
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: this.state.displayName
+          })
+        }
+      );
+
+      //TODO: Get rid of this, will not have a popup
+      this.setState({ isEditing: false });
+
+      // Navigate to the SignIn screen
+      this.props.navigation.navigate("Auth");
+    });
   };
 
   signOut = () => {
@@ -143,32 +135,28 @@ export default class Profile extends React.Component {
       .auth()
       .signOut()
       .then(() => {
+        //TODO: Get rid of this, will not have a popup
         this.setState({ isEditing: false });
+        // Navigate to the SignIn screen
         this.props.navigation.navigate("Auth");
-        //go back to SignIn screen
-      })
-      .catch(error => {
-        alert(error.message);
       });
   };
 
   render() {
+    // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
-    const {
-      friends,
-      groups,
-      restrictions,
-      ratings,
-      selectedIndex
-    } = this.state;
+    // Retrieve user data from state
+    const { friends, groups, ratings, selectedIndex } = this.state;
+
     return (
       <Screen
         backButton={false}
         navigation={{ ...this.props.navigation }}
         title="Profile"
       >
-        {/* "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png" */}
+        {/* Card that shows user information */}
         <Card style={styles.profileInformation}>
+          {/* Avatar to show profile picture */}
           <Avatar
             containerStyle={styles.profilePicture}
             rounded
@@ -176,49 +164,40 @@ export default class Profile extends React.Component {
             source={{ uri: this.state.image }}
             title={this.state.initials}
           />
+          {/* Test to show profile name */}
           <Text style={styles.profileName}>{this.state.displayName}</Text>
-          <EvilIcons
+          {/* Icon to navigate to Settings */}
+          {/* TODO: Navigate to settings */}
+          <MaterialIcons
             color="gray"
-            name="pencil"
+            name="settings"
             onPress={() => {
               this.setState({ isEditing: true });
             }}
             size={35}
             style={styles.editInformation}
           />
-          {/* {restrictions.length > 0 ? (
-              <View style={{ flex: 1, borderRadius: 5 }}>
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    paddingVertical: 5
-                  }}
-                >
-                  <Text style={{ fontWeight: "bold" }}>
-                    Allergens and Preferences
-                  </Text>
-                  {restrictions.map((data, key) => {
-                    return <Text key={key}>{data}</Text>;
-                  })}
-                </View>
-              </View>
-            ) : null} */}
         </Card>
+
+        {/* TODO: Add user dietary restrictions */}
+
+        {/* Card to show user ratings, friends, and groups */}
         <Card>
+          {/* ButtonGroup to choose tab */}
           <ButtonGroup
             buttons={buttons}
             onPress={this.updateIndex}
             selectedIndex={selectedIndex}
           />
 
+          {/* Render the ratings list */}
           {this.shouldRender(
             selectedIndex == 0,
             <RatingsList ratings={ratings} />,
             null
           )}
+
+          {/* Render the friends list */}
           {this.shouldRender(
             selectedIndex == 1,
             <FriendsList
@@ -227,12 +206,16 @@ export default class Profile extends React.Component {
             />,
             null
           )}
+
+          {/* Render the groups list */}
           {this.shouldRender(
             selectedIndex == 2,
             <GroupsList groups={groups} navigation={this.props.navigation} />,
             null
           )}
         </Card>
+
+        {/* TODO: Phase this out into Settings screen */}
         <Overlay
           borderRadius={4}
           height="90%"
@@ -285,12 +268,14 @@ export default class Profile extends React.Component {
   }
 }
 
+// Ratings List Component
+// TODO: Add styles of Ratings List instead of hardcoding
 function RatingsList(props) {
   return (
     <FlatList
       data={props.ratings}
       keyExtractor={item => item.id}
-      renderItem={({ item, index }) => (
+      renderItem={({ item }) => (
         <ListItem
           bottomDivider
           subtitle={
@@ -307,6 +292,7 @@ function RatingsList(props) {
   );
 }
 
+// TODO: Put this somewhere else, add friend will have its own Screen
 function sendFriendRequest(text) {
   fetch(
     "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
@@ -347,7 +333,9 @@ function sendFriendRequest(text) {
   });
 }
 
+// Freinds List Component
 function FriendsList(props) {
+  // TODO: Clean this up? Maps an array to a JSON object
   let friends = props.friends.map(friend => {
     return { Name: friend };
   });
@@ -396,6 +384,7 @@ function filterGroup(list, text) {
   return list.filter(item => item.Name.includes(text));
 }
 
+// Groups List Component
 function GroupsList(props) {
   return (
     <SearchList
