@@ -18,8 +18,8 @@ export default class Profile extends React.Component {
     super(props);
 
     // Dummy data used for now, should not be hardcoded
-    var ratingData = require("../../testData/ratingData.json");
-    var groupData = require("../../testData/groupData.json");
+    //var ratingData = require("../../testData/ratingData.json");
+    //var groupData = require("../../testData/groupData.json");
 
     const user = firebase.auth().currentUser;
     userName = user ? user.displayName : undefined;
@@ -35,9 +35,9 @@ export default class Profile extends React.Component {
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
       restrictions: "",
 
-      ratings: ratingData.ratings,
+      ratings: [],
       friends: [],
-      groups: groupData.groups
+      groups: []
     };
   }
 
@@ -60,17 +60,9 @@ export default class Profile extends React.Component {
           })
         }
       ).then(data => {
-        this.setState(
-          {
-            ...JSON.parse(data._bodyText)
-          },
-          () => {
-            // TODO: Get rid of this in favor of real rating data
-            this.setState({
-              ratings: this.ratingData.ratings
-            });
-          }
-        );
+        this.setState({
+          ...JSON.parse(data._bodyText)
+        });
       });
     }
   }
@@ -167,15 +159,15 @@ export default class Profile extends React.Component {
           {/* Test to show profile name */}
           <Text style={styles.profileName}>{this.state.displayName}</Text>
           {/* Icon to navigate to Settings */}
-          {/* TODO: Navigate to settings */}
           <MaterialIcons
             color="gray"
             name="settings"
+            // TODO: Navigate to settings
             onPress={() => {
               this.setState({ isEditing: true });
             }}
-            size={35}
-            style={styles.editInformation}
+            size={24}
+            style={styles.settingsIcon}
           />
         </Card>
 
@@ -190,14 +182,14 @@ export default class Profile extends React.Component {
             selectedIndex={selectedIndex}
           />
 
-          {/* Render the ratings list */}
+          {/* Render the ratings list if on the ratings tab */}
           {this.shouldRender(
             selectedIndex == 0,
             <RatingsList ratings={ratings} />,
             null
           )}
 
-          {/* Render the friends list */}
+          {/* Render the friends list if on the friends tab */}
           {this.shouldRender(
             selectedIndex == 1,
             <FriendsList
@@ -207,7 +199,7 @@ export default class Profile extends React.Component {
             null
           )}
 
-          {/* Render the groups list */}
+          {/* Render the groups list if on the groups tab */}
           {this.shouldRender(
             selectedIndex == 2,
             <GroupsList groups={groups} navigation={this.props.navigation} />,
@@ -233,14 +225,14 @@ export default class Profile extends React.Component {
               padding: 15
             }}
           >
-            <EvilIcons
+            <MaterialIcons
               color="gray"
               name="close"
               onPress={() => {
                 this.setState({ isEditing: false });
               }}
               size={24}
-              style={styles.editInformation}
+              style={styles.settingsIcon}
             />
             <Text>Edit Profile</Text>
             <View
@@ -335,7 +327,7 @@ function sendFriendRequest(text) {
 
 // Freinds List Component
 function FriendsList(props) {
-  // TODO: Clean this up? Maps an array to a JSON object
+  // TODO: Clean this up? Maps an array to a JSON object, should it be done automatically?
   let friends = props.friends.map(friend => {
     return { Name: friend };
   });
@@ -408,10 +400,10 @@ const styles = StyleSheet.create({
   backgroundColor: {
     backgroundColor: "lightgray"
   },
-  editInformation: {
+  settingsIcon: {
     position: "absolute",
-    top: 4,
-    right: 4
+    top: 8,
+    right: 8
   },
   profileInformation: {
     alignItems: "center",
