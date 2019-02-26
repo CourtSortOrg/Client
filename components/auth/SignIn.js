@@ -27,7 +27,7 @@ export default class SignIn extends React.Component {
     };
 
     //If the authentification state changes
-    firebase.auth().onAuthStateChanged(function(user) {
+    firebase.auth().onAuthStateChanged(user => {
       if (user) {
         console.log(user.uid);
         console.log(user.displayName);
@@ -74,6 +74,7 @@ export default class SignIn extends React.Component {
   forgotPassword = () => {
     this.props.navigation.navigate("ResetPassword");
   };
+
   useAsGuest = () => {
     this.props.navigation.navigate("Home");
   };
