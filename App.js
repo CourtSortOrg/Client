@@ -36,21 +36,21 @@ const AuthNavigation = createStackNavigator({
     screen: SignIn,
     navigationOptions: {
       header: null //this will hide the header
-    },
+    }
   },
   ResetPassword: {
     screen: ResetPassword,
     navigationOptions: {
       header: null //this will hide the header
-    },
+    }
   },
   CreateAccount: {
     screen: CreateAccount,
     navigationOptions: {
       header: null //this will hide the header
-    },
+    }
   }
-},);
+});
 
 const MainNavigation = createStackNavigator(
   {
@@ -102,7 +102,8 @@ const MainNavigation = createStackNavigator(
 const AppNavigation = createSwitchNavigator(
   {
     Home: {
-      screen: MainNavigation
+      screen: MainNavigation,
+      screenProps: {}
     },
     Auth: {
       screen: AuthNavigation
@@ -110,18 +111,66 @@ const AppNavigation = createSwitchNavigator(
   },
   {
     initialRouteName: "Auth"
-  },
-
+  }
 );
 
 const Navigation = createAppContainer(AppNavigation);
 
 export default class App extends React.Component {
-  state = {
-    fontLoaded: false
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      fontLoaded: false,
+      mealsLoaded: false,
+      user: {
+        uid: ""
+      },
+      meals: []
+    };
+  }
+
+  fetchDates(from, left) {
+    if (left == 0) {
+      this.setState({ mealsLoaded: true });
+      return;
+    }
+    let date = new Date();
+    date.setDate(date.getDate() + from);
+    const dateStr = `${date.getFullYear()}-${
+      date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
+    }-${date.getDate()}`;
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          date: dateStr
+        })
+      }
+    )
+      .then(data => {
+        const meals = this.state.meals.slice(0);
+        meals.push(JSON.parse(data._bodyText));
+        this.setState(
+          {
+            meals
+          },
+          () => {
+            //this.updateMeals();
+            date = date.setDate(date.getDate() + 1);
+            this.fetchDates(from + 1, left - 1);
+          }
+        );
+      })
+      .catch(err => console.log(err));
+  }
 
   async componentDidMount() {
+    this.fetchDates(0, 7);
     await Font.loadAsync({
       Lobster: require("./assets/fonts/Lobster/Lobster-Regular.ttf"),
       "Quicksand-Regular": require("./assets/fonts/Quicksand/Quicksand-Regular.ttf"),
@@ -134,16 +183,8 @@ export default class App extends React.Component {
   }
 
   render() {
-    if (this.state.fontLoaded) return <Navigation />;
+    if (this.state.fontLoaded && this.state.mealsLoaded)
+      return <Navigation screenProps={{ meals: this.state.meals }} />;
     return <Splash />;
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center"
-  }
-});
