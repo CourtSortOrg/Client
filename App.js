@@ -23,6 +23,14 @@ import Messages from "./components/main/Messages";
 import Notifications from "./components/main/Notifications";
 import Profile from "./components/main/Profile";
 
+import * as firebase from "firebase";
+import config from "./config";
+
+//Only initialize the app config if there are no apps running
+if (!firebase.apps.length) {
+  firebase.initializeApp(config);
+}
+
 const AuthNavigation = createStackNavigator({
   Signin: {
     screen: SignIn,
