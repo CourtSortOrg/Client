@@ -7,11 +7,21 @@ import {
 } from "react-navigation";
 import { Font } from "expo";
 
-import Main from "./components/main/Main";
 import Splash from "./components/auth/Splash";
 import SignIn from "./components/auth/SignIn";
 import CreateAccount from "./components/auth/CreateAccount";
 import ResetPassword from "./components/auth/ResetPassword";
+import DiningCourt from "./components/main/DiningCourt";
+import Friend from "./components/main/Friend";
+import Group from "./components/main/Group";
+import Home from "./components/main/Home";
+import Map from "./components/main/Map";
+import MealItem from "./components/main/MealItem";
+import Meals from "./components/main/Meals";
+import Message from "./components/main/Message";
+import Messages from "./components/main/Messages";
+import Notifications from "./components/main/Notifications";
+import Profile from "./components/main/Profile";
 
 const AuthNavigation = createStackNavigator({
   Signin: {
@@ -34,10 +44,57 @@ const AuthNavigation = createStackNavigator({
   }
 },);
 
+const MainNavigation = createStackNavigator(
+  {
+    Messages: {
+      screen: Messages
+    },
+    Profile: {
+      screen: Profile
+    },
+    Friend: {
+      screen: Friend
+    },
+    Group: {
+      screen: Group
+    },
+    Notifications: {
+      screen: Notifications
+    },
+    Message: {
+      screen: Message
+    },
+    Meals: {
+      screen: Meals
+    },
+    MealItem: {
+      screen: MealItem
+    },
+    DiningCourt: {
+      screen: DiningCourt
+    },
+    Map: {
+      screen: Map
+    },
+    Home: {
+      screen: Home
+    }
+  },
+  {
+    initialRouteName: "Home",
+    headerMode: "none",
+    transitionConfig: () => ({
+      transitionSpec: {
+        duration: 0
+      }
+    })
+  }
+);
+
 const AppNavigation = createSwitchNavigator(
   {
     Home: {
-      screen: Main
+      screen: MainNavigation
     },
     Auth: {
       screen: AuthNavigation
