@@ -3,10 +3,10 @@ import * as firebase from "firebase";
 import { View, Alert, TouchableOpacity } from "react-native";
 
 import Screen from "../Nav/Screen";
-import List from "./List";
-import Text from "../Nav/Text";
-import Card from "../Nav/Card";
-import Separator from "../Nav/Separator";
+import List from "../components/List";
+import Text from "../components/Text";
+import Card from "../components/Card";
+import Separator from "../components/Separator";
 
 export default class Friend extends React.Component {
   constructor(props) {

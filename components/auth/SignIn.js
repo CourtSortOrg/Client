@@ -6,7 +6,6 @@ import {
   Keyboard,
   StatusBar,
   StyleSheet,
-  Text,
   TextInput,
   TouchableHighlight,
   TouchableOpacity,
@@ -17,6 +16,7 @@ import { Facebook, Google } from "expo";
 import { FontAwesome } from "@expo/vector-icons";
 import * as firebase from "firebase";
 
+import Text from "../components/Text"
 import config from "../../config";
 
 //Only initialize the app config if there are no apps running

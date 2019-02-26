@@ -4,8 +4,8 @@ import { AntDesign } from "@expo/vector-icons";
 import { SearchBar } from "react-native-elements";
 
 import Text from "./Text";
-import List from "../main/List";
-import ListElement from "../main/ListElement";
+import List from "./List";
+import ListElement from "./ListElement";
 
 export default class SearchList extends React.Component {
   constructor(props) {

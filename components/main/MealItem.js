@@ -5,10 +5,10 @@ import { Button, ButtonGroup, ListItem } from "react-native-elements";
 import Screen from "../Nav/Screen";
 import AllergenIcon from "./AllergenIcon";
 import NutritionFact from "./NutritionFact";
-import List from "./List";
-import Text from "../Nav/Text";
-import Card from "../Nav/Card";
-import ListElement from "./ListElement";
+import List from "../components/List";
+import Text from "../components/Text";
+import Card from "../components/Card";
+import ListElement from "../components/ListElement";
 
 export default class MealItem extends React.Component {
   constructor(props) {

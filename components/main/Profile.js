@@ -1,15 +1,15 @@
 import React from "react";
 import * as firebase from "firebase";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import Text from "../Nav/Text";
 
 import { ListItem, Rating, Button } from "react-native-elements";
 import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
 import { EvilIcons } from "@expo/vector-icons";
 
-import Card from "../Nav/Card";
+import Text from "../components/Text";
+import Card from "../components/Card";
 import Screen from "../Nav/Screen";
-import SearchList from "../Nav/SearchList";
+import SearchList from "../components/SearchList";
 
 let userName;
 

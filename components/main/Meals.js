@@ -4,10 +4,10 @@ import { Button, SearchBar } from "react-native-elements";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import Screen from "../Nav/Screen";
-import List from "./List";
-import ListElement from "./ListElement";
-import Text from "../Nav/Text";
-import SearchList from "../Nav/SearchList";
+import List from "../components/List";
+import ListElement from "../components/ListElement";
+import Text from "../components/Text";
+import SearchList from "../components/SearchList";
 
 export default class Meals extends React.Component {
   constructor(props) {
