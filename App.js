@@ -183,7 +183,8 @@ export default class App extends React.Component {
             photoURL: user.photoURL,
             providerData: user.providerData,
             uid: user.uid,
-            isAnonymous: user.isAnonymous
+            isAnonymous: user.isAnonymous,
+            id: user.displayName
           }
         });
 
@@ -200,18 +201,22 @@ export default class App extends React.Component {
               name: user.displayName
             })
           }
-        ).then(data => {
-          console.log(data._bodyText);
-          this.fetchProfile();
-          this.fetchFriends();
-          this.fetchGroups();
-        });
+        )
+          .then(data => {
+            console.log(data._bodyText);
+            this.fetchProfile();
+            this.fetchFriends();
+            this.fetchGroups();
+            console.log("loaded");
+            this.setState({ firebaseLoaded: true });
+          })
+          .catch(error => this.setState({ firebaseLoaded: true }));
       } else {
         this.setState({
-          user: undefined
+          user: undefined,
+          firebaseLoaded: true
         });
       }
-      this.setState({ firebaseLoaded: true });
     });
   };
 
@@ -240,7 +245,7 @@ export default class App extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.user.displayName
+          name: this.state.user.id
         })
       }
     ).then(data => {

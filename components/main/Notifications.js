@@ -11,7 +11,8 @@ export default class Notifications extends React.Component {
     this.state = {
       loading: true,
       friendRequests: [],
-      displayName: firebase.auth().currentUser.displayName
+
+      ...this.props.screenProps.user
     };
   }
 
@@ -33,13 +34,14 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.displayName,
+          name: this.state.id,
           friendName: friendName
         })
       }
     ).then(data => {
       //TODO: Error checking
       this.removeFriendRequest(index);
+      this.props.screenProps.functions.updateProfile();
     });
   };
 
@@ -53,7 +55,7 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.setState.displayName,
+          name: this.setState.id,
           friendName: friendName
         })
       }
@@ -73,7 +75,7 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.displayName
+          name: this.state.id
         })
       }
     ).then(data => {
