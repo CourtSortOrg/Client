@@ -69,7 +69,7 @@ const SettingsNavigation = createStackNavigator(
   },
   {
     initialRouteName: "Profile",
-    headerMode: "none",
+    headerMode: "none"
   }
 );
 
@@ -151,45 +151,20 @@ export default class App extends React.Component {
     };
   }
 
-  fetchDates(from, left) {
-    if (left == 0) {
-      this.setState({ mealsLoaded: true });
-      return;
-    }
-    let date = new Date();
-    date.setDate(date.getDate() + from);
-    const dateStr = `${date.getFullYear()}-${
-      date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
-    }-${date.getDate()}`;
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          date: dateStr
-        })
-      }
-    )
-      .then(data => {
-        const meals = this.state.meals.slice(0);
-        meals.push(JSON.parse(data._bodyText));
-        this.setState(
-          {
-            meals
-          },
-          () => {
-            //this.updateMeals();
-            date = date.setDate(date.getDate() + 1);
-            this.fetchDates(from + 1, left - 1);
-          }
-        );
-      })
-      .catch(err => console.log(err));
-  }
+  componentDidMount = async () => {
+    this.fetchMeals(0, 1);
+    this.updateUser();
+    //If the authentification state changes
+    await Font.loadAsync({
+      Lobster: require("./assets/fonts/Lobster/Lobster-Regular.ttf"),
+      "Quicksand-Regular": require("./assets/fonts/Quicksand/Quicksand-Regular.ttf"),
+      "Quicksand-Light": require("./assets/fonts/Quicksand/Quicksand-Light.ttf"),
+      "Quicksand-Medium": require("./assets/fonts/Quicksand/Quicksand-Medium.ttf"),
+      "Quicksand-Bold": require("./assets/fonts/Quicksand/Quicksand-Bold.ttf")
+    });
+
+    this.setState({ fontLoaded: true });
+  };
 
   updateUser = () => {
     firebase.auth().onAuthStateChanged(user => {
@@ -222,15 +197,14 @@ export default class App extends React.Component {
             })
           }
         )
-          .then(data => {
-            console.log(data._bodyText);
-            this.fetchProfile();
-            this.fetchFriends();
-            this.fetchGroups();
-            console.log("loaded");
-            this.setState({ firebaseLoaded: true });
-          })
-          .catch(error => this.setState({ firebaseLoaded: true }));
+          .then(data => console.log(data._bodyText))
+          .catch(error => console.log(`updateUser: ${error}`));
+
+        this.updateProfile();
+        this.updateFriends();
+        this.updateGroups();
+
+        this.setState({ firebaseLoaded: true });
       } else {
         this.setState({
           user: undefined,
@@ -240,22 +214,84 @@ export default class App extends React.Component {
     });
   };
 
-  componentDidMount = async () => {
-    this.fetchDates(0, 1);
-    this.updateUser();
-    //If the authentification state changes
-    await Font.loadAsync({
-      Lobster: require("./assets/fonts/Lobster/Lobster-Regular.ttf"),
-      "Quicksand-Regular": require("./assets/fonts/Quicksand/Quicksand-Regular.ttf"),
-      "Quicksand-Light": require("./assets/fonts/Quicksand/Quicksand-Light.ttf"),
-      "Quicksand-Medium": require("./assets/fonts/Quicksand/Quicksand-Medium.ttf"),
-      "Quicksand-Bold": require("./assets/fonts/Quicksand/Quicksand-Bold.ttf")
+  updateProfile = () => {
+    this.fetchUser(this.state.user.id, data => {
+      this.setState({
+        user: { ...this.state.user, ...data }
+      });
     });
-
-    this.setState({ fontLoaded: true });
   };
 
-  fetchProfile() {
+  updateFriends = () => {
+    this.fetchFriends(this.state.user.id, data => {
+      //data.forEach(friend => this.updateFriend(friend, true));
+      this.setState({
+        user: { ...this.state.user, friends: data.slice() }
+      });
+    });
+  };
+
+  updateGroups = () => {
+    this.fetchGroups(this.state.user.id, data => {
+      this.setState({
+        user: { ...this.state.user, groups: data.slice() }
+      });
+    });
+  };
+
+  updateFriend = (friend, action) => {
+    // action == true, add friend.
+    if (action) {
+      this.fetchUser(friend, data => {
+        const arr = this.state.user.friends.slice();
+        arr.push(data.id);
+
+        this.setState({
+          user: {
+            ...this.state.user,
+            friends: arr
+          }
+        });
+      });
+    }
+    // action == false, remove friend.
+    else {
+      this.setState({
+        user: {
+          ...this.state.user,
+          friends: this.state.user.friends.filter(f => f != friend)
+        }
+      });
+    }
+  };
+
+  updateGroup = (group, action) => {
+    // action == true, add friend.
+    if (action) {
+      this.fetchGroup(group, data => {
+        const arr = this.state.user.friends.slice();
+        arr.push(data.id);
+
+        this.setState({
+          user: {
+            ...this.state.user,
+            groups: arr
+          }
+        });
+      });
+    }
+    // action == false, remove group.
+    else {
+      this.setState({
+        user: {
+          ...this.state.user,
+          groups: this.state.user.groups.filter(g => g != group)
+        }
+      });
+    }
+  };
+
+  fetchUser(id, callback) {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
       {
@@ -265,19 +301,100 @@ export default class App extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.user.id
+          name: id
         })
       }
-    ).then(data => {
-      this.setState({
-        user: { ...this.state.user, ...JSON.parse(data._bodyText) }
-      });
-    });
+    )
+      .then(data => {
+        if (callback) callback(JSON.parse(data._bodyText));
+      })
+      .catch(error => console.log(`fetchUser: ${error}`));
   }
 
-  fetchFriends() {}
+  fetchFriends(id, callback) {
+    /*
+     * TODO: update with change log version.
+     */
 
-  fetchGroups() {}
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: this.state.user.id
+      })
+    })
+      .then(data => {
+        if (callback) callback(JSON.parse(data._bodyText));
+      })
+      .catch(error => console.log(`fetchFriends: ${error}`));
+  }
+
+  fetchGroups(callback) {
+    console.log("getGroups does not run");
+    /*fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: this.state.user.id
+      })
+    })
+      .then(data => {
+        console.log("\n\nfetch groups\n\n");
+        //console.log(data._bodyText)
+        JSON.parse(data._bodyText);
+      })
+      .then(data => {
+        if (callback) callback(data);
+      })
+      .catch(error => console.log(error));
+      */
+  }
+
+  fetchMeals(from, left) {
+    if (left == 0) {
+      this.setState({ mealsLoaded: true });
+      return;
+    }
+    let date = new Date();
+    date.setDate(date.getDate() + from);
+    const dateStr = `${date.getFullYear()}-${
+      date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
+    }-${date.getDate()}`;
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          date: dateStr
+        })
+      }
+    )
+      .then(data => {
+        const meals = this.state.meals.slice(0);
+        meals.push(JSON.parse(data._bodyText));
+        this.setState(
+          {
+            meals
+          },
+          () => {
+            //this.updateMeals();
+            date = date.setDate(date.getDate() + 1);
+            this.fetchMeals(from + 1, left - 1);
+          }
+        );
+      })
+      .catch(error => console.log(`fetchMeals: ${error}`));
+  }
 
   render() {
     if (
@@ -288,7 +405,12 @@ export default class App extends React.Component {
       return (
         <Navigation
           screenProps={{
-            functions: { updateUser: this.updateUser },
+            functions: {
+              fetchUser: this.fetchUser,
+              updateUser: this.updateUser,
+              updateFriend: this.updateFriend,
+              updateGroup: this.updateGroup
+            },
             user: this.state.user,
             meals: this.state.meals
           }}
