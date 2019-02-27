@@ -26,28 +26,7 @@ export default class SignIn extends React.Component {
       password: ""
     };
 
-    //If the authentification state changes
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        console.log(user.uid);
-        console.log(user.displayName);
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              uid: user.uid,
-              name: user.displayName
-            })
-          }
-        ).then(data => console.log(data._bodyText));
-        props.navigation.navigate("Home");
-      }
-    });
+    
   }
 
   signInNative = () => {
