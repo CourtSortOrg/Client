@@ -3,16 +3,14 @@ import * as firebase from "firebase";
 import { View, Alert, TouchableOpacity } from "react-native";
 
 import Screen from "../Nav/Screen";
-import List from "./List";
-import Text from "../Nav/Text";
-import Card from "../Nav/Card";
-import Separator from "../Nav/Separator";
+import List from "../components/List";
+import Text from "../components/Text";
+import Card from "../components/Card";
+import Separator from "../components/Separator";
 
 export default class Friend extends React.Component {
   constructor(props) {
     super(props);
-
-    const user = firebase.auth().currentUser;
 
     var userData = require("../../testData/userData.json");
     var ratingData = require("../../testData/ratingData.json");
@@ -46,18 +44,16 @@ export default class Friend extends React.Component {
     let sharedGroups = [{ Name: "Shared Messages", groups: groupData.groups }]; //.filter(group => group.members.includes("USER") && group.members.includes(userData.name));
 
     this.state = {
-      uid: user.uid,
-      name: user.displayName,
-      currUser: user.displayName,
+      otherUser: {
+        id: this.props.navigation.getParam("ID", "NO-ID")
+      },
       initials: userData.initials,
       image: userData.image,
       groups: sharedGroups,
-      status: "Not currently eating"
-    };
-  }
+      status: "Not currently eating",
 
-  componentWillMount() {
-    this.setState({ otherUid: this.props.navigation.getParam("ID", "NO-ID") });
+      ...this.props.screenProps.user,
+    };
   }
 
   componentDidMount() {
@@ -70,11 +66,13 @@ export default class Friend extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.otherUid
+          name: this.state.otherUser.id
         })
       }
     ).then(data => {
-      this.setState({ ...JSON.parse(data._bodyText) });
+      this.setState({
+        otherUser: { ...this.state.otherUser, ...JSON.parse(data._bodyText) }
+      });
     });
   }
 
@@ -82,9 +80,9 @@ export default class Friend extends React.Component {
     Alert.alert(
       "Unfriend",
       `You are about to unfriend ${
-        this.state.name
+        this.state.otherUser.name
       }. You will remain in shared groups, but to make a new group with ${
-        this.state.name
+        this.state.otherUser.name
       }, they will have to consent.`,
       [
         {
@@ -105,9 +103,9 @@ export default class Friend extends React.Component {
     Alert.alert(
       "Block",
       `You are about to block ${
-        this.state.name
+        this.state.otherUser.name
       }. You will be removed from shared groups, and ${
-        this.state.name
+        this.state.otherUser.name
       } cannot send you any messages.`,
       [
         {
@@ -125,27 +123,8 @@ export default class Friend extends React.Component {
   }
 
   unFriendFirebaseFunction() {
-    console.log("Unfriend");
-    console.log(this.state.name);
-    console.log(this.state.otherUid);
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/removeFriend", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name: this.state.currUser,
-        friendName: this.state.otherUid
-      })
-    }).then(data => console.log(data._bodyText)).then(() => this.props.navigation.goBack());
-
-    //TODO: success or error.
-  }
-
-  blockFirebaseFunction() {
     fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/blockUser",
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFriend",
       {
         method: "POST",
         headers: {
@@ -153,11 +132,31 @@ export default class Friend extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.currUser,
-          blockedName: this.state.otherUid
+          name: this.state.id,
+          friendName: this.state.otherUser.id
         })
       }
-    ).then(data => console.log(data)).then(() => this.props.navigation.goBack());
+    )
+      .then(data => console.log(data._bodyText))
+      .then(() => this.props.navigation.goBack());
+
+    //TODO: success or error.
+  }
+
+  blockFirebaseFunction() {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/blockUser", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: this.state.id,
+        blockedName: this.state.otherUser.id
+      })
+    })
+      .then(data => console.log(data))
+      .then(() => this.props.navigation.goBack());
 
     //TODO: success or error.
   }
@@ -170,14 +169,14 @@ export default class Friend extends React.Component {
         backButton={true}
       >
         <Card
-          header={this.state.name}
+          header={this.state.otherUser.name}
           footer={[
             { text: "Unfriend", onPress: () => this.unFriend() },
             { text: "Block", onPress: () => this.block() }
           ]}
         >
           <Text type="subHeader" style={{ padding: 8 }}>
-            Status: {this.state.status}
+            Status: {this.state.otherUser.status}
           </Text>
           <Separator />
           <List
