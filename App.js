@@ -102,19 +102,20 @@ const MainNavigation = createStackNavigator(
 const AppNavigation = createSwitchNavigator(
   {
     Home: {
-      screen: MainNavigation,
-      screenProps: {}
+      screen: MainNavigation
     },
     Auth: {
       screen: AuthNavigation
     }
   },
   {
-    initialRouteName: "Auth"
+    //initialRouteName: loggedIn ? "Home" : "Auth"
   }
 );
 
 const Navigation = createAppContainer(AppNavigation);
+const Auth = createAppContainer(AuthNavigation);
+const Main = createAppContainer(MainNavigation);
 
 export default class App extends React.Component {
   constructor(props) {
@@ -122,6 +123,7 @@ export default class App extends React.Component {
     this.state = {
       fontLoaded: false,
       mealsLoaded: false,
+      loggedIn: false,
       user: {
         uid: ""
       },
@@ -170,6 +172,31 @@ export default class App extends React.Component {
   }
 
   async componentDidMount() {
+    //If the authentification state changes
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        console.log(user.uid);
+        console.log(user.displayName);
+        fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: user.uid,
+              name: user.displayName
+            })
+          }
+        ).then(data => {
+          console.log(data._bodyText);
+          this.setState({ loggedIn: true });
+        });
+      }
+    });
+
     this.fetchDates(0, 7);
     await Font.loadAsync({
       Lobster: require("./assets/fonts/Lobster/Lobster-Regular.ttf"),
@@ -183,8 +210,11 @@ export default class App extends React.Component {
   }
 
   render() {
-    if (this.state.fontLoaded && this.state.mealsLoaded)
-      return <Navigation screenProps={{ meals: this.state.meals }} />;
+    if (this.state.fontLoaded && this.state.mealsLoaded) {
+      if (this.state.loggedIn)
+        return <Main screenProps={{ meals: this.state.meals }} />;
+      return <Auth />;
+    }
     return <Splash />;
   }
 }
