@@ -133,7 +133,7 @@ export default class Profile extends React.Component {
               this.props.navigation.navigate("Settings");
               // this.setState({ isEditing: true });
             }}
-            size={24}
+            size={28}
             style={styles.settingsIcon}
           />
         </Card>

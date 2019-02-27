@@ -26,12 +26,12 @@ export default class SignIn extends React.Component {
       password: ""
     };
 
-    // firebase.auth().onAuthStateChanged(user => {
-    //   if (user) {
-    //     console.log("Logged In");
-    //     this.props.navigation.navigate("Home");
-    //   }
-    // });
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        console.log("Logged In");
+        this.props.navigation.navigate("Home");
+      }
+    });
   }
 
   signInNative = () => {
