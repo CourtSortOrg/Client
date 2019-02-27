@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View, TouchableOpacity, Image } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import Text from "../Nav/Text";
+import Text from "./Text";
 
 export default class ListElement extends React.Component {
   constructor(props) {

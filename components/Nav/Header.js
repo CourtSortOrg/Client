@@ -2,7 +2,7 @@ import React from "react";
 import { View, TouchableOpacity, Image } from "react-native";
 import { Button, Avatar } from "react-native-elements";
 
-import Text from "./Text";
+import Text from "../components/Text";
 
 export default class Header extends React.Component {
   render() {

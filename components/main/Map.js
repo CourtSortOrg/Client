@@ -7,9 +7,9 @@ const { Marker } = MapView;
 
 import Header from "../Nav/Header";
 import Footer from "../Nav/Footer";
-import Card from "../Nav/Card";
-import Text from "../Nav/Text";
-import List from "./List";
+import Card from "../components/Card";
+import Text from "../components/Text";
+import List from "../components/List";
 
 const locations = {
   Hillenbrand: {
