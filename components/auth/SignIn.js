@@ -16,7 +16,7 @@ import { Facebook, Google } from "expo";
 import { FontAwesome } from "@expo/vector-icons";
 import * as firebase from "firebase";
 
-import Text from "../components/Text"
+import Text from "../components/Text";
 
 export default class SignIn extends React.Component {
   constructor(props) {
@@ -26,7 +26,12 @@ export default class SignIn extends React.Component {
       password: ""
     };
 
-    
+    // firebase.auth().onAuthStateChanged(user => {
+    //   if (user) {
+    //     console.log("Logged In");
+    //     this.props.navigation.navigate("Home");
+    //   }
+    // });
   }
 
   signInNative = () => {

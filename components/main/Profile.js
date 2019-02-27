@@ -32,7 +32,7 @@ export default class Profile extends React.Component {
       groups: [],
 
       ...this.props.screenProps.user,
-      image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
+      image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
   }
 
@@ -40,25 +40,6 @@ export default class Profile extends React.Component {
     // If the user is a guest, send them to the sign in screen
     if (this.state.uid == undefined) {
       this.props.navigation.navigate("Auth");
-    } else {
-      //Fetch the user profile data
-      fetch(
-        "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            name: this.state.displayName
-          })
-        }
-      ).then(data => {
-        this.setState({
-          ...JSON.parse(data._bodyText)
-        });
-      });
     }
   }
 
@@ -115,24 +96,6 @@ export default class Profile extends React.Component {
       })
       .catch(function(error) {
         alert("ERROR: " + error.message);
-        this.props.screenProps.functions.updateUser();
-      });
-  };
-
-  signOut = () => {
-    firebase
-      .auth()
-      .signOut()
-      .then(() => {
-        //TODO: Get rid of this, will not have a popup
-        this.setState({ isEditing: false });
-
-        this.props.screenProps.functions.updateUser();
-        this.props.navigation.navigate("Auth");
-        //go back to SignIn screen
-      })
-      .catch(error => {
-        alert(error.message);
         this.props.screenProps.functions.updateUser();
       });
   };
@@ -289,7 +252,6 @@ function RatingsList(props) {
   );
 }
 
-
 class FriendsList extends React.Component {
   sendFriendRequest(text) {
     fetch(
@@ -376,7 +338,6 @@ class FriendsList extends React.Component {
     );
   }
 }
-
 
 class GroupsList extends React.Component {
   filterGroup(list, text) {

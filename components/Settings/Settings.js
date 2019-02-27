@@ -1,11 +1,27 @@
 import React from "react";
 import Screen from "../Nav/Screen";
 import { Icon, ListItem } from "react-native-elements";
+import * as firebase from "firebase";
 
 export default class Settings extends React.Component {
   constructor(props) {
     super(props);
   }
+
+  signOut = () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(() => {
+        this.props.screenProps.functions.updateUser();
+        this.props.navigation.navigate("Auth");
+        //go back to SignIn screen
+      })
+      .catch(error => {
+        alert(error.message);
+        this.props.screenProps.functions.updateUser();
+      });
+  };
 
   render() {
     return (
@@ -38,7 +54,7 @@ export default class Settings extends React.Component {
           title="Sign Out"
           subtitle="Sign out of your account"
           leftIcon={<Icon name="log-out" type="feather" />}
-          onPress={() => {}}
+          onPress={this.signOut}
           topDivider
           bottomDivider
         />
