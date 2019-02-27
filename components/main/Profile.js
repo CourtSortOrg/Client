@@ -164,7 +164,8 @@ export default class Profile extends React.Component {
             name="settings"
             // TODO: Navigate to settings
             onPress={() => {
-              this.setState({ isEditing: true });
+              this.props.navigation.navigate("EditProfile");
+              // this.setState({ isEditing: true });
             }}
             size={24}
             style={styles.settingsIcon}

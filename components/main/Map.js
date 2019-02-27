@@ -87,7 +87,6 @@ export default class Map extends React.Component {
         })
       }
     ).then(data => {
-      console.log(data._bodyText);
       this.setState({
         diningLocations: JSON.parse(data._bodyText),
         loading: false

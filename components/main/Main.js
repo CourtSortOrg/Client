@@ -16,6 +16,7 @@ import Message from "./Message";
 import Messages from "./Messages";
 import Notifications from "./Notifications";
 import Profile from "./Profile";
+import EditProfile from "./EditProfile"
 
 const Stack = createStackNavigator(
   {
@@ -24,6 +25,9 @@ const Stack = createStackNavigator(
     },
     Profile: {
       screen: Profile
+    },
+    EditProfile: {
+      screen: EditProfile
     },
     Friend: {
       screen: Friend
