@@ -21,13 +21,7 @@ const restrictions = [
 export default class EditProfile extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { restrictions: [], isVisible: true };
   }
-
-  onSelectionsChange = restrictions => {
-    // selectedFruits is array of { label, value }
-    this.setState({ restrictions });
-  };
 
   render() {
     return (
@@ -35,17 +29,7 @@ export default class EditProfile extends React.Component {
         title="Edit Profile"
         navigation={{ ...this.props.navigation }}
         backButton={true}
-      >
-        <Overlay isVisible={this.state.isVisible}>
-          <SelectMultiple
-            style={{ borderColor: "black" }}
-            items={restrictions}
-            selectedItems={this.state.restrictions}
-            onSelectionsChange={this.onSelectionsChange}
-          />
-          <Button title="Close" onPress={()=>{this.setState({isVisible: !this.state.isVisible})}} />
-        </Overlay>
-      </Screen>
+      />
     );
   }
 }

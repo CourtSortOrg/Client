@@ -1,9 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-import {
-  createStackNavigator,
-  createAppContainer
-} from "react-navigation";
+import { createStackNavigator, createAppContainer } from "react-navigation";
 
 import DiningCourt from "./DiningCourt";
 import Friend from "./Friend";
@@ -16,7 +13,8 @@ import Message from "./Message";
 import Messages from "./Messages";
 import Notifications from "./Notifications";
 import Profile from "./Profile";
-import EditProfile from "./EditProfile"
+import Settings from "../Settings/Settings";
+import EditProfile from "../Settings/EditProfile";
 
 const Stack = createStackNavigator(
   {
@@ -25,6 +23,9 @@ const Stack = createStackNavigator(
     },
     Profile: {
       screen: Profile
+    },
+    Settings: {
+      screen: Settings
     },
     EditProfile: {
       screen: EditProfile
