@@ -1,8 +1,5 @@
 import React from "react";
-import { View } from "react-native";
 import Screen from "../Nav/Screen";
-import SelectMultiple from "react-native-select-multiple";
-import { Overlay, Button } from "react-native-elements";
 
 const restrictions = [
   "Eggs",
