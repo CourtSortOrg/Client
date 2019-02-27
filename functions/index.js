@@ -851,3 +851,27 @@ exports.addDietaryRestriction = functions.https.onRequest((request, response) =>
     });
   }
 });
+
+//remove dietary restrictions from a user
+//Parameters: name, dietaryRestriction
+exports.removeDietaryRestriction = functions.https.onRequest((request, response) => {
+  var name = request.body.name;
+  var dietaryRestriction = request.body.dietaryRestriction;
+
+  //ensure data is properly retrieved
+  if (name == null || dietaryRestriction == null) {
+    console.log("need to pass 'name' and 'dietaryRestriction' in body");
+    response.send("error: incorrect parameters");
+  }
+  else {
+    db.collection("User").doc(name).update({
+      dietaryRestrictions: admin.firestore.FieldValue.arrayRemove(dietaryRestriction)
+    })
+    .then(function() {
+      response.send("success");
+    })
+    .catch(function(error) {
+      response.send("error");
+    });
+  }
+});
