@@ -8,6 +8,7 @@ import {
 import { Font } from "expo";
 
 import Splash from "./components/auth/Splash";
+import LoginSplash from "./components/auth/LoginSplash";
 import SignIn from "./components/auth/SignIn";
 import CreateAccount from "./components/auth/CreateAccount";
 import ResetPassword from "./components/auth/ResetPassword";
@@ -101,6 +102,9 @@ const MainNavigation = createStackNavigator(
 
 const AppNavigation = createSwitchNavigator(
   {
+    Splash: {
+      screen: LoginSplash
+    },
     Home: {
       screen: MainNavigation
     },
@@ -109,21 +113,17 @@ const AppNavigation = createSwitchNavigator(
     }
   },
   {
-    //initialRouteName: loggedIn ? "Home" : "Auth"
+    initialRouteName: "Splash"
   }
 );
 
 const Navigation = createAppContainer(AppNavigation);
-const Auth = createAppContainer(AuthNavigation);
-const Main = createAppContainer(MainNavigation);
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      fontLoaded: false,
       mealsLoaded: false,
-      loggedIn: false,
       user: {
         uid: ""
       },
@@ -171,49 +171,28 @@ export default class App extends React.Component {
       .catch(err => console.log(err));
   }
 
-  async componentDidMount() {
-    //If the authentification state changes
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        console.log(user.uid);
-        console.log(user.displayName);
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              uid: user.uid,
-              name: user.displayName
-            })
-          }
-        ).then(data => {
-          console.log(data._bodyText);
-          this.setState({ loggedIn: true });
-        });
-      }
-    });
+  componentDidMount = async () => {
+    this.fetchDates(0, 1);
 
-    this.fetchDates(0, 7);
     await Font.loadAsync({
       Lobster: require("./assets/fonts/Lobster/Lobster-Regular.ttf"),
       "Quicksand-Regular": require("./assets/fonts/Quicksand/Quicksand-Regular.ttf"),
       "Quicksand-Light": require("./assets/fonts/Quicksand/Quicksand-Light.ttf"),
       "Quicksand-Medium": require("./assets/fonts/Quicksand/Quicksand-Medium.ttf"),
       "Quicksand-Bold": require("./assets/fonts/Quicksand/Quicksand-Bold.ttf")
+      /*Lobster: require("../../assets/fonts/Lobster/Lobster-Regular.ttf"),
+      "Quicksand-Regular": require("../../assets/fonts/Quicksand/Quicksand-Regular.ttf"),
+      "Quicksand-Light": require("../../assets/fonts/Quicksand/Quicksand-Light.ttf"),
+      "Quicksand-Medium": require("../../assets/fonts/Quicksand/Quicksand-Medium.ttf"),
+      "Quicksand-Bold": require("../../assets/fonts/Quicksand/Quicksand-Bold.ttf")*/
     });
 
     this.setState({ fontLoaded: true });
-  }
+  };
 
   render() {
-    if (this.state.fontLoaded && this.state.mealsLoaded) {
-      if (this.state.loggedIn)
-        return <Main screenProps={{ meals: this.state.meals }} />;
-      return <Auth />;
+    if (this.state.mealsLoaded && this.state.fontLoaded) {
+      return <Navigation screenProps={{ meals: this.state.meals }} />;
     }
     return <Splash />;
   }
