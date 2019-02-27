@@ -12,45 +12,12 @@ export default class Friend extends React.Component {
   constructor(props) {
     super(props);
 
-    var userData = require("../../testData/userData.json");
-    var ratingData = require("../../testData/ratingData.json");
-    var friendData = require("../../testData/friendData.json");
-
-    var groupData = {
-      groups: [
-        {
-          Name: "Group1",
-          id: "1"
-        },
-        {
-          Name: "Group2",
-          id: "2"
-        },
-        {
-          Name: "Group3",
-          id: "3"
-        },
-        {
-          Name: "Group4",
-          id: "4"
-        },
-        {
-          Name: "Group5",
-          id: "5"
-        }
-      ]
-    };
-
-    let sharedGroups = [{ Name: "Shared Messages", groups: groupData.groups }]; //.filter(group => group.members.includes("USER") && group.members.includes(userData.name));
-
     this.state = {
       otherUser: {
         id: this.props.navigation.getParam("ID", "NO-ID")
       },
-      initials: userData.initials,
-      image: userData.image,
-      groups: sharedGroups,
-      status: "Not currently eating",
+      initials: "",
+      groups: [],
 
       ...this.props.screenProps.user
     };
@@ -60,11 +27,12 @@ export default class Friend extends React.Component {
     this.props.screenProps.functions.fetchUser(this.state.otherUser.id, data =>
       this.setState({
         otherUser: { ...this.state.otherUser, ...data }
+        //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
       })
     );
   }
 
-  unFriend() {
+  removeFriend() {
     Alert.alert(
       "Unfriend",
       `You are about to unfriend ${
@@ -75,7 +43,7 @@ export default class Friend extends React.Component {
       [
         {
           text: "Yes",
-          onPress: () => this.unFriendFirebaseFunction()
+          onPress: () => this.removeFriendFirebaseFunction()
         },
         {
           text: "No",
@@ -87,7 +55,7 @@ export default class Friend extends React.Component {
     );
   }
 
-  block() {
+  blockUser() {
     Alert.alert(
       "Block",
       `You are about to block ${
@@ -98,7 +66,7 @@ export default class Friend extends React.Component {
       [
         {
           text: "Yes",
-          onPress: () => this.blockFirebaseFunction()
+          onPress: () => this.blockUserFirebaseFunction()
         },
         {
           text: "No",
@@ -110,7 +78,7 @@ export default class Friend extends React.Component {
     );
   }
 
-  unFriendFirebaseFunction() {
+  removeFriendFirebaseFunction() {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFriend",
       {
@@ -125,19 +93,17 @@ export default class Friend extends React.Component {
         })
       }
     )
-      .then(data => console.log(data._bodyText))
       .then(() => {
-        this.props.screenProps.functions.updateFriends(
+        this.props.screenProps.functions.updateFriend(
           this.state.otherUser.id,
           false
         );
         this.props.navigation.goBack();
-      });
-
-    //TODO: success or error.
+      })
+      .catch(error => console.log(`removeFriendFirebaseFunction: ${error}`));
   }
 
-  blockFirebaseFunction() {
+  blockUserFirebaseFunction() {
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/blockUser", {
       method: "POST",
       headers: {
@@ -149,16 +115,14 @@ export default class Friend extends React.Component {
         blockedName: this.state.otherUser.id
       })
     })
-      .then(data => console.log(data))
       .then(() => {
-        this.props.screenProps.functions.updateFriends(
+        this.props.screenProps.functions.updateFriend(
           this.state.otherUser.id,
           false
         );
         this.props.navigation.goBack();
-      });
-
-    //TODO: success or error.
+      })
+      .catch(error => console.log(`blockUserFirebaseFunction: ${error}`));
   }
 
   render() {
@@ -171,8 +135,8 @@ export default class Friend extends React.Component {
         <Card
           header={this.state.otherUser.name}
           footer={[
-            { text: "Unfriend", onPress: () => this.unFriend() },
-            { text: "Block", onPress: () => this.block() }
+            { text: "Unfriend", onPress: () => this.removeFriend() },
+            { text: "Block", onPress: () => this.blockUser() }
           ]}
         >
           <Text type="subHeader" style={{ padding: 8 }}>

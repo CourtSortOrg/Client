@@ -24,7 +24,7 @@ export default class Notifications extends React.Component {
     }
   };
 
-  acceptFriendRequest = (friendName, index) => {
+  acceptFriendRequest = (friend, index) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptFriendRequest",
       {
@@ -35,17 +35,18 @@ export default class Notifications extends React.Component {
         },
         body: JSON.stringify({
           name: this.state.id,
-          friendName: friendName
+          friendName: friend
         })
       }
-    ).then(data => {
-      //TODO: Error checking
-      this.removeFriendRequest(index);
-      this.props.screenProps.functions.updateFriends(friendName, true);
-    });
+    )
+      .then(data => {
+        this.removeFriendRequest(index);
+        this.props.screenProps.functions.updateFriend(data, true);
+      })
+      .catch(error => console.log(`acceptFriendRequest: ${error}`));
   };
 
-  denyFriendRequest = (friendName, index) => {
+  denyFriendRequest = (friend, index) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/denyFriendRequest",
       {
@@ -56,13 +57,15 @@ export default class Notifications extends React.Component {
         },
         body: JSON.stringify({
           name: this.setState.id,
-          friendName: friendName
+          friendName: friend
         })
       }
-    ).then(data => {
-      //TODO: Error checking
-      this.removeFriendRequest(index);
-    });
+    )
+      .then(data => {
+        //TODO: Error checking
+        this.removeFriendRequest(index);
+      })
+      .catch(error => console.log(`denyFriendRequest: ${error}`));
   };
 
   componentDidMount() {
@@ -78,12 +81,14 @@ export default class Notifications extends React.Component {
           name: this.state.id
         })
       }
-    ).then(data => {
-      this.setState({
-        friendRequests: JSON.parse(data._bodyText),
-        loading: false
-      });
-    });
+    )
+      .then(data => {
+        this.setState({
+          friendRequests: JSON.parse(data._bodyText),
+          loading: false
+        });
+      })
+      .catch(error => `componentDidMount: getIncomingFriendRequests: ${error}`);
   }
 
   render() {

@@ -27,18 +27,13 @@ export default class Profile extends React.Component {
       initials: "",
       restrictions: "",
 
-      ratings: [],
-      friends: [],
-      groups: [],
-
-      ...this.props.screenProps.user,
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
   }
 
   componentDidMount() {
     // If the user is a guest, send them to the sign in screen
-    if (this.state.uid == undefined) {
+    if (this.props.screenProps.user == undefined) {
       this.props.navigation.navigate("Auth");
     }
   }
@@ -72,10 +67,14 @@ export default class Profile extends React.Component {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              name: this.state.id
+              name: this.props.screenProps.user.id
             })
           }
-        ).then(data => console.log(data._bodyText));
+        )
+          .then(data => console.log(data._bodyText))
+          .catch(error =>
+            console.log(`deleteAccount: removeFromAllFriends: ${error}`)
+          );
         fetch(
           "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
           {
@@ -85,10 +84,14 @@ export default class Profile extends React.Component {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              name: this.state.id
+              name: this.props.screenProps.user.id
             })
           }
-        ).then(data => console.log(data._bodyText));
+        )
+          .then(data => console.log(data._bodyText))
+          .catch(error =>
+            console.log(`deleteAccount: removeUserFromDatabase: ${error}`)
+          );
         //navigate to SignIn Screen
         this.props.screenProps.functions.updateUser();
         this.props.navigation.navigate("Auth");
@@ -123,7 +126,9 @@ export default class Profile extends React.Component {
             title={this.state.initials}
           />
           {/* Test to show profile name */}
-          <Text style={styles.profileName}>{this.state.displayName}</Text>
+          <Text style={styles.profileName}>
+            {this.props.screenProps.user.displayName}
+          </Text>
           {/* Icon to navigate to Settings */}
           <MaterialIcons
             color="gray"
@@ -141,6 +146,7 @@ export default class Profile extends React.Component {
         {/* TODO: Add user dietary restrictions */}
 
         {/* Card to show user ratings, friends, and groups */}
+
         <Card>
           {/* ButtonGroup to choose tab */}
           <ButtonGroup
@@ -152,7 +158,10 @@ export default class Profile extends React.Component {
           {/* Render the ratings list if on the ratings tab */}
           {this.shouldRender(
             selectedIndex == 0,
-            <RatingsList ratings={ratings} />,
+            <RatingsList
+              id={this.props.screenProps.user.id}
+              ratings={this.props.screenProps.user.ratings}
+            />,
             null
           )}
 
@@ -160,9 +169,9 @@ export default class Profile extends React.Component {
           {this.shouldRender(
             selectedIndex == 1,
             <FriendsList
-              id={this.state.id}
+              id={this.props.screenProps.user.id}
               navigation={this.props.navigation}
-              friends={friends}
+              friends={this.props.screenProps.user.friends}
             />,
             null
           )}
@@ -170,7 +179,11 @@ export default class Profile extends React.Component {
           {/* Render the groups list if on the groups tab */}
           {this.shouldRender(
             selectedIndex == 2,
-            <GroupsList groups={groups} navigation={this.props.navigation} />,
+            <GroupsList
+              id={this.props.screenProps.user.id}
+              groups={this.props.screenProps.user.groups}
+              navigation={this.props.navigation}
+            />,
             null
           )}
         </Card>
@@ -267,30 +280,33 @@ class FriendsList extends React.Component {
           friendName: text
         })
       }
-    ).then(data => {
-      if (data._bodyText == "success")
-        Alert.alert(
-          "Friend Request",
-          `You sent a friend request to ${text}.`,
-          [
-            {
-              text: "Ok"
-            }
-          ],
-          { cancelable: false }
-        );
-      else
-        Alert.alert(
-          "Friend Request",
-          `Friend request to ${text} could not be sent.`,
-          [
-            {
-              text: "Ok"
-            }
-          ],
-          { cancelable: false }
-        );
-    });
+    )
+      .then(data => {
+        console.log(data);
+        if (data._bodyText == "success")
+          Alert.alert(
+            "Friend Request",
+            `You sent a friend request to ${text}.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
+        else
+          Alert.alert(
+            "Friend Request",
+            `Friend request to ${text} could not be sent.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
+      })
+      .catch(error => console.log(`sendFriendRequest: ${error}`));
   }
 
   filterProfile(list, text) {
@@ -298,16 +314,13 @@ class FriendsList extends React.Component {
   }
 
   render() {
-    let friends = this.props.friends.map(friend => {
-      return { Name: friend };
-    });
     return (
       <SearchList
         navigation={this.props.navigation}
         filterFunction={this.filterProfile}
         extendedSearch={text => this.sendFriendRequest(text)}
         list={{
-          list: friends,
+          list: this.props.friends.map(friend => ({ Name: friend })),
           type: "element",
           subList: false,
           rank: 1,
