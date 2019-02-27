@@ -834,7 +834,7 @@ exports.addDietaryRestriction = functions.https.onRequest((request, response) =>
   var name = request.body.name;
   var dietaryRestriction = request.body.dietaryRestriction;
 
-  //ensure data is properly retrieved
+  //ensure proper parameters
   if (name == null || dietaryRestriction == null) {
     console.log("need to pass 'name' and 'dietaryRestriction' in body");
     response.send("error: incorrect parameters");
@@ -852,13 +852,33 @@ exports.addDietaryRestriction = functions.https.onRequest((request, response) =>
   }
 });
 
+//get dietary restrictions of a user
+//Parameters: name
+exports.getDietaryRestrictions = functions.https.onRequest((request, response) => {
+  var name = request.body.name;
+
+  //ensure proper parameters
+  if (name == null) {
+    response.send("error: incorrect parameters");
+  }
+  else {
+    db.collection("User").doc(name).get().then(doc => {
+      response.send(doc.data().dietaryRestrictions);
+    })
+    .catch(err => {
+      console.log(err);
+      response.send("error");
+    })
+  }
+});
+
 //remove dietary restrictions from a user
 //Parameters: name, dietaryRestriction
 exports.removeDietaryRestriction = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   var dietaryRestriction = request.body.dietaryRestriction;
 
-  //ensure data is properly retrieved
+  //ensure proper parameters
   if (name == null || dietaryRestriction == null) {
     console.log("need to pass 'name' and 'dietaryRestriction' in body");
     response.send("error: incorrect parameters");
