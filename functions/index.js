@@ -533,15 +533,16 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
 exports.getUserProfile = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
-  getProfile(name, response);
+  if (name == null) {
+    response.send("Must pass name in body of request");
+  }
+  else {
+    getProfile(name, response);
+  }
 });
 
 //function to get user profile information
 function getProfile(name, response) {
-  if (name == null) {
-    response.send("Must pass name in body of request");
-  }
-
   var userRef = db.collection("User").doc(name);
   var getDoc = userRef.get()
   .then(doc => {
@@ -825,4 +826,28 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
     console.error("Error getting list");
     response.send(error.message);
   });
+});
+
+//add dietary restrictions to a user
+//Parameters: name, dietaryRestriction
+exports.addDietaryRestriction = functions.https.onRequest((request, response) => {
+  var name = request.body.name;
+  var dietaryRestriction = request.body.dietaryRestriction;
+
+  //ensure data is properly retrieved
+  if (name == null || dietaryRestriction == null) {
+    console.log("need to pass 'name' and 'dietaryRestriction' in body");
+    response.send("error: incorrect parameters");
+  }
+  else {
+    db.collection("User").doc(name).update({
+      dietaryRestrictions: admin.firestore.FieldValue.arrayUnion(dietaryRestriction)
+    })
+    .then(function() {
+      response.send("success");
+    })
+    .catch(function(error) {
+      response.send("error");
+    });
+  }
 });
