@@ -4,7 +4,7 @@ import { Alert, FlatList, StyleSheet, View } from "react-native";
 
 import { ListItem, Rating, Button } from "react-native-elements";
 import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
-import { EvilIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import Text from "../components/Text";
 import Card from "../components/Card";
@@ -14,8 +14,10 @@ import SearchList from "../components/SearchList";
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
-    var ratingData = require("../../testData/ratingData.json");
-    var groupData = require("../../testData/groupData.json");
+
+    // Dummy data used for now, should not be hardcoded
+    //var ratingData = require("../../testData/ratingData.json");
+    //var groupData = require("../../testData/groupData.json");
 
     this.state = {
       selectedIndex: 0,
@@ -25,48 +27,55 @@ export default class Profile extends React.Component {
       initials: "",
       restrictions: "",
 
-      ratings: ratingData.ratings,
+      ratings: [],
       friends: [],
-      groups: groupData.groups,
+      groups: []
 
       ...this.props.screenProps.user,
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
     };
   }
 
-  ratingData = require("../../testData/ratingData.json");
-  userData = require("../../testData/userData.json");
-
   componentDidMount() {
+    // If the user is a guest, send them to the sign in screen
     if (this.state.uid == undefined) {
-      console.log("HOME");
       this.props.navigation.navigate("Auth");
-      return;
+    } else {
+      //Fetch the user profile data
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: this.state.displayName
+          })
+        }
+      ).then(data => {
+        this.setState({
+          ...JSON.parse(data._bodyText)
+        });
+      });
     }
-
-    // fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
-    //   method: "POST",
-    //   headers: {
-    //     Accept: "application/json",
-    //     "Content-Type": "application/json"
-    //   },
-    //   body: JSON.stringify({
-    //     name: this.state.displayName
-    //   })
-    // }).then(data => {
-    //   this.setState({ ...JSON.parse(data._bodyText) });
-    // });
   }
 
+  // Method to change the currently selected index of the button group
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
   };
 
+  // Helper method to choose whether to render a component
   shouldRender = (expr, comp1, comp2) => {
     return expr ? comp1 : comp2;
   };
 
   deleteAccount = () => {
+    //TODO: Delete user's ratings
+    //TODO: Remove user from all groups
+
     user = firebase.auth().currentUser;
     //get list of friends
     //get list of individual ratings
@@ -115,7 +124,9 @@ export default class Profile extends React.Component {
       .auth()
       .signOut()
       .then(() => {
+        //TODO: Get rid of this, will not have a popup
         this.setState({ isEditing: false });
+
         this.props.screenProps.functions.updateUser();
         this.props.navigation.navigate("Auth");
         //go back to SignIn screen
@@ -127,22 +138,20 @@ export default class Profile extends React.Component {
   };
 
   render() {
+    // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
-    const {
-      friends,
-      groups,
-      restrictions,
-      ratings,
-      selectedIndex
-    } = this.state;
+    // Retrieve user data from state
+    const { friends, groups, ratings, selectedIndex } = this.state;
+
     return (
       <Screen
         backButton={false}
         navigation={{ ...this.props.navigation }}
         title="Profile"
       >
-        {/* "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png" */}
+        {/* Card that shows user information */}
         <Card style={styles.profileInformation}>
+          {/* Avatar to show profile picture */}
           <Avatar
             containerStyle={styles.profilePicture}
             rounded
@@ -150,49 +159,41 @@ export default class Profile extends React.Component {
             source={{ uri: this.state.image }}
             title={this.state.initials}
           />
+          {/* Test to show profile name */}
           <Text style={styles.profileName}>{this.state.displayName}</Text>
-          <EvilIcons
+          {/* Icon to navigate to Settings */}
+          <MaterialIcons
             color="gray"
-            name="pencil"
+            name="settings"
+            // TODO: Navigate to settings
             onPress={() => {
-              this.setState({ isEditing: true });
+              this.props.navigation.navigate("Settings");
+              // this.setState({ isEditing: true });
             }}
-            size={35}
-            style={styles.editInformation}
+            size={24}
+            style={styles.settingsIcon}
           />
-          {/* {restrictions.length > 0 ? (
-              <View style={{ flex: 1, borderRadius: 5 }}>
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    paddingVertical: 5
-                  }}
-                >
-                  <Text style={{ fontWeight: "bold" }}>
-                    Allergens and Preferences
-                  </Text>
-                  {restrictions.map((data, key) => {
-                    return <Text key={key}>{data}</Text>;
-                  })}
-                </View>
-              </View>
-            ) : null} */}
         </Card>
+
+        {/* TODO: Add user dietary restrictions */}
+
+        {/* Card to show user ratings, friends, and groups */}
         <Card>
+          {/* ButtonGroup to choose tab */}
           <ButtonGroup
             buttons={buttons}
             onPress={this.updateIndex}
             selectedIndex={selectedIndex}
           />
 
+          {/* Render the ratings list if on the ratings tab */}
           {this.shouldRender(
             selectedIndex == 0,
             <RatingsList ratings={ratings} />,
             null
           )}
+
+          {/* Render the friends list if on the friends tab */}
           {this.shouldRender(
             selectedIndex == 1,
             <FriendsList
@@ -202,12 +203,16 @@ export default class Profile extends React.Component {
             />,
             null
           )}
+
+          {/* Render the groups list if on the groups tab */}
           {this.shouldRender(
             selectedIndex == 2,
             <GroupsList groups={groups} navigation={this.props.navigation} />,
             null
           )}
         </Card>
+
+        {/* TODO: Phase this out into Settings screen */}
         <Overlay
           borderRadius={4}
           height="90%"
@@ -225,14 +230,14 @@ export default class Profile extends React.Component {
               padding: 15
             }}
           >
-            <EvilIcons
+            <MaterialIcons
               color="gray"
               name="close"
               onPress={() => {
                 this.setState({ isEditing: false });
               }}
               size={24}
-              style={styles.editInformation}
+              style={styles.settingsIcon}
             />
             <Text>Edit Profile</Text>
             <View
@@ -260,12 +265,14 @@ export default class Profile extends React.Component {
   }
 }
 
+// Ratings List Component
+// TODO: Add styles of Ratings List instead of hardcoding
 function RatingsList(props) {
   return (
     <FlatList
       data={props.ratings}
       keyExtractor={item => item.id}
-      renderItem={({ item, index }) => (
+      renderItem={({ item }) => (
         <ListItem
           bottomDivider
           subtitle={
@@ -281,6 +288,7 @@ function RatingsList(props) {
     />
   );
 }
+
 
 class FriendsList extends React.Component {
   sendFriendRequest(text) {
@@ -369,6 +377,7 @@ class FriendsList extends React.Component {
   }
 }
 
+
 class GroupsList extends React.Component {
   filterGroup(list, text) {
     return list.filter(item => item.Name.includes(text));
@@ -398,10 +407,10 @@ const styles = StyleSheet.create({
   backgroundColor: {
     backgroundColor: "lightgray"
   },
-  editInformation: {
+  settingsIcon: {
     position: "absolute",
-    top: 4,
-    right: 4
+    top: 8,
+    right: 8
   },
   profileInformation: {
     alignItems: "center",
