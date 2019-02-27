@@ -11,19 +11,14 @@ import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
 
-let userName;
-
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
     var ratingData = require("../../testData/ratingData.json");
     var groupData = require("../../testData/groupData.json");
 
-    const user = firebase.auth().currentUser;
-    userName = user ? user.displayName : undefined;
     this.state = {
-      uid: user ? user.uid : undefined,
-      displayName: user ? user.displayName : undefined,
+      ...this.props.screenProps.user,
       selectedIndex: 0,
       isEditing: false,
 
@@ -47,32 +42,6 @@ export default class Profile extends React.Component {
       this.props.navigation.navigate("Auth");
       return;
     }
-
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: this.state.displayName
-        })
-      }
-    ).then(data => {
-      this.setState(
-        {
-          ...JSON.parse(data._bodyText)
-        },
-        () => {
-          console.log(this.state.friends);
-          this.setState({
-            ratings: this.ratingData.ratings
-          });
-        }
-      );
-    });
 
     // fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
     //   method: "POST",
@@ -130,11 +99,13 @@ export default class Profile extends React.Component {
           }
         ).then(data => console.log(data._bodyText));
         //navigate to SignIn Screen
+        this.props.screenProps.functions.updateUser();
         this.props.navigation.navigate("Auth");
         this.setState({ isEditing: false });
       })
       .catch(function(error) {
         alert("ERROR: " + error.message);
+        this.props.screenProps.functions.updateUser();
       });
   };
 
@@ -144,11 +115,13 @@ export default class Profile extends React.Component {
       .signOut()
       .then(() => {
         this.setState({ isEditing: false });
+        this.props.screenProps.functions.updateUser();
         this.props.navigation.navigate("Auth");
         //go back to SignIn screen
       })
       .catch(error => {
         alert(error.message);
+        this.props.screenProps.functions.updateUser();
       });
   };
 

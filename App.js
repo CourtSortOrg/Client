@@ -124,9 +124,9 @@ export default class App extends React.Component {
     super(props);
     this.state = {
       mealsLoaded: false,
-      user: {
-        uid: ""
-      },
+      fontLoaded: false,
+      firebaseLoaded: false,
+      user: {},
       meals: []
     };
   }
@@ -171,28 +171,104 @@ export default class App extends React.Component {
       .catch(err => console.log(err));
   }
 
+  updateUser = () => {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        this.setState({
+          user: {
+            displayName: user.displayName,
+            email: user.email,
+            emailVerified: user.emailVerified,
+            phoneNumber: user.phoneNumber,
+            photoURL: user.photoURL,
+            providerData: user.providerData,
+            uid: user.uid,
+            isAnonymous: user.isAnonymous
+          }
+        });
+
+        fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: user.uid,
+              name: user.displayName
+            })
+          }
+        ).then(data => {
+          console.log(data._bodyText);
+          this.fetchProfile();
+          this.fetchFriends();
+          this.fetchGroups();
+        });
+      } else {
+        this.setState({
+          user: undefined
+        });
+      }
+      this.setState({ firebaseLoaded: true });
+    });
+  };
+
   componentDidMount = async () => {
     this.fetchDates(0, 1);
-
+    this.updateUser();
+    //If the authentification state changes
     await Font.loadAsync({
       Lobster: require("./assets/fonts/Lobster/Lobster-Regular.ttf"),
       "Quicksand-Regular": require("./assets/fonts/Quicksand/Quicksand-Regular.ttf"),
       "Quicksand-Light": require("./assets/fonts/Quicksand/Quicksand-Light.ttf"),
       "Quicksand-Medium": require("./assets/fonts/Quicksand/Quicksand-Medium.ttf"),
       "Quicksand-Bold": require("./assets/fonts/Quicksand/Quicksand-Bold.ttf")
-      /*Lobster: require("../../assets/fonts/Lobster/Lobster-Regular.ttf"),
-      "Quicksand-Regular": require("../../assets/fonts/Quicksand/Quicksand-Regular.ttf"),
-      "Quicksand-Light": require("../../assets/fonts/Quicksand/Quicksand-Light.ttf"),
-      "Quicksand-Medium": require("../../assets/fonts/Quicksand/Quicksand-Medium.ttf"),
-      "Quicksand-Bold": require("../../assets/fonts/Quicksand/Quicksand-Bold.ttf")*/
     });
 
     this.setState({ fontLoaded: true });
   };
 
+  fetchProfile() {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: this.state.user.displayName
+        })
+      }
+    ).then(data => {
+      this.setState({
+        user: { ...this.state.user, ...JSON.parse(data._bodyText) }
+      });
+    });
+  }
+
+  fetchFriends() {}
+
+  fetchGroups() {}
+
   render() {
-    if (this.state.mealsLoaded && this.state.fontLoaded) {
-      return <Navigation screenProps={{ meals: this.state.meals }} />;
+    if (
+      this.state.mealsLoaded &&
+      this.state.fontLoaded &&
+      this.state.firebaseLoaded
+    ) {
+      return (
+        <Navigation
+          screenProps={{
+            functions: { updateUser: this.updateUser },
+            user: this.state.user,
+            meals: this.state.meals
+          }}
+        />
+      );
     }
     return <Splash />;
   }
