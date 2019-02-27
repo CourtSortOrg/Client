@@ -23,6 +23,8 @@ import Message from "./components/main/Message";
 import Messages from "./components/main/Messages";
 import Notifications from "./components/main/Notifications";
 import Profile from "./components/main/Profile";
+import Settings from "./components/Settings/Settings";
+import EditProfile from "./components/Settings/EditProfile";
 
 import * as firebase from "firebase";
 import config from "./config";
@@ -53,13 +55,31 @@ const AuthNavigation = createStackNavigator({
   }
 });
 
+const SettingsNavigation = createStackNavigator(
+  {
+    Profile: {
+      screen: Profile
+    },
+    Settings: {
+      screen: Settings
+    },
+    EditProfile: {
+      screen: EditProfile
+    }
+  },
+  {
+    initialRouteName: "Profile",
+    headerMode: "none",
+  }
+);
+
 const MainNavigation = createStackNavigator(
   {
     Messages: {
       screen: Messages
     },
     Profile: {
-      screen: Profile
+      screen: SettingsNavigation
     },
     Friend: {
       screen: Friend

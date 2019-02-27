@@ -29,7 +29,7 @@ export default class Profile extends React.Component {
 
       ratings: [],
       friends: [],
-      groups: []
+      groups: [],
 
       ...this.props.screenProps.user,
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
