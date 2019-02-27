@@ -52,28 +52,16 @@ export default class Friend extends React.Component {
       groups: sharedGroups,
       status: "Not currently eating",
 
-      ...this.props.screenProps.user,
+      ...this.props.screenProps.user
     };
   }
 
   componentDidMount() {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: this.state.otherUser.id
-        })
-      }
-    ).then(data => {
+    this.props.screenProps.functions.fetchUser(this.state.otherUser.id, data =>
       this.setState({
-        otherUser: { ...this.state.otherUser, ...JSON.parse(data._bodyText) }
-      });
-    });
+        otherUser: { ...this.state.otherUser, ...data }
+      })
+    );
   }
 
   unFriend() {
@@ -138,7 +126,13 @@ export default class Friend extends React.Component {
       }
     )
       .then(data => console.log(data._bodyText))
-      .then(() => this.props.navigation.goBack());
+      .then(() => {
+        this.props.screenProps.functions.updateFriends(
+          this.state.otherUser.id,
+          false
+        );
+        this.props.navigation.goBack();
+      });
 
     //TODO: success or error.
   }
@@ -156,7 +150,13 @@ export default class Friend extends React.Component {
       })
     })
       .then(data => console.log(data))
-      .then(() => this.props.navigation.goBack());
+      .then(() => {
+        this.props.screenProps.functions.updateFriends(
+          this.state.otherUser.id,
+          false
+        );
+        this.props.navigation.goBack();
+      });
 
     //TODO: success or error.
   }

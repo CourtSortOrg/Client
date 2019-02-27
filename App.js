@@ -69,7 +69,7 @@ const SettingsNavigation = createStackNavigator(
   },
   {
     initialRouteName: "Profile",
-    headerMode: "none",
+    headerMode: "none"
   }
 );
 
@@ -240,6 +240,65 @@ export default class App extends React.Component {
     });
   };
 
+  updateFriends = (friend, action) => {
+    // action == true, add friend.
+    if (action) {
+      console.log(this.state.user);
+      // make firebase call.
+
+      // get profile.
+      // push public profile to friends.
+
+      this.fetchUser(friend, data =>
+        this.setState({
+          user: {
+            ...this.state.user,
+            friends: this.state.user.friends.slice().push(data)
+          }
+        })
+      );
+    }
+    // action == false, remove friend.
+    else {
+      // make firebase call.
+      // remove friend.
+      this.setState({
+        user: {
+          ...this.state.user,
+          friends: this.state.user.friends.filter(f => f.id != friend)
+        }
+      });
+    }
+  };
+
+  updateGroups = (group, action) => {
+    // action == true, add friend.
+    if (action) {
+      // make firebase call.
+      // get group.
+      // push group to group.
+      this.fetchGroup(group, data =>
+        this.setState({
+          user: {
+            ...this.state.user,
+            groups: this.state.user.groups.slice().push(data)
+          }
+        })
+      );
+    }
+    // action == false, remove group.
+    else {
+      // make firebase call.
+      // remove group.
+      this.setState({
+        user: {
+          ...this.state.user,
+          groups: this.state.user.groups.filter(g => g.id != group)
+        }
+      });
+    }
+  };
+
   componentDidMount = async () => {
     this.fetchDates(0, 1);
     this.updateUser();
@@ -275,9 +334,59 @@ export default class App extends React.Component {
     });
   }
 
-  fetchFriends() {}
+  fetchUser(id, callback) {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: id
+        })
+      }
+    )
+      .then(data => JSON.parse(data._bodyText).then(data => callback(data)))
+      .catch(error => console.log(error));
+  }
 
-  fetchGroups() {}
+  fetchFriends(id, callback) {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: id
+        })
+      }
+    )
+      .then(data => JSON.parse(data._bodyText).then(data => callback(data)))
+      .catch(error => console.log(error));
+  }
+
+  fetchGroups(id, callback) {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: id
+        })
+      }
+    )
+      .then(data => JSON.parse(data._bodyText).then(data => callback(data)))
+      .catch(error => console.log(error));
+  }
 
   render() {
     if (
@@ -288,7 +397,11 @@ export default class App extends React.Component {
       return (
         <Navigation
           screenProps={{
-            functions: { updateUser: this.updateUser },
+            functions: {
+              updateUser: this.updateUser,
+              fetchUser: this.fetchUser,
+              updateFriends: this.updateFriends
+            },
             user: this.state.user,
             meals: this.state.meals
           }}

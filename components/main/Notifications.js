@@ -41,7 +41,7 @@ export default class Notifications extends React.Component {
     ).then(data => {
       //TODO: Error checking
       this.removeFriendRequest(index);
-      this.props.screenProps.functions.updateProfile();
+      this.props.screenProps.functions.updateFriends(friendName, true);
     });
   };
 
