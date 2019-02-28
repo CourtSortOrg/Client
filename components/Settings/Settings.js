@@ -81,7 +81,7 @@ export default class Settings extends React.Component {
                 this.props.navigation.navigate("Auth");
               })
               .catch(function(error) {
-                alert("ERROR: " + error.message);
+                alert("Firebase Delete User: " + error.message);
                 this.props.screenProps.functions.updateUser();
               });
           }
