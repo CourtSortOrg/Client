@@ -644,43 +644,89 @@ exports.updateUserProfile = functions.https.onRequest((request, response) => {
 });
 
 //block a user
-//PARAMETERS: name, blockedName
-exports.blockUser = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  var blockedName = request.body.blockedName;
-  console.log(name);
-  console.log(blockedName);
+//PARAMETERS: userHandle, blockedHandle
+exports.blockUser = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var blockedHandle = request.body.blockedHandle;
+  console.log(userHandle);
+  console.log(blockedHandle);
 
-  var userRef = db.collection("User").doc(name);
-  userRef.update({
-    blockedUsers: admin.firestore.FieldValue.arrayUnion(blockedName)
-  })
-  .then(function() {
-    db.collection("User").doc(name).update({
-      friends: admin.firestore.FieldValue.arrayRemove(blockedName),
-      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedName),
-      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedName)
-    }).catch(function(error){
-      console.error("Error removing friend from user")
+  //get the blocked user's name
+  var blockedName;
+  await db.collection("User").doc(blockedHandle).get().then(async doc => {
+    if (!doc.exists) {
+      console.log("blockedHandle does not exist in database");
       response.send("error");
-    });
-
-    db.collection("User").doc(blockedName).update({
-      friends: admin.firestore.FieldValue.arrayRemove(name),
-      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(name),
-      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(name)
-    }).then(function(){
-      response.send("success");
-    }).catch(function(error){
-      console.error("Error removing user from friend")
-      response.send("error");
-    });
-  })
-  .catch(function(error) {
-    // The document probably doesn't exist.
-    console.error("Error updating document: ", error);
-    response.send("error");
+    }
+    else {
+      blockedName = doc.data().name;
+    }
   });
+
+  //get the current user's name
+  var userName;
+  await db.collection("User").doc(userHandle).get().then(async doc => {
+    if (!doc.exists) {
+      console.log("userHandle does not exist in database");
+      response.send("error");
+    }
+    else {
+      userName = doc.data().name;
+    }
+  });
+
+  if (blockedName != null || userName != null) {
+    var blockedObject = {
+      blockedHandle: blockedHandle,
+      blockedName: blockedName
+    };
+
+    var blockedFriend = {
+      friendHandle: blockedHandle,
+      friendName: blockedName
+    }
+
+    var userObject = {
+      userHandle: userHandle,
+      userName: userName
+    };
+
+    var userFriend = {
+      friendHandle: userHandle,
+      friendName: userName
+    }
+
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.update({
+      blockedUsers: admin.firestore.FieldValue.arrayUnion(blockedObject)
+    })
+    .then(function() {
+      db.collection("User").doc(userHandle).update({
+        friends: admin.firestore.FieldValue.arrayRemove(blockedFriend),
+        incomingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedFriend),
+        outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedFriend)
+      }).catch(function(error){
+        console.error("Error removing friend from user")
+        response.send("error");
+      });
+
+      db.collection("User").doc(blockedHandle).update({
+        friends: admin.firestore.FieldValue.arrayRemove(userFriend),
+        outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userFriend),
+        incomingFriendReq: admin.firestore.FieldValue.arrayRemove(userFriend)
+      }).then(function(){
+        response.send("success");
+      }).catch(function(error){
+        console.error("Error removing user from friend")
+        response.send("error");
+      });
+    })
+    .catch(function(error) {
+      // The document probably doesn't exist.
+      console.error("Error updating document: ", error);
+      response.send("error");
+    });
+  }
 });
 
 exports.unblockUser = functions.https.onRequest((request, response) => {
@@ -1176,7 +1222,7 @@ exports.deleteGroup = functions.https.onRequest(async (request, response) => {
         response.send(error.message);
       });
     }
-  
+
     //delete the document for the group
     groupDoc.delete().then(function() {
       response.send("success");
