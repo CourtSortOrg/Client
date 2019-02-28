@@ -82,7 +82,7 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
     var toPush = {locations: []};
     for(var currLoc = 0; currLoc < data.length; currLoc++){
       var menuJSON = data[currLoc];
-      var location = {userHandle: menuJSON['Location'], meals: []}
+      var location = {name: menuJSON['Location'], meals: []}
 
       for(var currMeal = 0; currMeal < menuJSON['Meals'].length; currMeal++){
         var mealInfo = {name: menuJSON['Meals'][currMeal]["Name"], hours: menuJSON['Meals'][currMeal]["Hours"]};
