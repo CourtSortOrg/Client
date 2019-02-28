@@ -675,7 +675,7 @@ exports.blockUser = functions.https.onRequest(async (request, response) => {
     }
   });
 
-  if (blockedName != null || userName != null) {
+  if (blockedName != null && userName != null) {
     var blockedObject = {
       blockedHandle: blockedHandle,
       blockedName: blockedName
@@ -729,25 +729,56 @@ exports.blockUser = functions.https.onRequest(async (request, response) => {
   }
 });
 
-exports.unblockUser = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  var blockedName = request.body.blockedName;
-  console.log(name);
-  console.log(blockedName);
+exports.unblockUser = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var blockedHandle = request.body.blockedHandle;
+  console.log(userHandle);
+  console.log(blockedHandle);
 
-  var userRef = db.collection("User").doc(name);
-  userRef.update({
-    blockedUsers: admin.firestore.FieldValue.arrayRemove(blockedName)
-  })
-  .then(function() {
-    console.log("Document successfully updated!");
-    response.send("success");
-  })
-  .catch(function(error) {
-    // The document probably doesn't exist.
-    console.error("Error updating document: ", error);
-    response.send("error");
+  //get the blocked user's name
+  var blockedName;
+  await db.collection("User").doc(blockedHandle).get().then(async doc => {
+    if (!doc.exists) {
+      console.log("blockedHandle does not exist in database");
+      response.send("error");
+    }
+    else {
+      blockedName = doc.data().name;
+    }
   });
+
+  //get the current user's name
+  var userName;
+  await db.collection("User").doc(userHandle).get().then(async doc => {
+    if (!doc.exists) {
+      console.log("userHandle does not exist in database");
+      response.send("error");
+    }
+    else {
+      userName = doc.data().name;
+    }
+  });
+
+  if (blockedName != null && userName != null) {
+    var blockedObject = {
+      blockedHandle: blockedHandle,
+      blockedName: blockedName
+    };
+
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.update({
+      blockedUsers: admin.firestore.FieldValue.arrayRemove(blockedObject)
+    })
+    .then(function() {
+      console.log("Document successfully updated!");
+      response.send("success");
+    })
+    .catch(function(error) {
+      // The document probably doesn't exist.
+      console.error("Error updating document: ", error);
+      response.send("error");
+    });
+  }
 });
 
 exports.getBlockedUsers = functions.https.onRequest((request, response) => {
