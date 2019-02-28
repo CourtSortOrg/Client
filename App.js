@@ -14,7 +14,6 @@ import CreateAccount from "./components/auth/CreateAccount";
 import ResetPassword from "./components/auth/ResetPassword";
 import DiningCourt from "./components/main/DiningCourt";
 import Friend from "./components/main/Friend";
-import Group from "./components/main/Group";
 import Home from "./components/main/Home";
 import Map from "./components/main/Map";
 import MealItem from "./components/main/MealItem";
@@ -22,9 +21,14 @@ import Meals from "./components/main/Meals";
 import Message from "./components/main/Message";
 import Messages from "./components/main/Messages";
 import Notifications from "./components/main/Notifications";
+
 import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
+
+import Group from "./components/Groups/Group";
+import GroupInvite from "./components/Groups/GroupInvite";
+import GroupSettings from "./components/Groups/GroupSettings";
 
 import * as firebase from "firebase";
 import config from "./config";
@@ -73,6 +77,24 @@ const SettingsNavigation = createStackNavigator(
   }
 );
 
+const GroupNavigation = createSwitchNavigator(
+  {
+    Group: {
+      screen: Group
+    },
+    GroupInvite: {
+      screen: GroupInvite
+    },
+    GroupSettings: {
+      screen: GroupSettings
+    }
+  },
+  {
+    initialRouteName: "Group",
+    headerMode: "none"
+  }
+);
+
 const MainNavigation = createStackNavigator(
   {
     Messages: {
@@ -85,7 +107,7 @@ const MainNavigation = createStackNavigator(
       screen: Friend
     },
     Group: {
-      screen: Group
+      screen: GroupNavigation
     },
     Notifications: {
       screen: Notifications
@@ -242,7 +264,16 @@ export default class App extends React.Component {
   updateFriend = (friend, action) => {
     // action == true, add friend.
     if (action) {
-      this.fetchUser(friend, data => {
+      const arr = this.state.user.friends.slice();
+      arr.push(friend);
+
+      this.setState({
+        user: {
+          ...this.state.user,
+          friends: arr
+        }
+      });
+      /*this.fetchUser(friend, data => {
         const arr = this.state.user.friends.slice();
         arr.push(data.id);
 
@@ -252,7 +283,7 @@ export default class App extends React.Component {
             friends: arr
           }
         });
-      });
+      });*/
     }
     // action == false, remove friend.
     else {
@@ -268,8 +299,17 @@ export default class App extends React.Component {
   updateGroup = (group, action) => {
     // action == true, add friend.
     if (action) {
-      this.fetchGroup(group, data => {
-        const arr = this.state.user.friends.slice();
+      const arr = this.state.user.groups.slice();
+      arr.push(group);
+
+      this.setState({
+        user: {
+          ...this.state.user,
+          groups: arr
+        }
+      });
+      /*this.fetchGroup(group, data => {
+        const arr = this.state.user.groups.slice();
         arr.push(data.id);
 
         this.setState({
@@ -278,7 +318,7 @@ export default class App extends React.Component {
             groups: arr
           }
         });
-      });
+      });*/
     }
     // action == false, remove group.
     else {
@@ -312,10 +352,6 @@ export default class App extends React.Component {
   }
 
   fetchFriends(id, callback) {
-    /*
-     * TODO: update with change log version.
-     */
-
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
       method: "POST",
       headers: {
@@ -323,7 +359,7 @@ export default class App extends React.Component {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: this.state.user.id
+        name: id
       })
     })
       .then(data => {
@@ -332,28 +368,21 @@ export default class App extends React.Component {
       .catch(error => console.log(`fetchFriends: ${error}`));
   }
 
-  fetchGroups(callback) {
-    console.log("getGroups does not run");
-    /*fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
+  fetchGroups(id, callback) {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: this.state.user.id
+        userHandle: id
       })
     })
       .then(data => {
-        console.log("\n\nfetch groups\n\n");
-        //console.log(data._bodyText)
-        JSON.parse(data._bodyText);
+        if (callback) callback(JSON.parse(data._bodyText));
       })
-      .then(data => {
-        if (callback) callback(data);
-      })
-      .catch(error => console.log(error));
-      */
+      .catch(error => console.log(`fetchFriends: ${error}`));
   }
 
   fetchMeals(from, left) {

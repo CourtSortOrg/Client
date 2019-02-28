@@ -7,6 +7,17 @@ import Body from "./Body";
 
 export default class Screen extends React.Component {
   render() {
+    if (this.props.showNavigation == false) {
+      return (
+        <View
+          style={{
+            flex: 1
+          }}
+        >
+          <Body>{this.props.children}</Body>
+        </View>
+      );
+    }
     return (
       <View
         style={{
