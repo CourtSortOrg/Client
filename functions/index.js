@@ -365,6 +365,73 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   response.send("Finished Population for "+date);
 });
 
+//add dietary restrictions to a user
+//Parameters: userHandle, dietaryRestriction
+exports.addDietaryRestriction = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var dietaryRestriction = request.body.dietaryRestriction;
+
+  //ensure proper parameters
+  if (userHandle == null || dietaryRestriction == null) {
+    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
+    response.send("error");
+  }
+  else {
+    db.collection("User").doc(userHandle).update({
+      dietaryRestrictions: admin.firestore.FieldValue.arrayUnion(dietaryRestriction)
+    })
+    .then(function() {
+      response.send("success");
+    })
+    .catch(function(error) {
+      response.send("error");
+    });
+  }
+});
+
+//get dietary restrictions of a user
+//Parameters: userHandle
+exports.getDietaryRestrictions = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  //ensure proper parameters
+  if (userHandle == null) {
+    response.send("error: incorrect parameters");
+  }
+  else {
+    db.collection("User").doc(userHandle).get().then(doc => {
+      response.send(doc.data().dietaryRestrictions);
+    })
+    .catch(err => {
+      console.log(err);
+      response.send("error");
+    })
+  }
+});
+
+//remove dietary restrictions from a user
+//Parameters: userHandle, dietaryRestriction
+exports.removeDietaryRestriction = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var dietaryRestriction = request.body.dietaryRestriction;
+
+  //ensure proper parameters
+  if (userHandle == null || dietaryRestriction == null) {
+    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
+    response.send("error");
+  }
+  else {
+    db.collection("User").doc(userHandle).update({
+      dietaryRestrictions: admin.firestore.FieldValue.arrayRemove(dietaryRestriction)
+    })
+    .then(function() {
+      response.send("success");
+    })
+    .catch(function(error) {
+      response.send("error");
+    });
+  }
+});
 
 //add user to database
 //PARAMETERS: uid, name
@@ -534,15 +601,16 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
 exports.getUserProfile = functions.https.onRequest((request, response) => {
   var name = request.body.name;
   console.log(name);
-  getProfile(name, response);
+  if (name == null) {
+    response.send("Must pass name in body of request");
+  }
+  else {
+    getProfile(name, response);
+  }
 });
 
 //function to get user profile information
 function getProfile(name, response) {
-  if (name == null) {
-    response.send("Must pass name in body of request");
-  }
-
   var userRef = db.collection("User").doc(name);
   var getDoc = userRef.get()
   .then(doc => {
@@ -1133,4 +1201,4 @@ exports.createObject = functions.https.onRequest((request, response) => {
       })
     });
   });
-})
+});
