@@ -4,7 +4,7 @@ import { View } from "react-native";
 import Text from "../components/Text";
 import Screen from "../Nav/Screen";
 
-export default class GroupSettings extends React.Componet {
+export default class GroupSettings extends React.Component {
   render() {
     return <Screen
         title="Invite Friends"
