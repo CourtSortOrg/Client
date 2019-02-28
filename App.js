@@ -264,7 +264,16 @@ export default class App extends React.Component {
   updateFriend = (friend, action) => {
     // action == true, add friend.
     if (action) {
-      this.fetchUser(friend, data => {
+      const arr = this.state.user.friends.slice();
+      arr.push(friend);
+
+      this.setState({
+        user: {
+          ...this.state.user,
+          friends: arr
+        }
+      });
+      /*this.fetchUser(friend, data => {
         const arr = this.state.user.friends.slice();
         arr.push(data.id);
 
@@ -274,7 +283,7 @@ export default class App extends React.Component {
             friends: arr
           }
         });
-      });
+      });*/
     }
     // action == false, remove friend.
     else {
@@ -290,7 +299,16 @@ export default class App extends React.Component {
   updateGroup = (group, action) => {
     // action == true, add friend.
     if (action) {
-      this.fetchGroup(group, data => {
+      const arr = this.state.user.groups.slice();
+      arr.push(group);
+
+      this.setState({
+        user: {
+          ...this.state.user,
+          groups: arr
+        }
+      });
+      /*this.fetchGroup(group, data => {
         const arr = this.state.user.groups.slice();
         arr.push(data.id);
 
@@ -300,7 +318,7 @@ export default class App extends React.Component {
             groups: arr
           }
         });
-      });
+      });*/
     }
     // action == false, remove group.
     else {

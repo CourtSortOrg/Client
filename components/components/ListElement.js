@@ -85,7 +85,7 @@ export default class ListElement extends React.Component {
                 rank={this.props.rank + 1}
                 expand={this.props.expand}
                 navigation={this.props.navigation}
-                renderElement={this.props.renderElement}
+                //renderElement={this.props.renderElement}
                 {...element}
                 {...this.props.subList}
               />
