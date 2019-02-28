@@ -1201,4 +1201,4 @@ exports.createObject = functions.https.onRequest((request, response) => {
       })
     });
   });
-})
+});
