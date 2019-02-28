@@ -291,7 +291,7 @@ export default class App extends React.Component {
     // action == true, add friend.
     if (action) {
       this.fetchGroup(group, data => {
-        const arr = this.state.user.friends.slice();
+        const arr = this.state.user.groups.slice();
         arr.push(data.id);
 
         this.setState({
@@ -334,10 +334,6 @@ export default class App extends React.Component {
   }
 
   fetchFriends(id, callback) {
-    /*
-     * TODO: update with change log version.
-     */
-
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
       method: "POST",
       headers: {
@@ -345,7 +341,7 @@ export default class App extends React.Component {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: this.state.user.id
+        name: id
       })
     })
       .then(data => {
@@ -354,28 +350,21 @@ export default class App extends React.Component {
       .catch(error => console.log(`fetchFriends: ${error}`));
   }
 
-  fetchGroups(callback) {
-    console.log("getGroups does not run");
-    /*fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
+  fetchGroups(id, callback) {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: this.state.user.id
+        userHandle: id
       })
     })
       .then(data => {
-        console.log("\n\nfetch groups\n\n");
-        //console.log(data._bodyText)
-        JSON.parse(data._bodyText);
+        if (callback) callback(JSON.parse(data._bodyText));
       })
-      .then(data => {
-        if (callback) callback(data);
-      })
-      .catch(error => console.log(error));
-      */
+      .catch(error => console.log(`fetchFriends: ${error}`));
   }
 
   fetchMeals(from, left) {
