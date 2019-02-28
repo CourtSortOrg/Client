@@ -82,7 +82,7 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
     var toPush = {locations: []};
     for(var currLoc = 0; currLoc < data.length; currLoc++){
       var menuJSON = data[currLoc];
-      var location = {name: menuJSON['Location'], meals: []}
+      var location = {userHandle: menuJSON['Location'], meals: []}
 
       for(var currMeal = 0; currMeal < menuJSON['Meals'].length; currMeal++){
         var mealInfo = {name: menuJSON['Meals'][currMeal]["Name"], hours: menuJSON['Meals'][currMeal]["Hours"]};
@@ -829,18 +829,18 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
 });
 
 //add dietary restrictions to a user
-//Parameters: name, dietaryRestriction
+//Parameters: userHandle, dietaryRestriction
 exports.addDietaryRestriction = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
+  var userHandle = request.body.userHandle;
   var dietaryRestriction = request.body.dietaryRestriction;
 
   //ensure proper parameters
-  if (name == null || dietaryRestriction == null) {
-    console.log("need to pass 'name' and 'dietaryRestriction' in body");
-    response.send("error: incorrect parameters");
+  if (userHandle == null || dietaryRestriction == null) {
+    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
+    response.send("error");
   }
   else {
-    db.collection("User").doc(name).update({
+    db.collection("User").doc(userHandle).update({
       dietaryRestrictions: admin.firestore.FieldValue.arrayUnion(dietaryRestriction)
     })
     .then(function() {
@@ -853,16 +853,16 @@ exports.addDietaryRestriction = functions.https.onRequest((request, response) =>
 });
 
 //get dietary restrictions of a user
-//Parameters: name
+//Parameters: userHandle
 exports.getDietaryRestrictions = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
+  var userHandle = request.body.userHandle;
 
   //ensure proper parameters
-  if (name == null) {
+  if (userHandle == null) {
     response.send("error: incorrect parameters");
   }
   else {
-    db.collection("User").doc(name).get().then(doc => {
+    db.collection("User").doc(userHandle).get().then(doc => {
       response.send(doc.data().dietaryRestrictions);
     })
     .catch(err => {
@@ -873,18 +873,18 @@ exports.getDietaryRestrictions = functions.https.onRequest((request, response) =
 });
 
 //remove dietary restrictions from a user
-//Parameters: name, dietaryRestriction
+//Parameters: userHandle, dietaryRestriction
 exports.removeDietaryRestriction = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
+  var userHandle = request.body.userHandle;
   var dietaryRestriction = request.body.dietaryRestriction;
 
   //ensure proper parameters
-  if (name == null || dietaryRestriction == null) {
-    console.log("need to pass 'name' and 'dietaryRestriction' in body");
-    response.send("error: incorrect parameters");
+  if (userHandle == null || dietaryRestriction == null) {
+    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
+    response.send("error");
   }
   else {
-    db.collection("User").doc(name).update({
+    db.collection("User").doc(userHandle).update({
       dietaryRestrictions: admin.firestore.FieldValue.arrayRemove(dietaryRestriction)
     })
     .then(function() {
