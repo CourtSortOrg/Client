@@ -14,7 +14,6 @@ import CreateAccount from "./components/auth/CreateAccount";
 import ResetPassword from "./components/auth/ResetPassword";
 import DiningCourt from "./components/main/DiningCourt";
 import Friend from "./components/main/Friend";
-import Group from "./components/main/Group";
 import Home from "./components/main/Home";
 import Map from "./components/main/Map";
 import MealItem from "./components/main/MealItem";
@@ -22,9 +21,14 @@ import Meals from "./components/main/Meals";
 import Message from "./components/main/Message";
 import Messages from "./components/main/Messages";
 import Notifications from "./components/main/Notifications";
+
 import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
+
+import Group from "./components/Groups/Group";
+import GroupInvite from "./components/Groups/GroupInvite";
+import GroupSettings from "./components/Groups/GroupSettings";
 
 import * as firebase from "firebase";
 import config from "./config";
@@ -73,6 +77,24 @@ const SettingsNavigation = createStackNavigator(
   }
 );
 
+const GroupNavigation = createSwitchNavigator(
+  {
+    Group: {
+      screen: Group
+    },
+    GroupInvite: {
+      screen: GroupInvite
+    },
+    GroupSettings: {
+      screen: GroupSettings
+    }
+  },
+  {
+    initialRouteName: "Group",
+    headerMode: "none"
+  }
+);
+
 const MainNavigation = createStackNavigator(
   {
     Messages: {
@@ -85,7 +107,7 @@ const MainNavigation = createStackNavigator(
       screen: Friend
     },
     Group: {
-      screen: Group
+      screen: GroupNavigation
     },
     Notifications: {
       screen: Notifications

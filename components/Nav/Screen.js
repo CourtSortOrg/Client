@@ -13,20 +13,26 @@ export default class Screen extends React.Component {
           flex: 1
         }}
       >
-        <Header
-          styles={styles}
-          navigation={{ ...this.props.navigation }}
-          title={this.props.title}
-          backButton={this.props.backButton}
-          active={this.props.title}
-          {...this.props.header}
-        />
-        <Body>{this.props.children}</Body>
-        <Footer
-          styles={styles}
-          navigation={{ ...this.props.navigation }}
-          active={this.props.title}
-        />
+        {this.props.showNavigation != true ? (
+          <Body>{this.props.children}</Body>
+        ) : (
+          <View>
+            <Header
+              styles={styles}
+              navigation={{ ...this.props.navigation }}
+              title={this.props.title}
+              backButton={this.props.backButton}
+              active={this.props.title}
+              {...this.props.header}
+            />
+            <Body>{this.props.children}</Body>
+            <Footer
+              styles={styles}
+              navigation={{ ...this.props.navigation }}
+              active={this.props.title}
+            />
+          </View>
+        )}
       </View>
     );
   }
