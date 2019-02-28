@@ -365,6 +365,73 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   response.send("Finished Population for "+date);
 });
 
+//add dietary restrictions to a user
+//Parameters: userHandle, dietaryRestriction
+exports.addDietaryRestriction = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var dietaryRestriction = request.body.dietaryRestriction;
+
+  //ensure proper parameters
+  if (userHandle == null || dietaryRestriction == null) {
+    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
+    response.send("error");
+  }
+  else {
+    db.collection("User").doc(userHandle).update({
+      dietaryRestrictions: admin.firestore.FieldValue.arrayUnion(dietaryRestriction)
+    })
+    .then(function() {
+      response.send("success");
+    })
+    .catch(function(error) {
+      response.send("error");
+    });
+  }
+});
+
+//get dietary restrictions of a user
+//Parameters: userHandle
+exports.getDietaryRestrictions = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  //ensure proper parameters
+  if (userHandle == null) {
+    response.send("error: incorrect parameters");
+  }
+  else {
+    db.collection("User").doc(userHandle).get().then(doc => {
+      response.send(doc.data().dietaryRestrictions);
+    })
+    .catch(err => {
+      console.log(err);
+      response.send("error");
+    })
+  }
+});
+
+//remove dietary restrictions from a user
+//Parameters: userHandle, dietaryRestriction
+exports.removeDietaryRestriction = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var dietaryRestriction = request.body.dietaryRestriction;
+
+  //ensure proper parameters
+  if (userHandle == null || dietaryRestriction == null) {
+    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
+    response.send("error");
+  }
+  else {
+    db.collection("User").doc(userHandle).update({
+      dietaryRestrictions: admin.firestore.FieldValue.arrayRemove(dietaryRestriction)
+    })
+    .then(function() {
+      response.send("success");
+    })
+    .catch(function(error) {
+      response.send("error");
+    });
+  }
+});
 
 //add user to database
 //PARAMETERS: uid, name
@@ -418,6 +485,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
       blockedUsers: [],
       outgoingFriendReq: [],
       incomingFriendReq: [],
+      incomingGroupInvites: [],
       ratings: []
     }
     db.collection("User").doc(name).set(updatedUser).then(function() {
@@ -828,70 +896,309 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
   });
 });
 
-//add dietary restrictions to a user
-//Parameters: userHandle, dietaryRestriction
-exports.addDietaryRestriction = functions.https.onRequest((request, response) => {
+//PARAMETERS: userHandle, groupName
+exports.createGroup = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
-  var dietaryRestriction = request.body.dietaryRestriction;
-
-  //ensure proper parameters
-  if (userHandle == null || dietaryRestriction == null) {
-    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
-    response.send("error");
-  }
-  else {
-    db.collection("User").doc(userHandle).update({
-      dietaryRestrictions: admin.firestore.FieldValue.arrayUnion(dietaryRestriction)
-    })
-    .then(function() {
-      response.send("success");
-    })
-    .catch(function(error) {
-      response.send("error");
-    });
-  }
-});
-
-//get dietary restrictions of a user
-//Parameters: userHandle
-exports.getDietaryRestrictions = functions.https.onRequest((request, response) => {
-  var userHandle = request.body.userHandle;
-
-  //ensure proper parameters
+  var groupName = request.body.groupName;
+  console.log(userHandle);
+  console.log(groupName);
   if (userHandle == null) {
-    response.send("error: incorrect parameters");
+    response.send("Must pass userHandle in body of request");
   }
-  else {
-    db.collection("User").doc(userHandle).get().then(doc => {
-      response.send(doc.data().dietaryRestrictions);
-    })
-    .catch(err => {
-      console.log(err);
-      response.send("error");
-    })
+  if (groupName == null) {
+    response.send("Must pass groupName in body of request");
   }
-});
 
-//remove dietary restrictions from a user
-//Parameters: userHandle, dietaryRestriction
-exports.removeDietaryRestriction = functions.https.onRequest((request, response) => {
-  var userHandle = request.body.userHandle;
-  var dietaryRestriction = request.body.dietaryRestriction;
+  //get the creator's name
+  db.collection("User").doc(userHandle).get().then(doc => {
+    var name = doc.data().name;
 
-  //ensure proper parameters
-  if (userHandle == null || dietaryRestriction == null) {
-    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
-    response.send("error");
-  }
-  else {
-    db.collection("User").doc(userHandle).update({
-      dietaryRestrictions: admin.firestore.FieldValue.arrayRemove(dietaryRestriction)
-    })
-    .then(function() {
-      response.send("success");
-    })
-    .catch(function(error) {
-      response.send("error");
+    //add the group to the database
+    db.collection("Group").add({
+      memberHandles: [userHandle],
+      memberObjects: [{userHandle: userHandle, userName: name}],
+      messages: [],
+      groupName: groupName
+    }).then(function(docRef){
+      console.log("Document written with ID: ", docRef.id);
+
+
+      //add the group to the user
+      db.collection("User").doc(userHandle).update({
+        groups: admin.firestore.FieldValue.arrayUnion(docRef.id)
+      }).then(function() {
+        response.send(docRef.id);
+      });
+    }).catch(function(error){
+      console.log(error.message);
+      response.send(error.message);
     });
-  }
+  }).catch(function(error){
+    console.error("Error getting name");
+    response.send(error.message);
+  });
 });
+
+//PARAMETERS: groupID
+exports.getUsersInGroup = functions.https.onRequest((request, response) => {
+  var groupID = request.body.groupID;
+  console.log(groupID);
+  if (groupID == null) {
+    response.send("Must pass groupID in body of request");
+  }
+
+  //return userHandles and userNames
+  db.collection("Group").doc(groupID).get().then(doc => {
+    response.send(doc.data().memberObjects);
+  }).catch(function(error){
+    console.log(error.message);
+    response.send("error");
+  });
+});
+
+//PARAMETERS: userHandle, friendHandle, groupID
+exports.inviteToGroup = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandle = request.body.friendHandle;
+  var groupID = request.body.groupID;
+
+  console.log(userHandle);
+  console.log(friendHandle);
+  console.log(groupID);
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
+  }
+  if (friendHandle == null) {
+    response.send("Must pass friendHandle in body of request");
+  }
+  if (groupID == null) {
+    response.send("Must pass groupID in body of request");
+  }
+
+  var friendDoc = db.collection("User").doc(friendHandle);
+  var userDoc = db.collection("User").doc(userHandle);
+
+  //check if friends with friendHandle
+  userDoc.get().then(doc => {
+    if(doc.data().friends.indexOf(friendHandle) == -1){
+      response.send("You are not friends with the user");
+    }
+    else{
+      //check if the user is already in the group
+      friendDoc.get().then(fDoc => {
+        if(fDoc.data().groups.indexOf(groupID) > -1){
+          response.send("The user is already in this group");
+        }
+        else{
+          //update friend's incoming group invites list
+          friendDoc.update({
+            incomingGroupInvites: admin.firestore.FieldValue.arrayUnion({friendHandle: userHandle, groupID: groupID})
+          }).then(function() {
+            response.send("success");
+          }).catch(function(error) {
+            response.send("error");
+          });
+        }
+      });
+    }
+  });
+});
+
+//PARAMETERS: userHandle, groupID, friendHandle
+exports.acceptGroupInvitation = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandle = request.body.friendHandle;
+  var groupID = request.body.groupID;
+
+  console.log(userHandle);
+  console.log(friendHandle);
+  console.log(groupID);
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
+  }
+  if (friendHandle == null) {
+    response.send("Must pass friendHandle in body of request");
+  }
+  if (groupID == null) {
+    response.send("Must pass groupID in body of request");
+  }
+
+  //add the user to the group
+  var userDoc = db.collection("User").doc(userHandle);
+  //update user's incomingGroupInvites list and groups list
+  userDoc.update({
+    incomingGroupInvites: admin.firestore.FieldValue.arrayRemove({friendHandle: friendHandle, groupID: groupID}),
+    groups: admin.firestore.FieldValue.arrayUnion(groupID)
+  }).then(function() {
+    //add the user to the group's user list
+    userDoc.get().then(doc => {
+      db.collection("Group").doc(groupID).update({
+        memberHandles: admin.firestore.FieldValue.arrayUnion(userHandle),
+        memberObjects: admin.firestore.FieldValue.arrayUnion({userHandle: userHandle, userName: doc.data().name})
+      }).then(function(){
+        response.send("success");
+      }).catch(function(error){
+        response.send(error.message);
+      });
+    }).catch(function(error){
+      response.send(error.message);
+    });
+  }).catch(function(error) {
+    response.send("error");
+  });
+});
+
+//PARAMETERS: userHandle, friendHandle, groupID
+exports.denyGroupInvitation = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandle = request.body.friendHandle;
+  var groupID = request.body.groupID;
+
+  console.log(userHandle);
+  console.log(friendHandle);
+  console.log(groupID);
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
+  }
+  if (friendHandle == null) {
+    response.send("Must pass friendHandle in body of request");
+  }
+  if (groupID == null) {
+    response.send("Must pass groupID in body of request");
+  }
+
+  //remove the group from the user's incomingGroupInvites list
+  db.collection("User").doc(userHandle).update({
+    incomingGroupInvites: admin.firestore.FieldValue.arrayRemove({friendHandle: friendHandle, groupID: groupID})
+  }).then(function() {
+    response.send("success");
+  }).catch(function(error){
+    response.send(error.message);
+  });
+});
+
+//removes the user from the group and the group from the user
+//PARAMETERS: userHandle, groupID
+exports.leaveGroup = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var groupID = request.body.groupID;
+
+  console.log(userHandle);
+  console.log(groupID);
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
+  }
+  if (groupID == null) {
+    response.send("Must pass groupID in body of request");
+  }
+
+  //assume the user is in the group
+
+  //Take the user out of the group fields
+  var userDoc = db.collection("User").doc(userHandle);
+  var groupDoc = db.collection("Group").doc(groupID);
+  var name;
+  await userDoc.get().then(async doc => {
+    name = await doc.data().name;
+  })
+  await groupDoc.update({
+    memberHandles: admin.firestore.FieldValue.arrayRemove(userHandle),
+    memberObjects: admin.firestore.FieldValue.arrayRemove({userHandle: userHandle, userName: name})
+  }).catch(function(error){
+    response.send(error.message);
+  });
+
+  //take the group out of the user
+  userDoc.update({
+    groups: admin.firestore.FieldValue.arrayRemove(groupID)
+  }).then(function(){
+    response.send("success");
+  }).catch(function(error){
+    response.send(error.message);
+  });
+});
+
+//returns an array of strings which is the list of groupIDs which the user has been invited to
+//PARAMETERS: userHandle
+exports.getGroupInvites = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
+  }
+
+  //return groupID's
+  db.collection("User").doc(userHandle).get().then(doc => {
+    response.send(doc.data().incomingGroupInvites);
+  }).catch(function(error){
+    console.log(error.message);
+    response.send("error");
+  });
+});
+
+//returns an array of strings which is the list of groupIDs which the user is a part of
+//PARAMETERS: userHandle
+exports.getGroups = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
+  }
+
+  //return groupID's
+  db.collection("User").doc(userHandle).get().then(doc => {
+    response.send(doc.data().groups);
+  }).catch(function(error){
+    console.log(error.message);
+    response.send("error");
+  });
+});
+
+//deletes the group
+//PARAMETERS: groupID
+exports.deleteGroup = functions.https.onRequest(async (request, response) => {
+  var groupID = request.body.groupID;
+  console.log(groupID);
+  if (groupID == null) {
+    response.send("Must pass groupID in body of request");
+  }
+
+  var userCol = db.collection("User");
+  var groupDoc = db.collection("Group").doc(groupID);
+
+  //remove the group from all users' accounts
+  await db.collection("Group").doc(groupID).get().then(doc => {
+    var handles = doc.data().memberHandles;
+    for(var i = 0; i < handles.length; i++){
+      userCol.doc(handles[i]).update({
+        groups: admin.firestore.FieldValue.arrayRemove(groupID)
+      }).catch(function(error){
+        response.send(error.message);
+      });
+    }
+  
+    //delete the document for the group
+    groupDoc.delete().then(function() {
+      response.send("success");
+    }).catch(function(error){
+      response.send(error.message);
+    })
+  }).catch(function(error){
+    response.send(error.message);
+  });
+});
+
+exports.createObject = functions.https.onRequest((request, response) => {
+  var name = request.body.name;
+
+  var userRef = db.collection("User").doc(name);
+  userRef.update({test: []}).then(function() {
+    userRef.update({
+      test: admin.firestore.FieldValue.arrayUnion({handle: "myHandle", name: "myName"}).then(function() {
+        resopnse.send("success");
+      }).then(function() {
+        response.send()
+      })
+    });
+  });
+})

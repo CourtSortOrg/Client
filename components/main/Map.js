@@ -7,9 +7,9 @@ const { Marker } = MapView;
 
 import Header from "../Nav/Header";
 import Footer from "../Nav/Footer";
-import Card from "../Nav/Card";
-import Text from "../Nav/Text";
-import List from "./List";
+import Card from "../components/Card";
+import Text from "../components/Text";
+import List from "../components/List";
 
 const locations = {
   Hillenbrand: {
@@ -99,11 +99,17 @@ export default class Map extends React.Component {
       <Card header={item.name}>
         <List
           list={item.meals.map((meal, index) => {
-            return {
-              Name: `${meal.name}: ${meal.hours.StartTime} - ${
-                meal.hours.EndTime
-              }`
-            };
+            if (meal.hours) {
+              return {
+                Name: `${meal.name}: ${convertToTwelveHour(
+                  meal.hours.StartTime
+                )}-${convertToTwelveHour(meal.hours.EndTime)}`
+              };
+            } else {
+              return {
+                Name: `${meal.name}: Not serving`
+              };
+            }
           })}
           type="element"
           subList={false}
@@ -176,6 +182,14 @@ export default class Map extends React.Component {
       </View>
     );
   }
+}
+
+function convertToTwelveHour(rawTime) {
+  var hour = parseInt(rawTime.substring(0, 2));
+  var suffix = hour >= 12 ? "PM" : "AM";
+  rawTime =
+    ((hour + 11) % 12) + 1 + ":" + rawTime.substring(3, 5) + " " + suffix;
+  return rawTime;
 }
 
 const styles = StyleSheet.create({

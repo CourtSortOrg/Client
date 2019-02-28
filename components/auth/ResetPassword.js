@@ -8,7 +8,8 @@ import {
 } from "react-native";
 import * as firebase from "firebase";
 import { Ionicons } from "@expo/vector-icons";
-import Text from "../Nav/Text"
+
+import Text from "../components/Text"
 
 export default class ResetPassword extends React.Component {
   constructor(props) {

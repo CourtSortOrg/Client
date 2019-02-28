@@ -4,10 +4,10 @@ import { Button, SearchBar } from "react-native-elements";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import Screen from "../Nav/Screen";
-import List from "./List";
-import ListElement from "./ListElement";
-import Text from "../Nav/Text";
-import SearchList from "../Nav/SearchList";
+import List from "../components/List";
+import ListElement from "../components/ListElement";
+import Text from "../components/Text";
+import SearchList from "../components/SearchList";
 
 export default class Meals extends React.Component {
   constructor(props) {
@@ -15,7 +15,7 @@ export default class Meals extends React.Component {
 
     this.state = {
       date: 0,
-      meals: [],
+      meals: this.props.screenProps.meals,
       times: [
         { Order: 1, Name: "Breakfast" },
         { Order: 2, Name: "Lunch" },
@@ -29,44 +29,7 @@ export default class Meals extends React.Component {
   }
 
   componentDidMount() {
-    this.fetchDates(0, 7);
-  }
-
-  fetchDates(from, left) {
-    if (left == 0) return;
-    let date = new Date();
-    date.setDate(date.getDate() + from);
-    const dateStr = `${date.getFullYear()}-${
-      date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
-    }-${date.getDate()}`;
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          date: dateStr
-        })
-      }
-    )
-      .then(data => {
-        const meals = this.state.meals.slice(0);
-        meals.push(JSON.parse(data._bodyText));
-        this.setState(
-          {
-            meals
-          },
-          () => {
-            this.updateMeals();
-            date = date.setDate(date.getDate() + 1)
-            this.fetchDates(from+1, left - 1);
-          }
-        );
-      })
-      .catch(err => console.log(err));
+    this.updateMeals();
   }
 
   previousDate() {
