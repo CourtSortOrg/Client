@@ -676,79 +676,157 @@ exports.updateUserProfile = functions.https.onRequest((request, response) => {
 
 //block a user
 //PARAMETERS: userHandle, blockedHandle
-exports.blockUser = functions.https.onRequest((request, response) => {
+exports.blockUser = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var blockedHandle = request.body.blockedHandle;
   console.log(userHandle);
   console.log(blockedHandle);
 
-  var userRef = db.collection("User").doc(userHandle);
-  userRef.update({
-    blockedUsers: admin.firestore.FieldValue.arrayUnion(blockedHandle)
-  })
-  .then(function() {
-    db.collection("User").doc(userHandle).update({
-      friends: admin.firestore.FieldValue.arrayRemove(blockedHandle),
-      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedHandle),
-      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedHandle)
-    }).catch(function(error){
-      console.error("Error removing friend from user")
+  //get the blocked user's name
+  var blockedName;
+  await db.collection("User").doc(blockedHandle).get().then(async doc => {
+    if (!doc.exists) {
+      console.log("blockedHandle does not exist in database");
+      response.send("error");
+    }
+    else {
+      blockedName = doc.data().name;
+    }
+  });
+
+  //get the current user's name
+  var userName;
+  await db.collection("User").doc(userHandle).get().then(async doc => {
+    if (!doc.exists) {
+      console.log("userHandle does not exist in database");
+      response.send("error");
+    }
+    else {
+      userName = doc.data().name;
+    }
+  });
+
+  if (blockedName != null && userName != null) {
+    var blockedObject = {
+      blockedHandle: blockedHandle,
+      blockedName: blockedName
+    };
+
+    var blockedFriend = {
+      friendHandle: blockedHandle,
+      friendName: blockedName
+    }
+
+    var userObject = {
+      userHandle: userHandle,
+      userName: userName
+    };
+
+    var userFriend = {
+      friendHandle: userHandle,
+      friendName: userName
+    }
+
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.update({
+      blockedUsers: admin.firestore.FieldValue.arrayUnion(blockedObject)
+    })
+    .then(function() {
+      db.collection("User").doc(userHandle).update({
+        friends: admin.firestore.FieldValue.arrayRemove(blockedFriend),
+        incomingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedFriend),
+        outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedFriend)
+      }).catch(function(error){
+        console.error("Error removing friend from user")
+        response.send("error");
+      });
+
+      db.collection("User").doc(blockedHandle).update({
+        friends: admin.firestore.FieldValue.arrayRemove(userFriend),
+        outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userFriend),
+        incomingFriendReq: admin.firestore.FieldValue.arrayRemove(userFriend)
+      }).then(function(){
+        response.send("success");
+      }).catch(function(error){
+        console.error("Error removing user from friend")
+        response.send("error");
+      });
+    })
+    .catch(function(error) {
+      // The document probably doesn't exist.
+      console.error("Error updating document: ", error);
       response.send("error");
     });
+  }
+});
 
-    db.collection("User").doc(blockedHandle).update({
-      friends: admin.firestore.FieldValue.arrayRemove(userHandle),
-      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userHandle),
-      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(userHandle)
-    }).then(function(){
+exports.unblockUser = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var blockedHandle = request.body.blockedHandle;
+  console.log(userHandle);
+  console.log(blockedHandle);
+
+  //get the blocked user's name
+  var blockedName;
+  await db.collection("User").doc(blockedHandle).get().then(async doc => {
+    if (!doc.exists) {
+      console.log("blockedHandle does not exist in database");
+      response.send("error");
+    }
+    else {
+      blockedName = doc.data().name;
+    }
+  });
+
+  //get the current user's name
+  var userName;
+  await db.collection("User").doc(userHandle).get().then(async doc => {
+    if (!doc.exists) {
+      console.log("userHandle does not exist in database");
+      response.send("error");
+    }
+    else {
+      userName = doc.data().name;
+    }
+  });
+
+  if (blockedName != null && userName != null) {
+    var blockedObject = {
+      blockedHandle: blockedHandle,
+      blockedName: blockedName
+    };
+
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.update({
+      blockedUsers: admin.firestore.FieldValue.arrayRemove(blockedObject)
+    })
+    .then(function() {
+      console.log("Document successfully updated!");
       response.send("success");
-    }).catch(function(error){
-      console.error("Error removing user from friend")
+    })
+    .catch(function(error) {
+      // The document probably doesn't exist.
+      console.error("Error updating document: ", error);
       response.send("error");
     });
-  })
-  .catch(function(error) {
-    // The document probably doesn't exist.
-    console.error("Error updating document: ", error);
-    response.send("error");
-  });
+  }
 });
 
-//PARAMETERS: userHandle, blockedHandle
-exports.unblockUser = functions.https.onRequest((request, response) => {
-  var userHandle = request.body.userHandle;
-  var blockedHandle = request.body.blockedHandle;
-  console.log(userHandle);
-  console.log(blockedHandle);
-
-  var userRef = db.collection("User").doc(userHandle);
-  userRef.update({
-    blockedUsers: admin.firestore.FieldValue.arrayRemove(blockedHandle)
-  })
-  .then(function() {
-    console.log("Document successfully updated!");
-    response.send("success");
-  })
-  .catch(function(error) {
-    // The document probably doesn't exist.
-    console.error("Error updating document: ", error);
-    response.send("error");
-  });
-});
-
+//get blocked users
 //PARAMETERS: userHandle
-exports.getBlockedUsers = functions.https.onRequest((request, response) => {
+exports.getBlockedUsers = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
 
   if(userHandle == null){
-    response.send("Must pass userHandle in body of request");
+    console.log("Must pass userHandle into body of request")
+    response.send("error");
   }
 
   db.collection("User").doc(userHandle).get().then(doc => {
     response.send(doc.data().blockedUsers);
   }).catch(function(error){
-    console.error("Error getting list");
-    response.send(error.message);
+    console.log(error);
+    response.send("error");
   });
 });
 
