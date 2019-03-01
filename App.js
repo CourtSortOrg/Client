@@ -201,7 +201,6 @@ export default class App extends React.Component {
             providerData: user.providerData,
             uid: user.uid,
             isAnonymous: user.isAnonymous,
-            id: user.displayName
           }
         });
 
@@ -239,7 +238,7 @@ export default class App extends React.Component {
   updateProfile = () => {
     this.fetchUser(this.state.user.id, data => {
       this.setState({
-        user: { ...this.state.user, ...data }
+        user: { ...this.state.user, ...data, id: data.userHandle }
       });
     });
   };
