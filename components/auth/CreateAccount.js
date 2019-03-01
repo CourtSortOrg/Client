@@ -80,9 +80,12 @@ export default class CreateAccount extends React.Component {
             )
           );
 
+        this.props.screenProps.functions.getUserHandle(this.state.userHandle);
+        
         user
           .updateProfile({
-            displayName: this.state.name
+            displayName: this.state.name,
+            userHandle: this.state.userHandle
           })
           .then(function() {
             alert(user.displayName);

@@ -1,5 +1,12 @@
 import React from "react";
-import { Alert, Button, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Button,
+  StyleSheet,
+  Text,
+  View,
+  AsyncStorage
+} from "react-native";
 import {
   createSwitchNavigator,
   createStackNavigator,
@@ -168,12 +175,40 @@ export default class App extends React.Component {
       mealsLoaded: false,
       fontLoaded: false,
       firebaseLoaded: false,
+      userHandleLoaded: false,
       user: {},
       meals: []
     };
   }
 
+  _storeData = async (key, value) => {
+    try {
+      await AsyncStorage.setItem(key, value);
+    } catch (error) {
+      console.error(`_storeData: ${error}`);
+    }
+  };
+
+  _retrieveData = async () => {
+    try {
+      const value = await AsyncStorage.getItem("userHandle");
+      if (value !== null) {
+        this.setState({
+          user: { ...user, userHandle: value },
+          userHandleLoaded: true
+        });
+        console.log(`componentDidMount: AsyncStorage.getItem ${value}`);
+      }
+    } catch (error) {
+      console.error(`componentDidMount: AsyncStorage.getItem: ${error}`);
+      this.setState({
+        userHandleLoaded: true
+      });
+    }
+  };
+
   componentDidMount = async () => {
+    this._retrieveData();
     this.fetchMeals(0, 1);
     this.updateUser();
     //If the authentification state changes
@@ -191,6 +226,7 @@ export default class App extends React.Component {
   updateUser = () => {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
+        console.log(user);
         this.setState({
           user: {
             displayName: user.displayName,
@@ -204,28 +240,53 @@ export default class App extends React.Component {
           }
         });
 
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
+        if (this.state.user.userHandle == undefined) {
+          this.setState(
+            {
+              user: {
+                ...this.state.user,
+                userHandle: user.displayName
+              }
             },
-            body: JSON.stringify({
-              uid: user.uid,
-              name: user.displayName
-            })
-          }
-        )
-          .then(data => console.log(`updateUser Sucessful: ${data._bodyText}`))
-          .catch(error => console.error(`updateUser: ${error}`));
+            () => {
+              fetch(
+                "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
+                {
+                  method: "POST",
+                  headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({
+                    uid: this.state.user.uid,
+                    userHandle: this.state.user.userHandle
+                  })
+                }
+              )
+                .then(data => {
+                  try {
+                    this.setState({
+                      id: JSON.parse(data._bodyText).userHandle
+                    });
+                  } catch (error) {
+                    console.error(
+                      `updateUser: addUserToDatabase: ${error}: ${
+                        data._bodyText
+                      }`
+                    );
+                  }
+                })
+                .catch(error => console.error(`updateUser: ${error}`));
 
-        this.updateProfile();
-        this.updateFriends();
-        this.updateGroups();
+              this.updateProfile(() => {
+                this.updateFriends();
+                this.updateGroups();
+              });
 
-        this.setState({ firebaseLoaded: true });
+              this.setState({ firebaseLoaded: true });
+            }
+          );
+        }
       } else {
         this.setState({
           user: undefined,
@@ -235,28 +296,31 @@ export default class App extends React.Component {
     });
   };
 
-  updateProfile = () => {
-    this.fetchUser(this.state.user.id, data => {
-      this.setState({
-        user: { ...this.state.user, ...data, id: data.userHandle }
-      });
+  updateProfile = callback => {
+    this.fetchUser(this.state.user.userHandle, data => {
+      this.setState(
+        {
+          user: { ...this.state.user, ...data, id: data.userHandle }
+        },
+        callback
+      );
     });
   };
 
-  updateFriends = () => {
+  updateFriends = callback => {
     this.fetchFriends(this.state.user.id, data => {
       //data.forEach(friend => this.updateFriend(friend, true));
       this.setState({
         user: { ...this.state.user, friends: data.slice() }
-      });
+      }, callback);
     });
   };
 
-  updateGroups = () => {
+  updateGroups = callback => {
     this.fetchGroups(this.state.user.id, data => {
       this.setState({
         user: { ...this.state.user, groups: data.slice() }
-      });
+      }, callback);
     });
   };
 
@@ -328,6 +392,17 @@ export default class App extends React.Component {
         }
       });
     }
+  };
+
+  getUserHandle = userHandle => {
+    this.setState({
+      user: {
+        ...user,
+        userHandle: userHandle
+      }
+    });
+
+    this._storeData(`userHandle`, userHandle);
   };
 
   handleData(functionName, data, callback) {
@@ -434,7 +509,8 @@ export default class App extends React.Component {
     if (
       this.state.mealsLoaded &&
       this.state.fontLoaded &&
-      this.state.firebaseLoaded
+      this.state.firebaseLoaded &&
+      this.state.userHandleLoaded
     ) {
       return (
         <Navigation
@@ -443,7 +519,8 @@ export default class App extends React.Component {
               fetchUser: this.fetchUser,
               updateUser: this.updateUser,
               updateFriend: this.updateFriend,
-              updateGroup: this.updateGroup
+              updateGroup: this.updateGroup,
+              getUserLogin: this.getUserLogin
             },
             user: this.state.user,
             meals: this.state.meals
