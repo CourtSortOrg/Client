@@ -67,13 +67,13 @@ export default class Profile extends React.Component {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              name: this.props.screenProps.user.id
+              userHandle: this.props.screenProps.user.id
             })
           }
         )
           .then(data => console.log(data._bodyText))
           .catch(error =>
-            console.log(`deleteAccount: removeFromAllFriends: ${error}`)
+            console.error(`deleteAccount: removeFromAllFriends: ${error}`)
           );
         fetch(
           "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
@@ -84,13 +84,19 @@ export default class Profile extends React.Component {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              name: this.props.screenProps.user.id
+              userHandle: this.props.screenProps.user.id
             })
           }
         )
-          .then(data => console.log(data._bodyText))
+          .then(data =>
+            console.log(
+              `deleteAccount: removeUserFromDatabase: Successful ${
+                data._bodyText
+              }`
+            )
+          )
           .catch(error =>
-            console.log(`deleteAccount: removeUserFromDatabase: ${error}`)
+            console.error(`deleteAccount: removeUserFromDatabase: ${error}`)
           );
         //navigate to SignIn Screen
         this.props.screenProps.functions.updateUser();
@@ -276,13 +282,13 @@ class FriendsList extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.props.id,
-          friendName: text
+          userHandle: this.props.id,
+          friendHandle: text
         })
       }
     )
       .then(data => {
-        console.log(data);
+        console.log(`sendFriendRequest: Successful: ${data._bodyText}`);
         if (data._bodyText == "success")
           Alert.alert(
             "Friend Request",
@@ -306,7 +312,7 @@ class FriendsList extends React.Component {
             { cancelable: false }
           );
       })
-      .catch(error => console.log(`sendFriendRequest: ${error}`));
+      .catch(error => console.error(`sendFriendRequest: ${error}`));
   }
 
   filterProfile(list, text) {
