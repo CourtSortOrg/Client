@@ -781,18 +781,21 @@ exports.unblockUser = functions.https.onRequest(async (request, response) => {
   }
 });
 
-exports.getBlockedUsers = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
+//get blocked users
+//PARAMETERS: userHandle
+exports.getBlockedUsers = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
 
-  if(name == null){
-    response.send("Must pass name in body of request");
+  if(userHandle == null){
+    console.log("Must pass userHandle into body of request")
+    response.send("error");
   }
 
-  db.collection("User").doc(name).get().then(doc => {
+  db.collection("User").doc(userHandle).get().then(doc => {
     response.send(doc.data().blockedUsers);
   }).catch(function(error){
-    console.error("Error getting list");
-    response.send(error.message);
+    console.log(error);
+    response.send("error");
   });
 });
 
