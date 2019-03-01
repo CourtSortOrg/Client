@@ -352,7 +352,7 @@ export default class App extends React.Component {
         })
       }
     )
-      .then(data => handleData(`fetchUser`, data, callback))
+      .then(data => this.handleData(`fetchUser`, data, callback))
       .catch(error => console.error(`fetchUser: ${error}`));
   }
 
@@ -367,7 +367,7 @@ export default class App extends React.Component {
         userHandle: id
       })
     })
-      .then(data => handleData(`fetchFriends`, data, callback))
+      .then(data => this.handleData(`fetchFriends`, data, callback))
       .catch(error => console.error(`fetchFriends: ${error}`));
   }
 
@@ -382,7 +382,7 @@ export default class App extends React.Component {
         userHandle: id
       })
     })
-      .then(data => handleData(`fetchGroups`, data, callback))
+      .then(data => this.handleData(`fetchGroups`, data, callback))
       .catch(error => console.error(`fetchFriends: ${error}`));
   }
 
