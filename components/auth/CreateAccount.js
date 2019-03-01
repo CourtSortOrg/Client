@@ -26,6 +26,7 @@ export default class CreateAccount extends React.Component {
 
   state = {
     name: "",
+    handle: "",
     email: "",
     password: "",
     isVegan: false,
@@ -139,7 +140,7 @@ export default class CreateAccount extends React.Component {
             autoCapitalize="none"
             blurOnSubmit={false}
             onSubmitEditing={() => {
-              this.email.focus();
+              this.handle.focus();
             }}
             placeholder="Name"
             placeholderTextColor="#999"
@@ -148,6 +149,22 @@ export default class CreateAccount extends React.Component {
             underlineColorAndroid="transparent"
           />
 
+          <TextInput
+            style={styles.input}
+            autoCapitalize="none"
+            blurOnSubmit={false}
+            onSubmitEditing={() => {
+              this.email.focus();
+            }}
+            ref={input => {
+              this.handle = input;
+            }}
+            placeholder="Handle"
+            placeholderTextColor="#999"
+            onChangeText={text => this.setState({ handle: text })}
+            returnKeyType={"next"}
+            underlineColorAndroid="transparent"
+          />
           {/* TextInput for the email */}
           <TextInput
             style={styles.input}
