@@ -18,7 +18,6 @@ import {
 
 import { Ionicons } from "@expo/vector-icons";
 
-
 export default class CreateAccount extends React.Component {
   constructor(props) {
     super(props);
@@ -157,12 +156,13 @@ export default class CreateAccount extends React.Component {
           <TextInput
             style={styles.input}
             autoCapitalize="none"
-            blurOnSubmit={false}
+            blurfOnSubmit={false}
             placeholder="Password"
             placeholderTextColor="#999"
             ref={input => {
               this.password = input;
             }}
+            onSubmitEditing={() => Keyboard.dismiss()}
             onChangeText={text => this.setState({ password: text })}
             secureTextEntry={true}
             underlineColorAndroid="transparent"
