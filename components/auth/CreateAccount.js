@@ -60,6 +60,7 @@ export default class CreateAccount extends React.Component {
             },
             body: JSON.stringify({
               uid: user.uid,
+              userHandle: this.state.handle,
               name: this.state.name
             })
           }
