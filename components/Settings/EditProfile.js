@@ -1,69 +1,72 @@
 import React from "react";
-import { Image, FlatList, Text, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Col, Row, Grid } from "react-native-easy-grid";
 
 import Screen from "../Nav/Screen";
+import Card from "../components/Card";
 
 const restrictions = [
   {
     name: "Eggs",
     image: require("../../assets/images/Eggs.png"),
-    enabled: true
+    enabled: false
   },
   {
     name: "Fish",
     image: require("../../assets/images/Fish.png"),
-    enabled: true
+    enabled: false
   },
   {
     name: "Gluten",
     image: require("../../assets/images/Gluten.png"),
-    enabled: true
+    enabled: false
   },
   {
     name: "Milk",
     image: require("../../assets/images/Milk.png"),
-    enabled: true
+    enabled: false
   },
   {
     name: "Peanuts",
     image: require("../../assets/images/Peanuts.png"),
-    enabled: true
+    enabled: false
   },
   {
     name: "Shellfish",
     image: require("../../assets/images/Shellfish.png"),
-    enabled: true
+    enabled: false
   },
   {
     name: "Soy",
     image: require("../../assets/images/Soy.png"),
-    enabled: true
+    enabled: false
   },
   {
     name: "Tree Nuts",
     image: require("../../assets/images/TreeNuts.png"),
-    enabled: true
-  },
-  {
-    name: "Vegan",
-    image: require("../../assets/images/Vegan.png"),
-    enabled: true
-  },
-  {
-    name: "Vegetarian",
-    image: require("../../assets/images/Vegetarian.png"),
-    enabled: true
+    enabled: false
   },
   {
     name: "Wheat",
     image: require("../../assets/images/Wheat.png"),
-    enabled: true
+    enabled: false
+  },
+  {
+    name: "Vegan",
+    image: require("../../assets/images/Vegan.png"),
+    enabled: false
+  },
+  {
+    name: "Vegetarian",
+    image: require("../../assets/images/Vegetarian.png"),
+    enabled: false
   }
 ];
 
 export default class EditProfile extends React.Component {
   constructor(props) {
     super(props);
+    this.state = { restrictions: restrictions };
   }
 
   render() {
@@ -73,31 +76,105 @@ export default class EditProfile extends React.Component {
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >
-        <View style={{ alignItems: "center" }}>
-          <FlatList
-            data={restrictions}
-            numColumns={4}
-            keyExtractor={item => item.name}
-            renderItem={obj => {
-              console.log(obj);
+        <Card header={"Dietary Restrictions"}>
+          <RestrictionGrid
+            data={this.state.restrictions}
+            colPattern={[3, 3, 3, 2]}
+            renderItem={(data, index) => {
               return (
-                <View style={{ flexDirection: "column", alignItems: "center", paddingHorizontal: 10 }}>
-                  <Image
-                    style={{
-                      flex: 1,
-                      width: 50,
-                      height: 50,
-                      resizeMode: "contain"
-                    }}
-                    source={obj.item.image}
-                  />
-                  <Text>{obj.item.name}</Text>
-                </View>
+                <TouchableOpacity
+                  activeOpacity={0.5}
+                  style={{ alignItems: "center", marginVertical: 5 }}
+                  onPress={() => {
+                    this.state.restrictions[index].enabled = !this.state
+                      .restrictions[index].enabled;
+                    this.setState({ restrictions: this.state.restrictions });
+                  }}
+                >
+                  {data.enabled ? (
+                    <Image
+                      source={data.image}
+                      style={{
+                        width: 50,
+                        height: 50,
+                        resizeMode: "contain"
+                      }}
+                    />
+                  ) : (
+                    <View>
+                      <Image
+                        source={data.image}
+                        style={{
+                          width: 50,
+                          height: 50,
+                          resizeMode: "contain",
+                          tintColor: "gray"
+                        }}
+                      />
+                      <Image
+                        source={data.image}
+                        style={{
+                          opacity: 0.3,
+                          position: "absolute",
+                          width: 50,
+                          height: 50,
+                          resizeMode: "contain"
+                        }}
+                      />
+                    </View>
+                  )}
+                  {data.enabled ? (
+                    <Text>{data.name}</Text>
+                  ) : (
+                    <Text style={{ color: "gray" }}>{data.name}</Text>
+                  )}
+                </TouchableOpacity>
               );
             }}
           />
-        </View>
+        </Card>
       </Screen>
     );
   }
+}
+
+function RestrictionGrid(props) {
+  //Check if data exists as a prop
+  let data = props.data;
+  if (!data || data.constructor !== Array) {
+    console.error("Restriction Grid Prop 'data' must be of type Array");
+  }
+  //Check if colPattern exists as a prop
+  let colPattern = props.colPattern;
+  //Check if data exists as a prop
+  if (!colPattern || colPattern.constructor !== Array) {
+    console.error("Restriction Grid Prop 'data' must be of type Array");
+  }
+  //Check if renderItem exists as a prop
+  let renderItem = props.renderItem;
+  if (!renderItem || renderItem.constructor !== Function) {
+    console.error(
+      "Restriction Grid Prop 'renderItem' must be of type Function"
+    );
+  }
+
+  var colPatternIndex = 0,
+    num = 0;
+  let cols = [],
+    rows = [];
+
+  for (var i = 0; i < data.length; i++) {
+    cols.push(<Col key={i}>{renderItem(data[i], i)}</Col>);
+    num++;
+    if (num == colPattern[colPatternIndex]) {
+      num = 0;
+      colPatternIndex++;
+      colPatternIndex %= colPattern.length;
+      rows.push(<Row key={i}>{cols}</Row>);
+      cols = [];
+    } else if (i == data.length - 1) {
+      rows.push(<Row key={i}>{cols}</Row>);
+    }
+  }
+  return <Grid>{rows}</Grid>;
 }

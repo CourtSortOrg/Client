@@ -200,8 +200,7 @@ export default class App extends React.Component {
             photoURL: user.photoURL,
             providerData: user.providerData,
             uid: user.uid,
-            isAnonymous: user.isAnonymous,
-            id: user.displayName
+            isAnonymous: user.isAnonymous
           }
         });
 
@@ -219,8 +218,8 @@ export default class App extends React.Component {
             })
           }
         )
-          .then(data => console.log(data._bodyText))
-          .catch(error => console.log(`updateUser: ${error}`));
+          .then(data => console.log(`updateUser Sucessful: ${data._bodyText}`))
+          .catch(error => console.error(`updateUser: ${error}`));
 
         this.updateProfile();
         this.updateFriends();
@@ -239,7 +238,7 @@ export default class App extends React.Component {
   updateProfile = () => {
     this.fetchUser(this.state.user.id, data => {
       this.setState({
-        user: { ...this.state.user, ...data }
+        user: { ...this.state.user, ...data, id: data.userHandle }
       });
     });
   };
@@ -331,6 +330,14 @@ export default class App extends React.Component {
     }
   };
 
+  handleData(functionName, data, callback) {
+    try {
+      if (callback) callback(JSON.parse(data._bodyText));
+    } catch (error) {
+      console.error(`${functionName}: ${error}: ${data._bodyText}`);
+    }
+  }
+
   fetchUser(id, callback) {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
@@ -341,14 +348,12 @@ export default class App extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: id
+          userHandle: id
         })
       }
     )
-      .then(data => {
-        if (callback) callback(JSON.parse(data._bodyText));
-      })
-      .catch(error => console.log(`fetchUser: ${error}`));
+      .then(data => handleData(`fetchUser`, data, callback))
+      .catch(error => console.error(`fetchUser: ${error}`));
   }
 
   fetchFriends(id, callback) {
@@ -359,13 +364,11 @@ export default class App extends React.Component {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: id
+        userHandle: id
       })
     })
-      .then(data => {
-        if (callback) callback(JSON.parse(data._bodyText));
-      })
-      .catch(error => console.log(`fetchFriends: ${error}`));
+      .then(data => handleData(`fetchFriends`, data, callback))
+      .catch(error => console.error(`fetchFriends: ${error}`));
   }
 
   fetchGroups(id, callback) {
@@ -379,10 +382,8 @@ export default class App extends React.Component {
         userHandle: id
       })
     })
-      .then(data => {
-        if (callback) callback(JSON.parse(data._bodyText));
-      })
-      .catch(error => console.log(`fetchFriends: ${error}`));
+      .then(data => handleData(`fetchGroups`, data, callback))
+      .catch(error => console.error(`fetchFriends: ${error}`));
   }
 
   fetchMeals(from, left) {
@@ -409,20 +410,24 @@ export default class App extends React.Component {
       }
     )
       .then(data => {
-        const meals = this.state.meals.slice(0);
-        meals.push(JSON.parse(data._bodyText));
-        this.setState(
-          {
-            meals
-          },
-          () => {
-            //this.updateMeals();
-            date = date.setDate(date.getDate() + 1);
-            this.fetchMeals(from + 1, left - 1);
-          }
-        );
+        try {
+          const meals = this.state.meals.slice(0);
+          meals.push(JSON.parse(data._bodyText));
+          this.setState(
+            {
+              meals
+            },
+            () => {
+              //this.updateMeals();
+              date = date.setDate(date.getDate() + 1);
+              this.fetchMeals(from + 1, left - 1);
+            }
+          );
+        } catch (error) {
+          console.error(`fetchMeals: ${error}: ${data._bodyText}`);
+        }
       })
-      .catch(error => console.log(`fetchMeals: ${error}`));
+      .catch(error => console.error(`fetchMeals: ${error}`));
   }
 
   render() {
