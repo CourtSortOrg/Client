@@ -1176,7 +1176,7 @@ exports.deleteGroup = functions.https.onRequest(async (request, response) => {
         response.send(error.message);
       });
     }
-  
+
     //delete the document for the group
     groupDoc.delete().then(function() {
       response.send("success");
@@ -1201,4 +1201,86 @@ exports.createObject = functions.https.onRequest((request, response) => {
       })
     });
   });
+});
+
+//rate a dining courts
+//PARAMETERS: userHandle, diningCourt, rating
+exports.rateDiningCourt = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var diningCourt = request.body.diningCourt;
+  var rating = request.body.rating;
+
+  //check for errors
+  if (userHandle == null || diningCourt == null || rating == null) {
+    console.log("error: incorrect parameters");
+    response.send("error");
+  }
+  else {
+    //update dining court aggregate rating
+    var dRef = db.collection("DiningCourt").doc(diningCourt);
+    dRef.get().then(doc => {
+      if(!doc.exists) {
+        console.log("error: doc does not exist");
+        response.send("error");
+      }
+      else {
+        //add rating to user profile
+        var userDiningRef = db.collection("User").doc(userHandle).collection("diningCourtRatings").doc(diningCourt);
+        userDiningRef.get().then(ratingDoc => {
+          if (!ratingDoc.exists) {
+            //the rating does not already exist
+            var n = doc.data().n;
+            var aggregateRating = doc.data().rating;
+
+            //update the aggregateRating
+            aggregateRating = (aggregateRating * n + rating) / (++n);
+
+            //update the dining court rating
+            dRef.update({
+              "n":n,
+              "rating":aggregateRating
+            })
+            .then(function() {
+              response.send("success");
+            })
+            .catch(function(error) {
+              console.log(error);
+              response.send("error");
+            });
+
+            userDiningRef.set({
+              "rating":rating
+            });
+          }
+          else {
+            var r = ratingDoc.data().rating;
+
+            //the rating exists already
+            var n = doc.data().n;
+            var aggregateRating = doc.data().rating;
+
+            //update the aggregateRating
+            aggregateRating = (aggregateRating * n - r + rating) / (n);
+
+            //update the dining court rating
+            dRef.update({
+              "n":n,
+              "rating":aggregateRating
+            })
+            .then(function() {
+              response.send("success");
+            })
+            .catch(function(error) {
+              console.log(error);
+              response.send("error");
+            });
+
+            userDiningRef.update({
+              "rating":rating
+            });
+          }
+        });
+      }
+    });
+  }
 });
