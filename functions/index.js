@@ -896,6 +896,12 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
   });
 });
 
+//Updates the users status in the database
+//Statuses:
+//  0 - Available
+//  1 - Eating
+//  2 - Busy
+//PARAMETERS: name, status
 exports.setUserStatus = functions.http.onRequest((request, reponse) =>{
   var name = request.body.name;
   var status = request.body.name;
@@ -912,6 +918,8 @@ exports.setUserStatus = functions.http.onRequest((request, reponse) =>{
   });
 });
 
+//Retrieves the user's current status
+//PARAMETERS: name
 exports.getUserStatus = functions.http.onRequest((request, response) => {
   var name = request.body.name;
 

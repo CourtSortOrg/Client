@@ -1,9 +1,9 @@
 import React from "react";
 import * as firebase from "firebase";
-import { Alert, FlatList, StyleSheet, View } from "react-native";
+import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { ListItem, Rating, Button } from "react-native-elements";
-import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
+import { Avatar, ButtonGroup, Icon, Overlay } from "react-native-elements";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import Text from "../components/Text";
@@ -140,6 +140,13 @@ export default class Profile extends React.Component {
             }}
             size={28}
             style={styles.settingsIcon}
+          />
+
+          <Icon
+            reverse
+            name = "status";
+            color= "#FF0000";
+            onPress{() => console.log("Press status button")}
           />
         </Card>
 
@@ -385,6 +392,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     right: 8
+  },
+  statusIndicator: {
+    borderWidth: 1,
+    borderColor: "#000000",
+    width: 25,
+    height: 25,
+    backgroundColor: "#FF0000",
+    borderRadius: 10
   },
   profileInformation: {
     alignItems: "center",
