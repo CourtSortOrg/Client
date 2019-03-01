@@ -367,14 +367,19 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
 
 
 //add user to database
-//PARAMETERS: uid, name
+//PARAMETERS: uid, userHandle, name
 exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
+  var userHandle = request.body.userHandle;
   var name = request.body.name;
   console.log(uid);
+  console.log(userHandle);
   console.log(name);
   if (uid == null) {
     response.send("Must pass uid in body of request");
+  }
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
   }
   if (name == null) {
     response.send("Must pass name in body of request");
@@ -383,7 +388,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   admin.auth().getUser(uid)
   .then(function(userRecord) {
     console.log("Successfully fetched user data:", userRecord.toJSON());
-    checkUserExists(name);
+    checkUserExists(userHandle);
   })
   .catch(function(error) {
     console.log("Error fetching user data:", error);
@@ -391,7 +396,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   });
 
   function checkUserExists(name) {
-    db.collection("User").doc(name).get().then(doc => {
+    db.collection("User").doc(userHandle).get().then(doc => {
       if(!doc.exists){
         addUser();
       }
@@ -409,6 +414,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
     var updatedUser = {
       uid: uid,
       name: name,
+      userHandle: userHandle,
       initials: "",
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
       groups: [],
@@ -421,7 +427,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
       incomingGroupInvites: [],
       ratings: []
     }
-    db.collection("User").doc(name).set(updatedUser).then(function() {
+    db.collection("User").doc(userHandle).set(updatedUser).then(function() {
       console.log("User successfully added!");
       response.send("success");
     }).catch(function(error) {
@@ -432,16 +438,16 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
 });
 
 //get friends of a user
-//PARAMETERS: name
+//PARAMETERS: userHandle
 exports.getFriends = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  console.log(name);
-  if(name == null){
-    response.send("Must pass name in request");
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  if(userHandle == null){
+    response.send("Must pass userHandle in request");
     return;
   }
 
-  db.collection("User").doc(name).get().then(doc => {
+  db.collection("User").doc(userHandle).get().then(doc => {
     response.send(doc.data().friends);
   }).catch(function(error){
     console.error("Error getting list");
@@ -450,31 +456,49 @@ exports.getFriends = functions.https.onRequest((request, response) => {
 });
 
 //remove a friend from a user
-//PARAMETERS: name, friendName
-exports.removeFriend = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  console.log(name);
-  var friendName = request.body.friendName;
-  console.log(friendName);
+//PARAMETERS: userHandle, friendHandle
+exports.removeFriend = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  var friendHandle = request.body.friendHandle;
+  console.log(friendHandle);
 
-  if(name == null){
-    response.send("Must pass name in request");
+  if(userHandle == null){
+    response.send("Must pass userHandle in request");
     return;
   }
-  if(friendName == null){
-    response.send("Must pass friendName in request");
+  if(friendHandle == null){
+    response.send("Must pass friendHandle in request");
     return;
   }
 
-  db.collection("User").doc(name).update({
-    friends: admin.firestore.FieldValue.arrayRemove(friendName)
+  var friendDoc = db.collection("User").doc(friendHandle);
+  var userDoc = db.collection("User").doc(userHandle);
+
+  //get the user's name
+  var name;
+  await userDoc.get().then(async doc => {
+    name = await doc.data().name;
+  });
+
+  //get the friend's name
+  var friendName;
+  await friendDoc.get().then(async doc => {
+    friendName = await doc.data().name;
+  });
+
+  var userObj = {friendHandle: userHandle, friendName: name};
+  var friendObj = {friendHandle: friendHandle, friendName: friendName};
+
+  userDoc.update({
+    friends: admin.firestore.FieldValue.arrayRemove(friendObj)
   }).catch(function(error){
     console.error("Error removing friend from user")
     response.send("error");
   });
 
-  db.collection("User").doc(friendName).update({
-    friends: admin.firestore.FieldValue.arrayRemove(name)
+  friendDoc.update({
+    friends: admin.firestore.FieldValue.arrayRemove(userObj)
   }).then(function(){
     response.send("success");
   }).catch(function(error){
@@ -484,43 +508,50 @@ exports.removeFriend = functions.https.onRequest((request, response) => {
 });
 
 //remove a user from all Friends
-//PARAMETERS: name
-exports.removeFromAllFriends = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  console.log(name);
+//PARAMETERS: userHandle
+exports.removeFromAllFriends = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
 
-  if(name == null){
-    response.send("Must pass name in request");
+  if(userHandle == null){
+    response.send("Must pass userHandle in request");
     return;
   }
 
-  db.collection("User").doc(name).get().then(doc => {
+  var userDoc = db.collection("User").doc(userHandle);
+
+  //get the user's name
+  await userDoc.get().then(async doc => {
+    var name = await doc.data().name;
+    var userObj = {friendHandle: userHandle, friendName: name};
     var friends = doc.data().friends;
+
     for(var i = 0; i < friends.length; i++){
-      db.collection("User").doc(friends[i]).update({
-        friends: admin.firestore.FieldValue.arrayRemove(name)
-      })
-      if(i == friends.length - 1){
+      await db.collection("User").doc(friends[i].friendHandle).update({
+        friends: admin.firestore.FieldValue.arrayRemove(userObj)
+      });
+      /*if(i == friends.length - 1){
         response.send("success");
-      }
+      }*/
     }
   }).catch(function(error){
     console.error(error.message);
-    response.send(error);
+    response.send("error");
   });
+  response.send("success");
 });
 
 //remove user from database
-//PARAMETERS: name
+//PARAMETERS: userHandle
 exports.removeUserFromDatabase = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  console.log(name);
-  if (name == null) {
-    response.send("Must pass name in body of request");
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
     return;
   }
 
-  db.collection("User").doc(name).delete().then(function() {
+  db.collection("User").doc(userHandle).delete().then(function() {
     console.log("User successfully deleted!");
     response.send("success");
   }).catch(function(error) {
@@ -530,20 +561,21 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
 });
 
 //get user profile information
-//PARAMETERS: name
+//PARAMETERS: userHandle
 exports.getUserProfile = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  console.log(name);
-  getProfile(name, response);
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  getProfile(userHandle, response);
 });
 
 //function to get user profile information
-function getProfile(name, response) {
-  if (name == null) {
-    response.send("Must pass name in body of request");
+function getProfile(userHandle, response) {
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
+    return;
   }
 
-  var userRef = db.collection("User").doc(name);
+  var userRef = db.collection("User").doc(userHandle);
   var getDoc = userRef.get()
   .then(doc => {
     if (!doc.exists) {
@@ -561,46 +593,46 @@ function getProfile(name, response) {
 }
 
 //update user profile information
-//PARAMETERS: name, updates (a JSON of updates to profile)
+//PARAMETERS: userHandle, updates (a JSON of updates to profile)
 exports.updateUserProfile = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
+  var userHandle = request.body.userHandle;
   var updates = JSON.parse(request.body.updates);
-  console.log(name);
+  console.log(userHandle);
   console.log(updates);
 
-  var userRef = db.collection("User").doc(name);
+  var userRef = db.collection("User").doc(userHandle);
   userRef.update(updates).then(function() {
-    var updatedUser = db.collection("User").doc(name)
-    getProfile(name, response);
+    var updatedUser = db.collection("User").doc(userHandle)
+    getProfile(userHandle, response);
   });
 });
 
 //block a user
-//PARAMETERS: name, blockedName
+//PARAMETERS: userHandle, blockedHandle
 exports.blockUser = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  var blockedName = request.body.blockedName;
-  console.log(name);
-  console.log(blockedName);
+  var userHandle = request.body.userHandle;
+  var blockedHandle = request.body.blockedHandle;
+  console.log(userHandle);
+  console.log(blockedHandle);
 
-  var userRef = db.collection("User").doc(name);
+  var userRef = db.collection("User").doc(userHandle);
   userRef.update({
-    blockedUsers: admin.firestore.FieldValue.arrayUnion(blockedName)
+    blockedUsers: admin.firestore.FieldValue.arrayUnion(blockedHandle)
   })
   .then(function() {
-    db.collection("User").doc(name).update({
-      friends: admin.firestore.FieldValue.arrayRemove(blockedName),
-      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedName),
-      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedName)
+    db.collection("User").doc(userHandle).update({
+      friends: admin.firestore.FieldValue.arrayRemove(blockedHandle),
+      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedHandle),
+      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(blockedHandle)
     }).catch(function(error){
       console.error("Error removing friend from user")
       response.send("error");
     });
 
-    db.collection("User").doc(blockedName).update({
-      friends: admin.firestore.FieldValue.arrayRemove(name),
-      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(name),
-      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(name)
+    db.collection("User").doc(blockedHandle).update({
+      friends: admin.firestore.FieldValue.arrayRemove(userHandle),
+      outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userHandle),
+      incomingFriendReq: admin.firestore.FieldValue.arrayRemove(userHandle)
     }).then(function(){
       response.send("success");
     }).catch(function(error){
@@ -615,15 +647,16 @@ exports.blockUser = functions.https.onRequest((request, response) => {
   });
 });
 
+//PARAMETERS: userHandle, blockedHandle
 exports.unblockUser = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  var blockedName = request.body.blockedName;
-  console.log(name);
-  console.log(blockedName);
+  var userHandle = request.body.userHandle;
+  var blockedHandle = request.body.blockedHandle;
+  console.log(userHandle);
+  console.log(blockedHandle);
 
-  var userRef = db.collection("User").doc(name);
+  var userRef = db.collection("User").doc(userHandle);
   userRef.update({
-    blockedUsers: admin.firestore.FieldValue.arrayRemove(blockedName)
+    blockedUsers: admin.firestore.FieldValue.arrayRemove(blockedHandle)
   })
   .then(function() {
     console.log("Document successfully updated!");
@@ -636,14 +669,15 @@ exports.unblockUser = functions.https.onRequest((request, response) => {
   });
 });
 
+//PARAMETERS: userHandle
 exports.getBlockedUsers = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
+  var userHandle = request.body.userHandle;
 
-  if(name == null){
-    response.send("Must pass name in body of request");
+  if(userHandle == null){
+    response.send("Must pass userHandle in body of request");
   }
 
-  db.collection("User").doc(name).get().then(doc => {
+  db.collection("User").doc(userHandle).get().then(doc => {
     response.send(doc.data().blockedUsers);
   }).catch(function(error){
     console.error("Error getting list");
@@ -652,12 +686,12 @@ exports.getBlockedUsers = functions.https.onRequest((request, response) => {
 });
 
 //check if a user exists
-//PARAMETERS: name
+//PARAMETERS: userHandle
 exports.userExists = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  console.log(name);
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
 
-  db.collection("User").doc(name).get().then(doc => {
+  db.collection("User").doc(userHandle).get().then(doc => {
     if(!doc.exists){
       response.send("Does Not Exist");
     }
@@ -668,142 +702,197 @@ exports.userExists = functions.https.onRequest((request, response) => {
 });
 
 //sends a friend request
-//PARAMETERS: name, friendName
-exports.sendFriendRequest = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  console.log(name);
-  var friendName = request.body.friendName;
-  console.log(friendName);
+//PARAMETERS: userHandle, friendHandle
+exports.sendFriendRequest = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  var friendHandle = request.body.friendHandle;
+  console.log(friendHandle);
 
-  if (name == null) {
-    response.send("Must pass name in body of request");
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
   }
-  if (friendName == null) {
-    response.send("Must pass friendName in body of request");
+  if (friendHandle == null) {
+    response.send("Must pass friendHandle in body of request");
   }
 
-  var friendDoc = db.collection("User").doc(friendName);
-  var userDoc = db.collection("User").doc(name);
+  var friendDoc = await db.collection("User").doc(friendHandle);
+  var userDoc = await db.collection("User").doc(userHandle);
+
+  //get the user's name
+  var name;
+  await userDoc.get().then(async doc => {
+    name = await doc.data().name;
+  });
+  var userObj = {friendHandle: userHandle, friendName: name};
+
   //check if the friend's id exists
-  friendDoc.get().then(doc => {
+  friendDoc.get().then(async doc => {
     if(!doc.exists){
-      console.log("Friend name is not valid");
-      response.send("Bad FriendName");
-    }
-    //check if the sender is blocked
-    else if(doc.data().blockedUsers.indexOf(name) > -1){
-      response.send("You cannot add a user who has blocked you.");
-    }
-    else if(doc.data().outgoingFriendReq.indexOf(name) > -1){
-      response.send("You cannot send a friend request to someone who has sent you a friend request");
+      console.log("Friend handle is not valid");
+      response.send("Bad friendHandle");
     }
     else{
-      userDoc.get().then(doc => {
-        if(doc.data().friends.indexOf(friendName) > -1){
-          response.send("Already friends");
-        }
-        else{
-          //add an outgoingFriendReq to the user
-          userDoc.update({
-            outgoingFriendReq: admin.firestore.FieldValue.arrayUnion(friendName)
-          }).catch(function(error){
-            response.send("error");
-          });
+      //get the friend's name
+      var friendName;
+      await friendDoc.get().then(async doc => {
+        friendName = await doc.data().name;
+      });
 
-          friendDoc.update({
-            incomingFriendReq: admin.firestore.FieldValue.arrayUnion(name)
-          }).then(function() {
-            response.send("success");
-          }).catch(function(error) {
-            response.send("error");
-          });
+      var friendObj = {friendHandle: friendHandle, friendName: friendName};
+      //check if the sender is blocked
+      console.log(userObj);
+      console.log(friendObj);
+      var blockedUsers = doc.data().blockedUsers;
+      for(var i = 0; i < blockedUsers.length; i++){
+        if(blockedUsers[i].blockedHandle==userHandle){
+          response.send("You cannot add a user who has blocked you.");
+          return;
         }
+      }
+      var oFR = doc.data().outgoingFriendReq;
+      for(var i = 0; i < oFR.length; i++){
+        if(oFR[i].friendHandle==userHandle){
+          response.send("You cannot send a friend request to someone who has sent you a friend request.");
+          return;
+        }
+      }
+      userDoc.get().then(async uDoc => {
+        //check if they are already friends
+        var friends = uDoc.data().friends;
+        for(var i = 0; i < friends.length; i++){
+          if(friends[i].friendHandle==friendHandle){
+            response.send("Already friends.");
+            return;
+          }
+        }
+        //add an outgoingFriendReq to the user
+        userDoc.update({
+          outgoingFriendReq: admin.firestore.FieldValue.arrayUnion(friendObj)
+        }).catch(function(error){
+          response.send("error");
+        });
+        friendDoc.update({
+          incomingFriendReq: admin.firestore.FieldValue.arrayUnion(userObj)
+        }).then(function() {
+          response.send("success");
+        }).catch(function(error) {
+          response.send("error");
+        });
       });
     }
   });
 });
 
 //accepts a friend request
-//PARAMETERS: name, friendName
-exports.acceptFriendRequest = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  console.log(name);
-  var friendName = request.body.friendName;
-  console.log(friendName);
+//PARAMETERS: userHandle, friendHandle
+exports.acceptFriendRequest = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  var friendHandle = request.body.friendHandle;
+  console.log(friendHandle);
 
-  if (name == null) {
-    response.send("Must pass name in body of request");
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
   }
-  if (friendName == null) {
-    response.send("Must pass friendName in body of request");
+  if (friendHandle == null) {
+    response.send("Must pass friendHandle in body of request");
   }
 
-  db.collection("User").doc(name).update({
-    incomingFriendReq: admin.firestore.FieldValue.arrayRemove(friendName),
-    friends: admin.firestore.FieldValue.arrayUnion(friendName)
+  var friendDoc = db.collection("User").doc(friendHandle);
+  var userDoc = db.collection("User").doc(userHandle);
+
+  //get the user's name
+  var name;
+  await userDoc.get().then(async doc => {
+    name = await doc.data().name;
+  });
+
+  //get the friend's name
+  var friendName;
+  await friendDoc.get().then(async doc => {
+    friendName = await doc.data().name;
+  });
+
+  var userObj = {friendHandle: userHandle, friendName: name};
+  var friendObj = {friendHandle: friendHandle, friendName: friendName};
+
+  userDoc.update({
+    incomingFriendReq: admin.firestore.FieldValue.arrayRemove(friendObj),
+    friends: admin.firestore.FieldValue.arrayUnion(friendObj)
   });
 
   //remove the user from the friend's blockUser list
-  var friendDoc = db.collection("User").doc(friendName);
+  var blockObj = {blockedHandle: userHandle, blockedName: name};
 
   friendDoc.update({
-    outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(name),
-    friends: admin.firestore.FieldValue.arrayUnion(name)
+    outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userObj),
+    friends: admin.firestore.FieldValue.arrayUnion(userObj),
+    blockedUsers: admin.firestore.FieldValue.arrayRemove(blockObj)
   }).then(function(){
-    friendDoc.get().then(doc => {
-      if(doc.data().blockedUsers.indexOf(name) > -1){
-        friendDoc.update({
-          blockedUsers: admin.firestore.FieldValue.arrayRemove(name)
-        }).then(function(){
-          response.send("success");
-        }).catch(function(error){
-          console.log(error.message);
-          response.send(error.message);
-        });
-      }
-      else{
-        response.send("success");
-      }
-    });
+    response.send("success");
+  }).catch(function(error){
+    console.log(error.message);
+    response.send(error.message);
   });
 });
 
 //Denies a friend request (Removes the friend request from both users)
-//PARAMETERS: name, friendName
-exports.denyFriendRequest = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-  console.log(name);
-  var friendName = request.body.friendName;
-  console.log(friendName);
+//PARAMETERS: userHandle, friendHandle
+exports.denyFriendRequest = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  var friendHandle = request.body.friendHandle;
+  console.log(friendHandle);
 
-  if (name == null) {
-    response.send("Must pass name in body of request");
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
   }
-  if (friendName == null) {
-    response.send("Must pass friendName in body of request");
+  if (friendHandle == null) {
+    response.send("Must pass friendHandle in body of request");
   }
 
-  db.collection("User").doc(name).update({
-    incomingFriendReq: admin.firestore.FieldValue.arrayRemove(friendName)
+  var friendDoc = db.collection("User").doc(friendHandle);
+  var userDoc = db.collection("User").doc(userHandle);
+
+  //get the user's name
+  var name;
+  await userDoc.get().then(async doc => {
+    name = await doc.data().name;
   });
 
-  db.collection("User").doc(friendName).update({
-    outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(name)
+  //get the friend's name
+  var friendName;
+  await friendDoc.get().then(async doc => {
+    friendName = await doc.data().name;
+  });
+
+  var userObj = {friendHandle: userHandle, friendName: name};
+  var friendObj = {friendHandle: friendHandle, friendName: friendName};
+
+  userDoc.update({
+    incomingFriendReq: admin.firestore.FieldValue.arrayRemove(friendObj)
+  });
+
+  friendDoc.update({
+    outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userObj)
   }).then(function(){
     response.send("success");
   });
 })
 
 //returns a list of friend requests for the user to accept or deny
-//PARAMETERS: name
-exports.getIncomingFriendRequests = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
+//PARAMETERS: userHandle
+exports.getIncomingFriendRequests = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
 
-  if(name == null){
-    response.send("Must pass name in body of request");
+  if(userHandle == null){
+    response.send("Must pass userHandle in body of request");
   }
 
-  db.collection("User").doc(name).get().then(doc => {
+  var userDoc = db.collection("User").doc(userHandle);
+
+  userDoc.get().then(doc => {
     response.send(doc.data().incomingFriendReq);
   }).catch(function(error){
     console.error("Error getting list");
@@ -812,15 +901,15 @@ exports.getIncomingFriendRequests = functions.https.onRequest((request, response
 });
 
 //returns a list of friend requests the user has sent
-//PARAMETERS: name
+//PARAMETERS: userHandle
 exports.getOutgoingFriendRequests = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
+  var userHandle = request.body.userHandle;
 
-  if(name == null){
-    response.send("Must pass name in body of request");
+  if(userHandle == null){
+    response.send("Must pass userHandle in body of request");
   }
 
-  db.collection("User").doc(name).get().then(doc => {
+  db.collection("User").doc(userHandle).get().then(doc => {
     response.send(doc.data().outgoingFriendReq);
   }).catch(function(error){
     console.error("Error getting list");
@@ -1032,7 +1121,7 @@ exports.leaveGroup = functions.https.onRequest(async (request, response) => {
   var name;
   await userDoc.get().then(async doc => {
     name = await doc.data().name;
-  })
+  });
   await groupDoc.update({
     memberHandles: admin.firestore.FieldValue.arrayRemove(userHandle),
     memberObjects: admin.firestore.FieldValue.arrayRemove({userHandle: userHandle, userName: name})
@@ -1108,7 +1197,7 @@ exports.deleteGroup = functions.https.onRequest(async (request, response) => {
         response.send(error.message);
       });
     }
-  
+
     //delete the document for the group
     groupDoc.delete().then(function() {
       response.send("success");
@@ -1119,18 +1208,3 @@ exports.deleteGroup = functions.https.onRequest(async (request, response) => {
     response.send(error.message);
   });
 });
-
-exports.createObject = functions.https.onRequest((request, response) => {
-  var name = request.body.name;
-
-  var userRef = db.collection("User").doc(name);
-  userRef.update({test: []}).then(function() {
-    userRef.update({
-      test: admin.firestore.FieldValue.arrayUnion({handle: "myHandle", name: "myName"}).then(function() {
-        resopnse.send("success");
-      }).then(function() {
-        response.send()
-      })
-    });
-  });
-})
