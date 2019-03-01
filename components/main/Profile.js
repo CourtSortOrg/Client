@@ -1,102 +1,57 @@
 import React from "react";
 import * as firebase from "firebase";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import Text from "../Nav/Text";
 
 import { ListItem, Rating, Button } from "react-native-elements";
 import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
-import { EvilIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
-import Card from "../Nav/Card";
+import Text from "../components/Text";
+import Card from "../components/Card";
 import Screen from "../Nav/Screen";
-import SearchList from "../Nav/SearchList";
-
-let userName;
+import SearchList from "../components/SearchList";
 
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
-    var ratingData = require("../../testData/ratingData.json");
-    var groupData = require("../../testData/groupData.json");
 
-    const user = firebase.auth().currentUser;
-    userName = user ? user.displayName : undefined;
+    // Dummy data used for now, should not be hardcoded
+    //var ratingData = require("../../testData/ratingData.json");
+    //var groupData = require("../../testData/groupData.json");
+
     this.state = {
-      uid: user ? user.uid : undefined,
-      displayName: user ? user.displayName : undefined,
       selectedIndex: 0,
       isEditing: false,
 
       name: "",
       initials: "",
-      image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
       restrictions: "",
 
-      ratings: ratingData.ratings,
-      friends: [],
-      groups: groupData.groups
+      image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
   }
 
-  ratingData = require("../../testData/ratingData.json");
-  userData = require("../../testData/userData.json");
-
   componentDidMount() {
-    if (this.state.uid == undefined) {
-      console.log("HOME");
+    // If the user is a guest, send them to the sign in screen
+    if (this.props.screenProps.user == undefined) {
       this.props.navigation.navigate("Auth");
-      return;
     }
-
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: this.state.displayName
-        })
-      }
-    ).then(data => {
-      this.setState(
-        {
-          ...JSON.parse(data._bodyText)
-        },
-        () => {
-          console.log(this.state.friends);
-          this.setState({
-            ratings: this.ratingData.ratings
-          });
-        }
-      );
-    });
-
-    // fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
-    //   method: "POST",
-    //   headers: {
-    //     Accept: "application/json",
-    //     "Content-Type": "application/json"
-    //   },
-    //   body: JSON.stringify({
-    //     name: this.state.displayName
-    //   })
-    // }).then(data => {
-    //   this.setState({ ...JSON.parse(data._bodyText) });
-    // });
   }
 
+  // Method to change the currently selected index of the button group
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
   };
 
+  // Helper method to choose whether to render a component
   shouldRender = (expr, comp1, comp2) => {
     return expr ? comp1 : comp2;
   };
 
   deleteAccount = () => {
+    //TODO: Delete user's ratings
+    //TODO: Remove user from all groups
+
     user = firebase.auth().currentUser;
     //get list of friends
     //get list of individual ratings
@@ -112,10 +67,14 @@ export default class Profile extends React.Component {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              name: this.state.displayName
+              name: this.props.screenProps.user.id
             })
           }
-        ).then(data => console.log(data._bodyText));
+        )
+          .then(data => console.log(data._bodyText))
+          .catch(error =>
+            console.log(`deleteAccount: removeFromAllFriends: ${error}`)
+          );
         fetch(
           "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
           {
@@ -125,50 +84,40 @@ export default class Profile extends React.Component {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              name: this.state.displayName
+              name: this.props.screenProps.user.id
             })
           }
-        ).then(data => console.log(data._bodyText));
+        )
+          .then(data => console.log(data._bodyText))
+          .catch(error =>
+            console.log(`deleteAccount: removeUserFromDatabase: ${error}`)
+          );
         //navigate to SignIn Screen
+        this.props.screenProps.functions.updateUser();
         this.props.navigation.navigate("Auth");
         this.setState({ isEditing: false });
       })
       .catch(function(error) {
         alert("ERROR: " + error.message);
-      });
-  };
-
-  signOut = () => {
-    firebase
-      .auth()
-      .signOut()
-      .then(() => {
-        this.setState({ isEditing: false });
-        this.props.navigation.navigate("Auth");
-        //go back to SignIn screen
-      })
-      .catch(error => {
-        alert(error.message);
+        this.props.screenProps.functions.updateUser();
       });
   };
 
   render() {
+    // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
-    const {
-      friends,
-      groups,
-      restrictions,
-      ratings,
-      selectedIndex
-    } = this.state;
+    // Retrieve user data from state
+    const { friends, groups, ratings, selectedIndex } = this.state;
+
     return (
       <Screen
         backButton={false}
         navigation={{ ...this.props.navigation }}
         title="Profile"
       >
-        {/* "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png" */}
+        {/* Card that shows user information */}
         <Card style={styles.profileInformation}>
+          {/* Avatar to show profile picture */}
           <Avatar
             containerStyle={styles.profilePicture}
             rounded
@@ -176,63 +125,70 @@ export default class Profile extends React.Component {
             source={{ uri: this.state.image }}
             title={this.state.initials}
           />
-          <Text style={styles.profileName}>{this.state.displayName}</Text>
-          <EvilIcons
+          {/* Test to show profile name */}
+          <Text style={styles.profileName}>
+            {this.props.screenProps.user.displayName}
+          </Text>
+          {/* Icon to navigate to Settings */}
+          <MaterialIcons
             color="gray"
-            name="pencil"
+            name="settings"
+            // TODO: Navigate to settings
             onPress={() => {
-              this.setState({ isEditing: true });
+              this.props.navigation.navigate("Settings");
+              // this.setState({ isEditing: true });
             }}
-            size={35}
-            style={styles.editInformation}
+            size={28}
+            style={styles.settingsIcon}
           />
-          {/* {restrictions.length > 0 ? (
-              <View style={{ flex: 1, borderRadius: 5 }}>
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    paddingVertical: 5
-                  }}
-                >
-                  <Text style={{ fontWeight: "bold" }}>
-                    Allergens and Preferences
-                  </Text>
-                  {restrictions.map((data, key) => {
-                    return <Text key={key}>{data}</Text>;
-                  })}
-                </View>
-              </View>
-            ) : null} */}
         </Card>
+
+        {/* TODO: Add user dietary restrictions */}
+
+        {/* Card to show user ratings, friends, and groups */}
+
         <Card>
+          {/* ButtonGroup to choose tab */}
           <ButtonGroup
             buttons={buttons}
             onPress={this.updateIndex}
             selectedIndex={selectedIndex}
           />
 
+          {/* Render the ratings list if on the ratings tab */}
           {this.shouldRender(
             selectedIndex == 0,
-            <RatingsList ratings={ratings} />,
-            null
-          )}
-          {this.shouldRender(
-            selectedIndex == 1,
-            <FriendsList
-              navigation={this.props.navigation}
-              friends={friends}
+            <RatingsList
+              id={this.props.screenProps.user.id}
+              ratings={this.props.screenProps.user.ratings}
             />,
             null
           )}
+
+          {/* Render the friends list if on the friends tab */}
+          {this.shouldRender(
+            selectedIndex == 1,
+            <FriendsList
+              id={this.props.screenProps.user.id}
+              navigation={this.props.navigation}
+              friends={this.props.screenProps.user.friends}
+            />,
+            null
+          )}
+
+          {/* Render the groups list if on the groups tab */}
           {this.shouldRender(
             selectedIndex == 2,
-            <GroupsList groups={groups} navigation={this.props.navigation} />,
+            <GroupsList
+              id={this.props.screenProps.user.id}
+              groups={this.props.screenProps.user.groups}
+              navigation={this.props.navigation}
+            />,
             null
           )}
         </Card>
+
+        {/* TODO: Phase this out into Settings screen */}
         <Overlay
           borderRadius={4}
           height="90%"
@@ -250,14 +206,14 @@ export default class Profile extends React.Component {
               padding: 15
             }}
           >
-            <EvilIcons
+            <MaterialIcons
               color="gray"
               name="close"
               onPress={() => {
                 this.setState({ isEditing: false });
               }}
               size={24}
-              style={styles.editInformation}
+              style={styles.settingsIcon}
             />
             <Text>Edit Profile</Text>
             <View
@@ -285,12 +241,14 @@ export default class Profile extends React.Component {
   }
 }
 
+// Ratings List Component
+// TODO: Add styles of Ratings List instead of hardcoding
 function RatingsList(props) {
   return (
     <FlatList
       data={props.ratings}
       keyExtractor={item => item.id}
-      renderItem={({ item, index }) => (
+      renderItem={({ item }) => (
         <ListItem
           bottomDivider
           subtitle={
@@ -307,122 +265,126 @@ function RatingsList(props) {
   );
 }
 
-function sendFriendRequest(text) {
-  fetch(
-    "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
-    {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name: userName,
-        friendName: text
-      })
-    }
-  ).then(data => {
-    if (data._bodyText == "success")
-      Alert.alert(
-        "Friend Request",
-        `You sent a friend request to ${text}.`,
-        [
-          {
-            text: "Ok"
-          }
-        ],
-        { cancelable: false }
-      );
-    else
-      Alert.alert(
-        "Friend Request",
-        `Friend request to ${text} could not be sent.`,
-        [
-          {
-            text: "Ok"
-          }
-        ],
-        { cancelable: false }
-      );
-  });
-}
-
-function FriendsList(props) {
-  let friends = props.friends.map(friend => {
-    return { Name: friend };
-  });
-  return (
-    <SearchList
-      navigation={props.navigation}
-      filterFunction={filterProfile}
-      extendedSearch={text => sendFriendRequest(text)}
-      list={{
-        list: friends,
-        type: "element",
-        subList: false,
-        rank: 1,
-        renderElement: item => {
-          return (
-            <ListItem
-              chevron
-              bottomDivider
-              // leftAvatar={{
-              //   source: { uri: item.image },
-              //   containerStyle: styles.friendPicture
-              // }}
-              // subtitle={`@${item.username}`}
-              title={item.Name}
-              onPress={() =>
-                props.navigation.navigate("Friend", { ID: item.Name })
-              }
-              topDivider
-            />
-          );
+class FriendsList extends React.Component {
+  sendFriendRequest(text) {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
         },
-        viewMore: {
-          page: "Message",
-          item: "ID"
-        }
-      }}
-    />
-  );
+        body: JSON.stringify({
+          name: this.props.id,
+          friendName: text
+        })
+      }
+    )
+      .then(data => {
+        console.log(data);
+        if (data._bodyText == "success")
+          Alert.alert(
+            "Friend Request",
+            `You sent a friend request to ${text}.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
+        else
+          Alert.alert(
+            "Friend Request",
+            `Friend request to ${text} could not be sent.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
+      })
+      .catch(error => console.log(`sendFriendRequest: ${error}`));
+  }
+
+  filterProfile(list, text) {
+    return list.filter(item => item.Name.includes(text));
+  }
+
+  render() {
+    return (
+      <SearchList
+        navigation={this.props.navigation}
+        filterFunction={this.filterProfile}
+        extendedSearch={text => this.sendFriendRequest(text)}
+        list={{
+          list: this.props.friends.map(friend => ({ Name: friend })),
+          type: "element",
+          subList: false,
+          rank: 1,
+          renderElement: item => {
+            return (
+              <ListItem
+                chevron
+                bottomDivider
+                // leftAvatar={{
+                //   source: { uri: item.image },
+                //   containerStyle: styles.friendPicture
+                // }}
+                // subtitle={`@${item.username}`}
+                title={item.Name}
+                onPress={() =>
+                  this.props.navigation.navigate("Friend", { ID: item.Name })
+                }
+                topDivider
+              />
+            );
+          },
+          viewMore: {
+            page: "Message",
+            item: "ID"
+          }
+        }}
+      />
+    );
+  }
 }
 
-function filterProfile(list, text) {
-  return list.filter(item => item.Name.includes(text));
-}
+class GroupsList extends React.Component {
+  filterGroup(list, text) {
+    return list.filter(item => item.Name.includes(text));
+  }
 
-function filterGroup(list, text) {
-  return list.filter(item => item.Name.includes(text));
-}
-
-function GroupsList(props) {
-  return (
-    <SearchList
-      navigation={props.navigation}
-      filterFunction={filterGroup}
-      list={{
-        list: props.groups,
-        type: "element",
-        subList: false,
-        rank: 1,
-        viewMore: {
-          page: "Message",
-          item: "ID"
-        }
-      }}
-    />
-  );
+  render() {
+    return (
+      <SearchList
+        navigation={this.props.navigation}
+        filterFunction={this.filterGroup}
+        list={{
+          list: this.props.groups,
+          type: "element",
+          subList: false,
+          rank: 1,
+          viewMore: {
+            page: "Message",
+            item: "ID"
+          }
+        }}
+      />
+    );
+  }
 }
 
 const styles = StyleSheet.create({
   backgroundColor: {
     backgroundColor: "lightgray"
   },
-  editInformation: {
+  settingsIcon: {
     position: "absolute",
-    top: 4,
-    right: 4
+    top: 8,
+    right: 8
   },
   profileInformation: {
     alignItems: "center",

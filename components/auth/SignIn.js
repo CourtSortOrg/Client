@@ -6,7 +6,6 @@ import {
   Keyboard,
   StatusBar,
   StyleSheet,
-  Text,
   TextInput,
   TouchableHighlight,
   TouchableOpacity,
@@ -17,12 +16,7 @@ import { Facebook, Google } from "expo";
 import { FontAwesome } from "@expo/vector-icons";
 import * as firebase from "firebase";
 
-import config from "../../config";
-
-//Only initialize the app config if there are no apps running
-if (!firebase.apps.length) {
-  firebase.initializeApp(config);
-}
+import Text from "../components/Text";
 
 export default class SignIn extends React.Component {
   constructor(props) {
@@ -32,26 +26,10 @@ export default class SignIn extends React.Component {
       password: ""
     };
 
-    //If the authentification state changes
-    firebase.auth().onAuthStateChanged(function(user) {
+    firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        console.log(user.uid);
-        console.log(user.displayName);
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              uid: user.uid,
-              name: user.displayName
-            })
-          }
-        ).then(data => console.log(data._bodyText));
-        props.navigation.navigate("Home");
+        console.log("Logged In");
+        this.props.navigation.navigate("Home");
       }
     });
   }
@@ -80,6 +58,7 @@ export default class SignIn extends React.Component {
   forgotPassword = () => {
     this.props.navigation.navigate("ResetPassword");
   };
+
   useAsGuest = () => {
     this.props.navigation.navigate("Home");
   };

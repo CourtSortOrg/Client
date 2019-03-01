@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View, TouchableOpacity, Image } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import Text from "../Nav/Text";
+import Text from "./Text";
 
 export default class ListElement extends React.Component {
   constructor(props) {
@@ -85,7 +85,7 @@ export default class ListElement extends React.Component {
                 rank={this.props.rank + 1}
                 expand={this.props.expand}
                 navigation={this.props.navigation}
-                renderElement={this.props.renderElement}
+                //renderElement={this.props.renderElement}
                 {...element}
                 {...this.props.subList}
               />

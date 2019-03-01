@@ -365,6 +365,73 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   response.send("Finished Population for "+date);
 });
 
+//add dietary restrictions to a user
+//Parameters: userHandle, dietaryRestriction
+exports.addDietaryRestriction = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var dietaryRestriction = request.body.dietaryRestriction;
+
+  //ensure proper parameters
+  if (userHandle == null || dietaryRestriction == null) {
+    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
+    response.send("error");
+  }
+  else {
+    db.collection("User").doc(userHandle).update({
+      dietaryRestrictions: admin.firestore.FieldValue.arrayUnion(dietaryRestriction)
+    })
+    .then(function() {
+      response.send("success");
+    })
+    .catch(function(error) {
+      response.send("error");
+    });
+  }
+});
+
+//get dietary restrictions of a user
+//Parameters: userHandle
+exports.getDietaryRestrictions = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  //ensure proper parameters
+  if (userHandle == null) {
+    response.send("error: incorrect parameters");
+  }
+  else {
+    db.collection("User").doc(userHandle).get().then(doc => {
+      response.send(doc.data().dietaryRestrictions);
+    })
+    .catch(err => {
+      console.log(err);
+      response.send("error");
+    })
+  }
+});
+
+//remove dietary restrictions from a user
+//Parameters: userHandle, dietaryRestriction
+exports.removeDietaryRestriction = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var dietaryRestriction = request.body.dietaryRestriction;
+
+  //ensure proper parameters
+  if (userHandle == null || dietaryRestriction == null) {
+    console.log("need to pass 'userHandle' and 'dietaryRestriction' in body");
+    response.send("error");
+  }
+  else {
+    db.collection("User").doc(userHandle).update({
+      dietaryRestrictions: admin.firestore.FieldValue.arrayRemove(dietaryRestriction)
+    })
+    .then(function() {
+      response.send("success");
+    })
+    .catch(function(error) {
+      response.send("error");
+    });
+  }
+});
 
 //add user to database
 //PARAMETERS: uid, userHandle, name
@@ -565,16 +632,16 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
 exports.getUserProfile = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
   console.log(userHandle);
-  getProfile(userHandle, response);
+  if (userHandle == null) {
+    response.send("Must pass userHandle in body of request");
+  }
+  else {
+    getProfile(userHandle, response);
+  }
 });
 
 //function to get user profile information
-function getProfile(userHandle, response) {
-  if (userHandle == null) {
-    response.send("Must pass userHandle in body of request");
-    return;
-  }
-
+function getProfile(name, response) {
   var userRef = db.collection("User").doc(userHandle);
   var getDoc = userRef.get()
   .then(doc => {
@@ -914,6 +981,34 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
   }).catch(function(error){
     console.error("Error getting list");
     response.send(error.message);
+  });
+});
+
+exports.setUserStatus = functions.http.onRequest((request, reponse) =>{
+  var name = request.body.name;
+  var status = request.body.name;
+
+  console.log(name);
+  console.log(status);
+
+  db.collection("User").doc(name).set({
+    status: status
+  }).then(function(){
+    console.log("Status updated.");
+  }).catch(function(error){
+    console.error("Error updating status: ", error);
+  });
+});
+
+exports.getUserStatus = functions.http.onRequest((request, response) => {
+  var name = request.body.name;
+
+  console.log(name);
+
+  db.collection("User").doc(name).get().then(doc => {
+    response.send(doc.data().status);
+  }).catch(function(error){
+    console.error("Error getting user status: ", error);
   });
 });
 

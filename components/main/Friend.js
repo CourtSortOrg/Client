@@ -3,66 +3,84 @@ import * as firebase from "firebase";
 import { View, Alert, TouchableOpacity } from "react-native";
 
 import Screen from "../Nav/Screen";
-import List from "./List";
-import Text from "../Nav/Text";
-import Card from "../Nav/Card";
-import Separator from "../Nav/Separator";
+import List from "../components/List";
+import Text from "../components/Text";
+import Card from "../components/Card";
+import Separator from "../components/Separator";
 
 export default class Friend extends React.Component {
   constructor(props) {
     super(props);
 
-    const user = firebase.auth().currentUser;
-
-    var userData = require("../../testData/userData.json");
-    var ratingData = require("../../testData/ratingData.json");
-    var friendData = require("../../testData/friendData.json");
-
-    var groupData = {
-      groups: [
-        {
-          Name: "Group1",
-          id: "1"
-        },
-        {
-          Name: "Group2",
-          id: "2"
-        },
-        {
-          Name: "Group3",
-          id: "3"
-        },
-        {
-          Name: "Group4",
-          id: "4"
-        },
-        {
-          Name: "Group5",
-          id: "5"
-        }
-      ]
-    };
-
-    let sharedGroups = [{ Name: "Shared Messages", groups: groupData.groups }]; //.filter(group => group.members.includes("USER") && group.members.includes(userData.name));
-
     this.state = {
-      uid: user.uid,
-      name: user.displayName,
-      currUser: user.displayName,
-      initials: userData.initials,
-      image: userData.image,
-      groups: sharedGroups,
-      status: "Not currently eating"
-    };
-  }
+      otherUser: {
+        id: this.props.navigation.getParam("ID", "NO-ID")
+      },
+      initials: "",
+      groups: [],
 
-  componentWillMount() {
-    this.setState({ otherUid: this.props.navigation.getParam("ID", "NO-ID") });
+      ...this.props.screenProps.user
+    };
   }
 
   componentDidMount() {
+    this.props.screenProps.functions.fetchUser(this.state.otherUser.id, data =>
+      this.setState({
+        otherUser: { ...this.state.otherUser, ...data }
+        //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
+      })
+    );
+  }
+
+  removeFriend() {
+    Alert.alert(
+      "Unfriend",
+      `You are about to unfriend ${
+        this.state.otherUser.name
+      }. You will remain in shared groups, but to make a new group with ${
+        this.state.otherUser.name
+      }, they will have to consent.`,
+      [
+        {
+          text: "Yes",
+          onPress: () => this.removeFriendFirebaseFunction()
+        },
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
+  blockUser() {
+    Alert.alert(
+      "Block",
+      `You are about to block ${
+        this.state.otherUser.name
+      }. You will be removed from shared groups, and ${
+        this.state.otherUser.name
+      } cannot send you any messages.`,
+      [
+        {
+          text: "Yes",
+          onPress: () => this.blockUserFirebaseFunction()
+        },
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
+  removeFriendFirebaseFunction() {
     fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFriend",
       {
         method: "POST",
         headers: {
@@ -70,96 +88,41 @@ export default class Friend extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.otherUid
+          name: this.state.id,
+          friendName: this.state.otherUser.id
         })
       }
-    ).then(data => {
-      this.setState({ ...JSON.parse(data._bodyText) });
-    });
+    )
+      .then(() => {
+        this.props.screenProps.functions.updateFriend(
+          this.state.otherUser.id,
+          false
+        );
+        this.props.navigation.goBack();
+      })
+      .catch(error => console.log(`removeFriendFirebaseFunction: ${error}`));
   }
 
-  unFriend() {
-    Alert.alert(
-      "Unfriend",
-      `You are about to unfriend ${
-        this.state.name
-      }. You will remain in shared groups, but to make a new group with ${
-        this.state.name
-      }, they will have to consent.`,
-      [
-        {
-          text: "Yes",
-          onPress: () => this.unFriendFirebaseFunction()
-        },
-        {
-          text: "No",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel"
-        }
-      ],
-      { cancelable: false }
-    );
-  }
-
-  block() {
-    Alert.alert(
-      "Block",
-      `You are about to block ${
-        this.state.name
-      }. You will be removed from shared groups, and ${
-        this.state.name
-      } cannot send you any messages.`,
-      [
-        {
-          text: "Yes",
-          onPress: () => this.blockFirebaseFunction()
-        },
-        {
-          text: "No",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel"
-        }
-      ],
-      { cancelable: false }
-    );
-  }
-
-  unFriendFirebaseFunction() {
-    console.log("Unfriend");
-    console.log(this.state.name);
-    console.log(this.state.otherUid);
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/removeFriend", {
+  blockUserFirebaseFunction() {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/blockUser", {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: this.state.currUser,
-        friendName: this.state.otherUid
+        name: this.state.id,
+        blockedName: this.state.otherUser.id
       })
-    }).then(data => console.log(data._bodyText)).then(() => this.props.navigation.goBack());
-
-    //TODO: success or error.
-  }
-
-  blockFirebaseFunction() {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/blockUser",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: this.state.currUser,
-          blockedName: this.state.otherUid
-        })
-      }
-    ).then(data => console.log(data)).then(() => this.props.navigation.goBack());
-
-    //TODO: success or error.
+    })
+      .then(() => {
+        this.props.screenProps.functions.updateFriend(
+          this.state.otherUser.id,
+          false
+        );
+        this.props.navigation.goBack();
+      })
+      .catch(error => console.log(`blockUserFirebaseFunction: ${error}`));
   }
 
   render() {
@@ -170,14 +133,14 @@ export default class Friend extends React.Component {
         backButton={true}
       >
         <Card
-          header={this.state.name}
+          header={this.state.otherUser.name}
           footer={[
-            { text: "Unfriend", onPress: () => this.unFriend() },
-            { text: "Block", onPress: () => this.block() }
+            { text: "Unfriend", onPress: () => this.removeFriend() },
+            { text: "Block", onPress: () => this.blockUser() }
           ]}
         >
           <Text type="subHeader" style={{ padding: 8 }}>
-            Status: {this.state.status}
+            Status: {this.state.otherUser.status}
           </Text>
           <Separator />
           <List
