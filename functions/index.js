@@ -896,6 +896,34 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
   });
 });
 
+exports.setUserStatus = functions.http.onRequest((request, reponse) =>{
+  var name = request.body.name;
+  var status = request.body.name;
+
+  console.log(name);
+  console.log(status);
+
+  db.collection("User").doc(name).set({
+    status: status
+  }).then(function(){
+    console.log("Status updated.");
+  }).catch(function(error){
+    console.error("Error updating status: ", error);
+  });
+});
+
+exports.getUserStatus = functions.http.onRequest((request, response) => {
+  var name = request.body.name;
+
+  console.log(name);
+
+  db.collection("User").doc(name).get().then(doc => {
+    response.send(doc.data().status);
+  }).catch(function(error){
+    console.error("Error getting user status: ", error);
+  });
+});
+
 //PARAMETERS: userHandle, groupName
 exports.createGroup = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
@@ -1176,7 +1204,7 @@ exports.deleteGroup = functions.https.onRequest(async (request, response) => {
         response.send(error.message);
       });
     }
-  
+
     //delete the document for the group
     groupDoc.delete().then(function() {
       response.send("success");
