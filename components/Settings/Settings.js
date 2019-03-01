@@ -59,10 +59,31 @@ export default class Settings extends React.Component {
                       "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                      name: this.state.id
+                      userHandle: this.state.id
                     })
                   }
-                ).then(data => console.log(data._bodyText));
+                )
+                  .then(data => {
+                    try {
+                      JSON.parse(data._bodyText);
+                      console.log(
+                        `deleteAccount: removeFromAllFriends: Successful: ${
+                          data._bodyText
+                        }`
+                      );
+                    } catch (error) {
+                      console.error(
+                        `deleteAccount: removeFromAllFriends: ${error}: ${
+                          data._bodyText
+                        }`
+                      );
+                    }
+                  })
+                  .catch(error =>
+                    console.error(
+                      `deleteAccount: removeFromAllFriends: ${error}`
+                    )
+                  );
                 fetch(
                   "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
                   {
@@ -72,10 +93,31 @@ export default class Settings extends React.Component {
                       "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                      name: this.state.id
+                      userHandle: this.state.id
                     })
                   }
-                ).then(data => console.log(data._bodyText));
+                )
+                  .then(data => {
+                    try {
+                      JSON.parse(data._bodyText);
+                      console.log(
+                        `deleteAccount: removeUserFromDatabase: Successful: ${
+                          data._bodyText
+                        }`
+                      );
+                    } catch (error) {
+                      console.error(
+                        `deleteAccount: removeUserFromDatabase: ${error}: ${
+                          data._bodyText
+                        }`
+                      );
+                    }
+                  })
+                  .catch(error =>
+                    console.error(
+                      `deleteAccount: removeUserFromDatabase: ${error}`
+                    )
+                  );
                 //navigate to SignIn Screen
                 this.props.screenProps.functions.updateUser();
                 this.props.navigation.navigate("Auth");

@@ -62,7 +62,21 @@ export default class CreateAccount extends React.Component {
               name: this.state.name
             })
           }
-        );
+        )
+          .then(data => {
+            try {
+              JSON.parse(data._bodyText);
+            } catch (error) {
+              console.error(
+                `createAccount: addUserToDatabase: ${error}: ${data._bodyText}`
+              );
+            }
+          })
+          .catch(error =>
+            console.error(
+              `createAccount: addUserToDatabase: ${error}: ${data._bodyText}`
+            )
+          );
 
         user
           .updateProfile({
