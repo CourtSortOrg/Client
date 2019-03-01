@@ -194,11 +194,13 @@ export default class App extends React.Component {
       const value = await AsyncStorage.getItem("userHandle");
       if (value !== null) {
         this.setState({
-          user: { ...user, userHandle: value },
-          userHandleLoaded: true
+          user: { ...user, userHandle: value }
         });
         console.log(`componentDidMount: AsyncStorage.getItem ${value}`);
       }
+      this.setState({
+        userHandleLoaded: true
+      });
     } catch (error) {
       console.error(`componentDidMount: AsyncStorage.getItem: ${error}`);
       this.setState({
@@ -223,29 +225,22 @@ export default class App extends React.Component {
     this.setState({ fontLoaded: true });
   };
 
-  updateUser = () => {
+  updateUser = callback => {
     firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        console.log(user);
-        this.setState({
-          user: {
-            displayName: user.displayName,
-            email: user.email,
-            emailVerified: user.emailVerified,
-            phoneNumber: user.phoneNumber,
-            photoURL: user.photoURL,
-            providerData: user.providerData,
-            uid: user.uid,
-            isAnonymous: user.isAnonymous
-          }
-        });
-
-        if (this.state.user.userHandle == undefined) {
+      try {
+        if (user && this.state.user.userHandle) {
           this.setState(
             {
               user: {
                 ...this.state.user,
-                userHandle: user.displayName
+                displayName: user.displayName,
+                email: user.email,
+                emailVerified: user.emailVerified,
+                phoneNumber: user.phoneNumber,
+                photoURL: user.photoURL,
+                providerData: user.providerData,
+                uid: user.uid,
+                isAnonymous: user.isAnonymous
               }
             },
             () => {
@@ -258,8 +253,9 @@ export default class App extends React.Component {
                     "Content-Type": "application/json"
                   },
                   body: JSON.stringify({
+                    userHandle: this.state.user.userHandle,
                     uid: this.state.user.uid,
-                    userHandle: this.state.user.userHandle
+                    name: this.state.user.name
                   })
                 }
               )
@@ -278,16 +274,22 @@ export default class App extends React.Component {
                 })
                 .catch(error => console.error(`updateUser: ${error}`));
 
-              this.updateProfile(() => {
-                this.updateFriends();
-                this.updateGroups();
-              });
-
-              this.setState({ firebaseLoaded: true });
+              this.updateProfile(() =>
+                this.updateFriends(() =>
+                  this.updateGroups(() =>
+                    this.setState({ firebaseLoaded: true }, callback)
+                  )
+                )
+              );
             }
           );
+        } else {
+          this.setState({
+            user: undefined,
+            firebaseLoaded: true
+          });
         }
-      } else {
+      } catch (error) {
         this.setState({
           user: undefined,
           firebaseLoaded: true
@@ -310,17 +312,23 @@ export default class App extends React.Component {
   updateFriends = callback => {
     this.fetchFriends(this.state.user.id, data => {
       //data.forEach(friend => this.updateFriend(friend, true));
-      this.setState({
-        user: { ...this.state.user, friends: data.slice() }
-      }, callback);
+      this.setState(
+        {
+          user: { ...this.state.user, friends: data.slice() }
+        },
+        callback
+      );
     });
   };
 
   updateGroups = callback => {
     this.fetchGroups(this.state.user.id, data => {
-      this.setState({
-        user: { ...this.state.user, groups: data.slice() }
-      }, callback);
+      this.setState(
+        {
+          user: { ...this.state.user, groups: data.slice() }
+        },
+        callback
+      );
     });
   };
 
@@ -512,6 +520,7 @@ export default class App extends React.Component {
       this.state.firebaseLoaded &&
       this.state.userHandleLoaded
     ) {
+      console.log(`user: ${this.state.user}`);
       return (
         <Navigation
           screenProps={{
@@ -520,7 +529,7 @@ export default class App extends React.Component {
               updateUser: this.updateUser,
               updateFriend: this.updateFriend,
               updateGroup: this.updateGroup,
-              getUserLogin: this.getUserLogin
+              getUserHandle: this.getUserHandle
             },
             user: this.state.user,
             meals: this.state.meals

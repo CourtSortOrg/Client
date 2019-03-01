@@ -71,7 +71,7 @@ export default class Profile extends React.Component {
             })
           }
         )
-          .then(data => console.log(data._bodyText))
+          .then(data => console.log(`deleteAccount: removeFromAllFriends Successful: ${data._bodyText}`))
           .catch(error =>
             console.error(`deleteAccount: removeFromAllFriends: ${error}`)
           );

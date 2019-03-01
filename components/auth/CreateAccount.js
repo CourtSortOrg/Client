@@ -43,13 +43,13 @@ export default class CreateAccount extends React.Component {
         this.state.password
     );
     Keyboard.dismiss();
-    var email = this.state.email;
-    var password = this.state.password;
+    let email = this.state.email;
+    let password = this.state.password;
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
-      .then(user => {
-        var user = firebase.auth().currentUser;
+      .then(() => {
+        let user = firebase.auth().currentUser;
         fetch(
           "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
           {
@@ -81,7 +81,7 @@ export default class CreateAccount extends React.Component {
           );
 
         this.props.screenProps.functions.getUserHandle(this.state.userHandle);
-        
+
         user
           .updateProfile({
             displayName: this.state.name,

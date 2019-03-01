@@ -27,10 +27,9 @@ export default class SignIn extends React.Component {
     };
 
     firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        console.log("Logged In");
-        this.props.navigation.navigate("Home");
-      }
+      this.props.screenProps.functions.updateUser(() =>
+        this.props.navigation.navigate("Home")
+      );
     });
   }
 
