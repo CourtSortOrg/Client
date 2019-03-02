@@ -65,7 +65,7 @@ export default class SearchList extends React.Component {
               style={{padding: 8}}
               onPress={() => this.props.extendedSearch(this.state.text)}
             >
-              <AntDesign name="adduser" size={32} />
+              <AntDesign name="plussquareo" size={32} />
             </TouchableOpacity>
           )}
         </View>
