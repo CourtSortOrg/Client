@@ -486,7 +486,7 @@ export default class App extends React.Component {
     date.setDate(date.getDate() + from);
     const dateStr = `${date.getFullYear()}-${
       date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
-    }-${date.getDate()}`;
+    }-${date.getDate() < 10 ? `0${date.getDate()}` : date.getDate()}`;
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
       {
