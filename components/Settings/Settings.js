@@ -7,6 +7,9 @@ import * as firebase from "firebase";
 export default class Settings extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      ...this.props.screenProps.user
+    };
   }
 
   signOut = () => {
@@ -14,19 +17,20 @@ export default class Settings extends React.Component {
       .auth()
       .signOut()
       .then(() => {
-        this.props.screenProps.functions.updateUser();
-        this.props.navigation.navigate("Auth");
+        this.props.screenProps.functions.updateUser(undefined, () =>
+          this.props.navigation.navigate("Auth")
+        );
       })
       .catch(error => {
         alert(error.message);
-        this.props.screenProps.functions.updateUser();
+        this.props.screenProps.functions.updateUser(undefined);
       });
   };
 
   deleteAccount = () => {
     // Use different Vibration schemes depending on the platform
     const pattern = Platform.IOS ? [0] : [0, 500];
-    // Vibrate to 
+    // Vibrate to
     Vibration.vibrate(pattern);
 
     Alert.alert(
@@ -38,55 +42,98 @@ export default class Settings extends React.Component {
           onPress: () => console.log("Cancel Pressed"),
           style: "cancel"
         },
-        { text: "Confirm", onPress: () => console.log("OK Pressed") }
-      ],
-      { cancelable: false }
+        {
+          text: "Confirm",
+          onPress: () => {
+            user = firebase.auth().currentUser;
+            //get list of friends
+            //get list of individual ratings
+            user
+              .delete()
+              .then(() => {
+                fetch(
+                  "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
+                  {
+                    method: "POST",
+                    headers: {
+                      Accept: "application/json",
+                      "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                      userHandle: this.state.id
+                    })
+                  }
+                )
+                  .then(data => {
+                    try {
+                      //JSON.parse(data._bodyText);
+                      console.log(
+                        `deleteAccount: removeFromAllFriends: Successful: ${
+                          data._bodyText
+                        }`
+                      );
+                    } catch (error) {
+                      console.error(
+                        `deleteAccount: removeFromAllFriends: ${error}: ${
+                          data._bodyText
+                        }`
+                      );
+                    }
+                  })
+                  .catch(error =>
+                    console.error(
+                      `deleteAccount: removeFromAllFriends: ${error}`
+                    )
+                  );
+                fetch(
+                  "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
+                  {
+                    method: "POST",
+                    headers: {
+                      Accept: "application/json",
+                      "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                      userHandle: this.state.id
+                    })
+                  }
+                )
+                  .then(data => {
+                    try {
+                      //JSON.parse(data._bodyText);
+                      console.log(
+                        `deleteAccount: removeUserFromDatabase: Successful: ${
+                          data._bodyText
+                        }`
+                      );
+                    } catch (error) {
+                      console.error(
+                        `deleteAccount: removeUserFromDatabase: ${error}: ${
+                          data._bodyText
+                        }`
+                      );
+                    }
+                  })
+                  .catch(error =>
+                    console.error(
+                      `deleteAccount: removeUserFromDatabase: ${error}`
+                    )
+                  );
+                //navigate to SignIn Screen
+                this.props.screenProps.functions.updateUser(undefined, () =>
+                  this.props.navigation.navigate("Auth")
+                );
+              })
+              .catch(function(error) {
+                alert("Firebase Delete User: " + error.message);
+                this.props.screenProps.functions.updateUser(undefined, () =>
+                  this.props.navigation.navigate("Auth")
+                );
+              });
+          }
+        }
+      ]
     );
-  };
-
-  tempdeleteAccount = () => {
-    //TODO: Delete user's ratings
-    //TODO: Remove user from all groups
-    user = firebase.auth().currentUser;
-    //get list of friends
-    //get list of individual ratings
-    user
-      .delete()
-      .then(() => {
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.state.id
-            })
-          }
-        ).then(data => console.log(data._bodyText));
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.state.id
-            })
-          }
-        ).then(data => console.log(data._bodyText));
-        //navigate to SignIn Screen
-        this.props.screenProps.functions.updateUser();
-        this.props.navigation.navigate("Auth");
-      })
-      .catch(function(error) {
-        alert("ERROR: " + error.message);
-        this.props.screenProps.functions.updateUser();
-      });
   };
 
   render() {

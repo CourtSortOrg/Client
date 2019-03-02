@@ -28,29 +28,35 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.id
+          userHandle: this.state.id
         })
       }
     )
       .then(data => {
-        const arr = this.state.notifications.slice();
-        const items = [...JSON.parse(data._bodyText)].map(item => {
-          return { Name: item, onPress: () => this.friendAlert(item) };
-        });
-
-        if (items.length != 0) {
-          arr.push({
-            Name: "Friend Requests",
-            items: items
+        try {
+          const arr = this.state.notifications.slice();
+          const items = [...JSON.parse(data._bodyText)].map(item => {
+            return { Name: item, onPress: () => this.friendAlert(item) };
           });
 
-          this.setState({
-            notifications: arr,
-            loadingFriends: false
-          });
+          if (items.length != 0) {
+            arr.push({
+              Name: "Friend Requests",
+              items: items
+            });
+
+            this.setState({
+              notifications: arr,
+              loadingFriends: false
+            });
+          }
+        } catch (error) {
+          console.error(
+            `getIncomingFriendRequests: ${error}: ${data._bodyText}`
+          );
         }
       })
-      .catch(error => `getIncomingFriendRequests: ${error}`);
+      .catch(error => console.error(`getIncomingFriendRequests: ${error}`));
   };
 
   getGroupInvites = () => {
@@ -68,23 +74,27 @@ export default class Notifications extends React.Component {
       }
     )
       .then(data => {
-        const arr = this.state.notifications.slice();
-        const items = [...JSON.parse(data._bodyText)].map(item => {
-          return { Name: item, onPress: () => this.groupAlert(item) };
-        });
-        if (items.length != 0) {
-          arr.push({
-            Name: "Group Invites",
-            items: items
+        try {
+          const arr = this.state.notifications.slice();
+          const items = [...JSON.parse(data._bodyText)].map(item => {
+            return { Name: item, onPress: () => this.groupAlert(item) };
           });
+          if (items.length != 0) {
+            arr.push({
+              Name: "Group Invites",
+              items: items
+            });
 
-          this.setState({
-            notifications: arr,
-            loadingGroups: false
-          });
+            this.setState({
+              notifications: arr,
+              loadingGroups: false
+            });
+          }
+        } catch (error) {
+          console.error(`getGroupInvites: ${error}: ${data._bodyText}`);
         }
       })
-      .catch(error => `getGroupInvites: ${error}`);
+      .catch(error => console.error(`getGroupInvites: ${error}`));
   };
 
   removeNotificationFriend = id => {
@@ -155,16 +165,21 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.id,
-          friendName: id
+          userHandle: this.state.id,
+          friendHandle: id
         })
       }
     )
       .then(data => {
-        this.removeNotificationFriend(id);
-        this.props.screenProps.functions.updateFriend(id, true);
+        try {
+          JSON.parse(data._bodyText);
+          this.removeNotificationFriend(id);
+          this.props.screenProps.functions.updateFriend(id, true);
+        } catch (error) {
+          console.error(`acceptFriendRequest: ${error}: ${data._bodyText}`);
+        }
       })
-      .catch(error => console.log(`acceptFriendRequest: ${error}`));
+      .catch(error => console.error(`acceptFriendRequest: ${error}`));
   };
 
   denyFriendRequest = id => {
@@ -177,15 +192,20 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.setState.id,
-          friendName: id
+          userHandle: this.setState.id,
+          friendHandle: id
         })
       }
     )
       .then(data => {
-        this.removeNotificationFriend(id);
+        try {
+          JSON.parse(data._bodyText);
+          this.removeNotificationFriend(id);
+        } catch (error) {
+          console.error(`denyFriendRequest: ${error}: ${data._bodyText}`);
+        }
       })
-      .catch(error => console.log(`denyFriendRequest: ${error}`));
+      .catch(error => console.error(`denyFriendRequest: ${error}`));
   };
 
   acceptGroupInvitation = id => {
@@ -204,11 +224,15 @@ export default class Notifications extends React.Component {
       }
     )
       .then(data => {
-        console.log(data);
-        this.removeNotificationGroup(id);
-        this.props.screenProps.functions.updateGroup(id, true);
+        try {
+          JSON.parse(data._bodyText);
+          this.removeNotificationGroup(id);
+          this.props.screenProps.functions.updateGroup(id, true);
+        } catch (error) {
+          console.error(`acceptGroupInvitation: ${error}: ${data._bodyText}`);
+        }
       })
-      .catch(error => console.log(`acceptGroupInvitation: ${error}`));
+      .catch(error => console.error(`acceptGroupInvitation: ${error}`));
   };
 
   denyGroupInvitation = id => {
@@ -227,9 +251,14 @@ export default class Notifications extends React.Component {
       }
     )
       .then(data => {
-        this.removeNotificationGroup(id);
+        try {
+          JSON.parse(data._bodyText);
+          this.removeNotificationGroup(id);
+        } catch (error) {
+          console.error(`denyGroupInvitation: ${error}: ${data._bodyText}`);
+        }
       })
-      .catch(error => console.log(`denyGroupInvitation: ${error}`));
+      .catch(error => console.error(`denyGroupInvitation: ${error}`));
   };
 
   componentDidMount() {
