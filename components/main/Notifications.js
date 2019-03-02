@@ -44,12 +44,13 @@ export default class Notifications extends React.Component {
               Name: "Friend Requests",
               items: items
             });
-
             this.setState({
-              notifications: arr,
-              loadingFriends: false
+              notifications: arr
             });
           }
+          this.setState({
+            loadingFriends: false
+          });
         } catch (error) {
           console.error(
             `getIncomingFriendRequests: ${error}: ${data._bodyText}`
@@ -86,10 +87,13 @@ export default class Notifications extends React.Component {
             });
 
             this.setState({
-              notifications: arr,
-              loadingGroups: false
+              notifications: arr
             });
           }
+          
+          this.setState({
+            loadingGroups: false
+          });
         } catch (error) {
           console.error(`getGroupInvites: ${error}: ${data._bodyText}`);
         }
