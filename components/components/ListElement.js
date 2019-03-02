@@ -27,12 +27,13 @@ export default class ListElement extends React.Component {
   expandable = () => {
     return (
       <View style={{ ...this.styles.listElement, ...this.styles.expandable }}>
-        <View style={this.styles.expandableHeader}>
-          <TouchableOpacity onPress={() => this.toggleExpansion()}>
-            <Text type="header">{this.props.Name}</Text>
-          </TouchableOpacity>
-            {this.viewMore()}
-        </View>
+        <TouchableOpacity
+          style={this.styles.expandableHeader}
+          onPress={() => this.toggleExpansion()}
+        >
+          <Text type="header">{this.props.Name}</Text>
+          {this.viewMore()}
+        </TouchableOpacity>
         {this.subList()}
       </View>
     );
@@ -71,8 +72,7 @@ export default class ListElement extends React.Component {
   subList = () => {
     if (this.props.subList) {
       let list = this.props[this.props.subList.list];
-      if (this.props.subList.extend)
-        list = list[0][this.props.subList.extend]
+      if (this.props.subList.extend) list = list[0][this.props.subList.extend];
       return (
         <View
           style={this.state.expand ? this.styles.subList : { display: "none" }}
