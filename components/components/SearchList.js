@@ -98,7 +98,8 @@ export default class SearchList extends React.Component {
         {this.state.list.length != 0 ? (
           <List
             navigation={this.props.navigation}
-            {...this.state.list}
+            {...this.props.list}
+            list={this.state.list}
             expand={this.state.text.length != 0}
             selectFunction={this.toggleSelected}
           />
