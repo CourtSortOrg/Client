@@ -44,7 +44,7 @@ export default class SignIn extends React.Component {
       .then(() => {
         //If they successfully signed in, navigate to the home screen
         //this.props.navigation.navigate("Home");
-        this.props.screenProps.functions.updateUser(() =>
+        this.props.screenProps.functions.updateUser(firebase.auth().currentUser, () =>
           this.props.navigation.navigate("Home")
         );
       })

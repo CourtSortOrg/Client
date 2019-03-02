@@ -38,6 +38,12 @@ export default class Profile extends React.Component {
     }
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+    }
+  }
+
   // Method to change the currently selected index of the button group
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
@@ -48,72 +54,20 @@ export default class Profile extends React.Component {
     return expr ? comp1 : comp2;
   };
 
-  deleteAccount = () => {
-    //TODO: Delete user's ratings
-    //TODO: Remove user from all groups
-
-    user = firebase.auth().currentUser;
-    //get list of friends
-    //get list of individual ratings
-    user
-      .delete()
-      .then(() => {
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              userHandle: this.props.screenProps.user.id
-            })
-          }
-        )
-          .then(data => console.log(`deleteAccount: removeFromAllFriends Successful: ${data._bodyText}`))
-          .catch(error =>
-            console.error(`deleteAccount: removeFromAllFriends: ${error}`)
-          );
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              userHandle: this.props.screenProps.user.id
-            })
-          }
-        )
-          .then(data =>
-            console.log(
-              `deleteAccount: removeUserFromDatabase: Successful ${
-                data._bodyText
-              }`
-            )
-          )
-          .catch(error =>
-            console.error(`deleteAccount: removeUserFromDatabase: ${error}`)
-          );
-        //navigate to SignIn Screen
-        this.props.screenProps.functions.updateUser();
-        this.props.navigation.navigate("Auth");
-        this.setState({ isEditing: false });
-      })
-      .catch(function(error) {
-        alert("ERROR: " + error.message);
-        this.props.screenProps.functions.updateUser();
-      });
-  };
-
   render() {
     // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
     // Retrieve user data from state
     const { friends, groups, ratings, selectedIndex } = this.state;
+
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+      return (
+        <View>
+          <Text>Navigation</Text>
+        </View>
+      );
+    }
 
     return (
       <Screen

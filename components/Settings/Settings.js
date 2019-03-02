@@ -17,12 +17,13 @@ export default class Settings extends React.Component {
       .auth()
       .signOut()
       .then(() => {
-        this.props.screenProps.functions.updateUser();
-        this.props.navigation.navigate("Auth");
+        this.props.screenProps.functions.updateUser(undefined, () =>
+          this.props.navigation.navigate("Auth")
+        );
       })
       .catch(error => {
         alert(error.message);
-        this.props.screenProps.functions.updateUser();
+        this.props.screenProps.functions.updateUser(undefined);
       });
   };
 
@@ -65,7 +66,7 @@ export default class Settings extends React.Component {
                 )
                   .then(data => {
                     try {
-                      JSON.parse(data._bodyText);
+                      //JSON.parse(data._bodyText);
                       console.log(
                         `deleteAccount: removeFromAllFriends: Successful: ${
                           data._bodyText
@@ -99,7 +100,7 @@ export default class Settings extends React.Component {
                 )
                   .then(data => {
                     try {
-                      JSON.parse(data._bodyText);
+                      //JSON.parse(data._bodyText);
                       console.log(
                         `deleteAccount: removeUserFromDatabase: Successful: ${
                           data._bodyText
@@ -119,12 +120,15 @@ export default class Settings extends React.Component {
                     )
                   );
                 //navigate to SignIn Screen
-                this.props.screenProps.functions.updateUser();
-                this.props.navigation.navigate("Auth");
+                this.props.screenProps.functions.updateUser(undefined, () =>
+                  this.props.navigation.navigate("Auth")
+                );
               })
               .catch(function(error) {
                 alert("Firebase Delete User: " + error.message);
-                this.props.screenProps.functions.updateUser();
+                this.props.screenProps.functions.updateUser(undefined, () =>
+                  this.props.navigation.navigate("Auth")
+                );
               });
           }
         }

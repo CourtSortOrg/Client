@@ -79,7 +79,6 @@ const SettingsNavigation = createStackNavigator(
     }
   },
   {
-    initialRouteName: "Profile",
     headerMode: "none"
   }
 );
@@ -97,7 +96,6 @@ const GroupNavigation = createSwitchNavigator(
     }
   },
   {
-    initialRouteName: "Group",
     headerMode: "none"
   }
 );
@@ -230,6 +228,7 @@ export default class App extends React.Component {
 
   updateUser = (user, callback) => {
     try {
+      console.log(this.state.user);
       if (user && this.state.user.userHandle) {
         this.setState(
           {
@@ -247,7 +246,6 @@ export default class App extends React.Component {
             }
           },
           () => {
-            console.log(this.state.user);
             fetch(
               "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
               {
@@ -266,6 +264,7 @@ export default class App extends React.Component {
               .then(data => {
                 try {
                   //JSON.parse(data._bodyText);
+                  console.log("running");
                   this.updateProfile(() =>
                     this.updateFriends(() =>
                       this.updateGroups(() => {
@@ -288,12 +287,14 @@ export default class App extends React.Component {
           }
         );
       } else {
+        this._storeData("user", "");
         this.setState({
           user: undefined,
           firebaseLoaded: true
         });
       }
     } catch (error) {
+      this._storeData("user", "");
       this.setState({
         user: undefined,
         firebaseLoaded: true
