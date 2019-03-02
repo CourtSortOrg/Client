@@ -322,6 +322,9 @@ class GroupsList extends React.Component {
       <SearchList
         navigation={this.props.navigation}
         filterFunction={this.filterGroup}
+        extendedSearch={text =>
+          this.props.navigation.navigate("GroupRouter", { ID: text, create: true })
+        }
         list={{
           list: this.props.groups,
           type: "element",
