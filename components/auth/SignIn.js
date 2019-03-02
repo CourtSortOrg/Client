@@ -27,7 +27,7 @@ export default class SignIn extends React.Component {
     };
 
     firebase.auth().onAuthStateChanged(user => {
-      this.props.screenProps.functions.updateUser(() =>
+      this.props.screenProps.functions.updateUser(user, () =>
         this.props.navigation.navigate("Home")
       );
     });
@@ -43,7 +43,10 @@ export default class SignIn extends React.Component {
       .signInWithEmailAndPassword(this.state.email, this.state.password)
       .then(() => {
         //If they successfully signed in, navigate to the home screen
-        this.props.navigation.navigate("Home");
+        //this.props.navigation.navigate("Home");
+        this.props.screenProps.functions.updateUser(() =>
+          this.props.navigation.navigate("Home")
+        );
       })
       .catch(function(error) {
         alert(error.message);

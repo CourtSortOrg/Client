@@ -26,7 +26,7 @@ export default class CreateAccount extends React.Component {
 
   state = {
     name: "",
-    handle: "",
+    userHandle: "",
     email: "",
     password: "",
     isVegan: false,
@@ -48,8 +48,17 @@ export default class CreateAccount extends React.Component {
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        let user = firebase.auth().currentUser;
+      .then(user => {
+        user = firebase.auth().currentUser;
+        user
+          .updateProfile({
+            displayName: this.state.name,
+            userHandle: this.state.userHandle
+          })
+          .catch(function(error) {
+            console.error(`createAccount: updateProfile: ${error.message}`);
+          });
+
         fetch(
           "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
           {
@@ -60,14 +69,22 @@ export default class CreateAccount extends React.Component {
             },
             body: JSON.stringify({
               uid: user.uid,
-              userHandle: this.state.handle,
+              userHandle: this.state.userHandle,
               name: this.state.name
             })
           }
         )
           .then(data => {
             try {
-              JSON.parse(data._bodyText);
+              //JSON.parse(data._bodyText);
+
+              this.props.screenProps.functions.getUserHandle(
+                this.state.userHandle,
+                () =>
+                  this.props.screenProps.functions.updateUser(user, () =>
+                    this.props.navigation.navigate("Home")
+                  )
+              );
             } catch (error) {
               console.error(
                 `createAccount: addUserToDatabase: ${error}: ${data._bodyText}`
@@ -75,25 +92,8 @@ export default class CreateAccount extends React.Component {
             }
           })
           .catch(error =>
-            console.error(
-              `createAccount: addUserToDatabase: ${error}: ${data._bodyText}`
-            )
+            console.error(`createAccount: addUserToDatabase: ${error}`)
           );
-
-        this.props.screenProps.functions.getUserHandle(this.state.userHandle);
-
-        user
-          .updateProfile({
-            displayName: this.state.name,
-            userHandle: this.state.userHandle
-          })
-          .then(function() {
-            alert(user.displayName);
-          })
-          .catch(function(error) {
-            alert(error.message);
-          });
-        this.props.navigation.navigate("Home");
       })
       .catch(function(error) {
         var errorCode = error.code;
@@ -101,6 +101,7 @@ export default class CreateAccount extends React.Component {
         if (errorCode == "auth/weak-password") {
           Alert.alert("the password is too weak");
         } else {
+          //console.error(`createAccount: createUserWithEmailAndPassword: ${error.message}`);
           Alert.alert("Error", error.message);
         }
       });
@@ -144,7 +145,7 @@ export default class CreateAccount extends React.Component {
             autoCapitalize="none"
             blurOnSubmit={false}
             onSubmitEditing={() => {
-              this.handle.focus();
+              this.userHandle.focus();
             }}
             placeholder="Name"
             placeholderTextColor="#999"
@@ -161,11 +162,11 @@ export default class CreateAccount extends React.Component {
               this.email.focus();
             }}
             ref={input => {
-              this.handle = input;
+              this.userHandle = input;
             }}
             placeholder="Handle"
             placeholderTextColor="#999"
-            onChangeText={text => this.setState({ handle: text })}
+            onChangeText={text => this.setState({ userHandle: text })}
             returnKeyType={"next"}
             underlineColorAndroid="transparent"
           />
