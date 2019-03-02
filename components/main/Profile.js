@@ -141,12 +141,14 @@ export default class Profile extends React.Component {
             size={28}
             style={styles.settingsIcon}
           />
-
           <Icon
-            reverse
-            name = "status";
-            color= "#FF0000";
-            onPress{() => console.log("Press status button")}
+            raised
+            name = "status"
+            color = "#FF0000"
+            size = "15"
+            onPress={() => {
+              console.log("Press status button")
+            }}
           />
         </Card>
 
