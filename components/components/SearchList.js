@@ -14,7 +14,8 @@ export default class SearchList extends React.Component {
     this.state = {
       text: "",
       reset: this.props.reset || false,
-      list: JSON.parse(JSON.stringify(props.list.list))
+      list: JSON.parse(JSON.stringify(props.list.list)),
+      selected: []
     };
   }
 
@@ -46,10 +47,35 @@ export default class SearchList extends React.Component {
       });
   }
 
+  toggleSelected(item, nextSelectedState) {
+    // if selected
+    if (nextSelectedState) {
+      const arr = this.state.selected.slice();
+      arr.push(item);
+
+      this.setState({
+        selected: arr
+      });
+    } else {
+      const arr = this.state.selected.filter(i => i !== item);
+
+      this.setState({
+        selected: arr
+      });
+    }
+  }
+
   render() {
     return (
       <View style={{ flex: 1 }}>
-        <View style={{ flex: 1, flexDirection: "row", justifyContent: 'center', alignItems: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center"
+          }}
+        >
           <View style={{ flex: 1, flexGrow: 1 }}>
             <SearchBar
               lightTheme
@@ -62,7 +88,7 @@ export default class SearchList extends React.Component {
           </View>
           {this.props.extendedSearch != undefined && (
             <TouchableOpacity
-              style={{padding: 8}}
+              style={{ padding: 8 }}
               onPress={() => this.props.extendedSearch(this.state.text)}
             >
               <AntDesign name="plussquareo" size={32} />
@@ -72,16 +98,16 @@ export default class SearchList extends React.Component {
         {this.state.list.length != 0 ? (
           <List
             navigation={this.props.navigation}
+            {...this.state.list}
             expand={this.state.text.length != 0}
-            list={this.state.list}
-            type={this.props.list.type}
-            subList={this.props.list.subList}
-            viewMore={this.props.list.viewMore}
-            rank={this.props.list.rank}
-            renderElement={this.props.list.renderElement}
+            selectFunction={this.toggleSelected}
           />
         ) : (
-          <ListElement type={this.props.list.type} Name="No item found" />
+          <ListElement
+            type={this.props.list.type}
+            rank={1}
+            Name="No item found"
+          />
         )}
       </View>
     );

@@ -27,13 +27,18 @@ export default class List extends React.Component {
             key={index}
             id={index}
             {...element}
+
+            type={this.props.type}
+            subList={this.props.subList}
+
             viewMore={this.props.viewMore}
             rank={this.props.rank ? this.props.rank : 0}
             expand={this.props.expand}
             navigation={this.props.navigation}
             renderElement={this.props.renderElement}
-            type={this.props.type}
-            subList={this.props.subList}
+            onPress={this.props.onPress}
+            selectable={this.props.selectable}
+            selectFunction={this.props.selectFunction}
           />
         ))}
       </View>

@@ -9,7 +9,8 @@ export default class ListElement extends React.Component {
     super(props);
 
     this.state = {
-      expand: this.props.expand
+      expand: this.props.expand,
+      selected: false
     };
   }
 
@@ -29,7 +30,10 @@ export default class ListElement extends React.Component {
       <View style={{ ...this.styles.listElement, ...this.styles.expandable }}>
         <TouchableOpacity
           style={this.styles.expandableHeader}
-          onPress={() => this.toggleExpansion()}
+          onPress={() => {
+            if (this.props.onPress) this.props.onPress();
+            this.toggleExpansion();
+          }}
         >
           <Text type="header">{this.props.Name}</Text>
           {this.viewMore()}
@@ -44,7 +48,10 @@ export default class ListElement extends React.Component {
       <View style={{ ...this.styles.listElement, ...this.styles.dropDown }}>
         <TouchableOpacity
           style={this.styles.dropDownHeader}
-          onPress={() => this.toggleExpansion()}
+          onPress={() => {
+            if (this.props.onPress) this.props.onPress();
+            this.toggleExpansion();
+          }}
         >
           <View style={{ marginLeft: -12 }}>
             {this.state.expand ? (
@@ -85,8 +92,10 @@ export default class ListElement extends React.Component {
                 rank={this.props.rank + 1}
                 expand={this.props.expand}
                 navigation={this.props.navigation}
-                //renderElement={this.props.renderElement}
+                selectFunction={this.props.selectFunction}
+
                 {...element}
+
                 {...this.props.subList}
               />
             );
@@ -131,7 +140,17 @@ export default class ListElement extends React.Component {
       >
         <TouchableOpacity
           style={{ flex: 1 }}
-          onPress={() => this.props.viewMore && this.navigate()}
+          onPress={() => {
+            if (this.props.onPress) this.props.onPress();
+
+            if (this.props.selectable) {
+              this.props.selectFunction(this.props, !this.state.selected);
+              this.setState({
+                selected: !this.state.selected
+              });
+            }
+            else if (this.props.viewMore) this.navigate();
+          }}
         >
           {this.props.renderElement ? (
             this.props.renderElement(this.props)
@@ -147,7 +166,7 @@ export default class ListElement extends React.Component {
   render() {
     if (this.props.renderElement) {
       return (
-        <View>
+        <View style={selected && styles.selected}>
           {this.props.renderElement(this.props)}
           {this.subList()}
         </View>
@@ -155,11 +174,23 @@ export default class ListElement extends React.Component {
     } else if (this.props.type) {
       switch (this.props.type) {
         case "expandable":
-          return this.expandable();
+          return (
+            <View style={this.props.selected && styles.selected}>
+              {this.expandable()}
+            </View>
+          );
         case "dropDown":
-          return this.dropDown();
+          return (
+            <View style={this.props.selected && styles.selected}>
+              {this.dropDown()}
+            </View>
+          );
         case "element":
-          return this.element();
+          return (
+            <View style={this.props.selected && styles.selected}>
+              {this.element()}
+            </View>
+          );
       }
     }
     return (
@@ -201,6 +232,8 @@ export default class ListElement extends React.Component {
     elementShaded: {
       backgroundColor: "#ddd"
     },
-    subList: {}
+    selected: {
+      backgroundColor: "red"
+    }
   });
 }
