@@ -203,9 +203,6 @@ export default class App extends React.Component {
         this.setState({
           user: { ...this.state.user, ...JSON.parse(value) }
         });
-        console.log(
-          `componentDidMount: Success: AsyncStorage.getItem ${value}`
-        );
       }
       this.setState({
         userHandleLoaded: true
@@ -219,7 +216,7 @@ export default class App extends React.Component {
   };
 
   componentDidMount = async () => {
-    this._retrieveData();
+    await this._retrieveData();
     this.fetchMeals(0, 7);
     //this.updateUser();
     //If the authentification state changes
@@ -235,66 +232,81 @@ export default class App extends React.Component {
     this.setState({ fontLoaded: true });
   };
 
-  updateUser = (user, callback) => {
+  updateUser = async (user, callback) => {
     try {
-      console.log(this.state.user);
-      if (user && this.state.user.userHandle) {
-        this.setState(
+      if (user) {
+        await fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserHandle",
           {
-            user: {
-              ...this.state.user,
-              id: this.state.user.userHandle,
-              displayName: user.displayName,
-              email: user.email,
-              emailVerified: user.emailVerified,
-              phoneNumber: user.phoneNumber,
-              photoURL: user.photoURL,
-              providerData: user.providerData,
-              uid: user.uid,
-              isAnonymous: user.isAnonymous
-            }
-          },
-          () => {
-            fetch(
-              "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
-              {
-                method: "POST",
-                headers: {
-                  Accept: "application/json",
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  userHandle: this.state.user.userHandle,
-                  uid: this.state.user.uid,
-                  name: this.state.user.name
-                })
-              }
-            )
-              .then(data => {
-                try {
-                  //JSON.parse(data._bodyText);
-                  console.log("running");
-                  this.updateProfile(() =>
-                    this.updateFriends(() =>
-                      this.updateGroups(() => {
-                        console.log(this.state.user);
-                        this._storeData(
-                          `user`,
-                          JSON.stringify(this.state.user)
-                        );
-                        this.setState({ firebaseLoaded: true }, callback);
-                      })
-                    )
-                  );
-                } catch (error) {
-                  console.error(
-                    `updateUser: addUserToDatabase: ${error}: ${data._bodyText}`
-                  );
-                }
-              })
-              .catch(error => console.error(`updateUser: ${error}`));
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: user.uid
+            })
           }
-        );
+        )
+          .then(data => data.json())
+          .then(data => {
+            try {
+              this.setState({
+                user: { ...user, userHandle: data.userHandle }
+              });
+            } catch (error) {
+              console.error(`updateUser: getUserHandle: ${error}: ${data}`);
+            }
+          })
+          .catch(error => console.error(`updateUser: getUserHandle: ${error}`));
+
+        await this.setState({
+          user: {
+            ...this.state.user,
+            id: this.state.user.userHandle,
+            displayName: user.displayName,
+            email: user.email,
+            emailVerified: user.emailVerified,
+            phoneNumber: user.phoneNumber,
+            photoURL: user.photoURL,
+            providerData: user.providerData,
+            uid: user.uid,
+            isAnonymous: user.isAnonymous
+          }
+        });
+
+        await fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              userHandle: this.state.user.userHandle,
+              uid: this.state.user.uid,
+              name: this.state.user.name
+            })
+          }
+        )
+          .then(async data => {
+            try {
+              //JSON.parse(data._bodyText);
+              await this.updateProfile();
+              await this.updateFriends();
+              await this.updateGroups();
+
+              //console.log(this.state.user);
+              await this._storeData(`user`, JSON.stringify(this.state.user));
+              this.setState({ firebaseLoaded: true }, callback);
+            } catch (error) {
+              console.error(
+                `updateUser: addUserToDatabase: ${error}: ${data._bodyText}`
+              );
+            }
+          })
+          .catch(error => console.error(`updateUser: ${error}`));
       } else {
         this._storeData("user", "");
         this.setState({
@@ -311,7 +323,7 @@ export default class App extends React.Component {
     }
   };
 
-  updateProfile = callback => {
+  updateProfile = async callback => {
     this.fetchUser(this.state.user.userHandle, data => {
       this.setState(
         {
@@ -322,7 +334,7 @@ export default class App extends React.Component {
     });
   };
 
-  updateFriends = callback => {
+  updateFriends = async callback => {
     this.fetchFriends(this.state.user.id, data => {
       //data.forEach(friend => this.updateFriend(friend, true));
       this.setState(
@@ -334,7 +346,7 @@ export default class App extends React.Component {
     });
   };
 
-  updateGroups = callback => {
+  updateGroups = async callback => {
     this.fetchGroups(this.state.user.id, data => {
       this.setState(
         {
@@ -511,7 +523,6 @@ export default class App extends React.Component {
     )
       .then(data => {
         try {
-          console.log(data);
           const meals = this.state.meals.slice(0);
           meals.push(JSON.parse(data._bodyText));
           this.setState(
