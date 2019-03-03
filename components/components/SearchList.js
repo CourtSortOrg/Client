@@ -58,7 +58,7 @@ export default class SearchList extends React.Component {
         {
           selected: arr
         },
-        () => this.props.updateSelectedList(this.state.selected())
+        () => this.props.updateSelectedList(this.state.selected)
       );
     } else {
       const arr = this.state.selected.filter(i => i.id !== id);
@@ -67,7 +67,7 @@ export default class SearchList extends React.Component {
         {
           selected: arr
         },
-        () => this.props.updateSelectedList(this.state.selected())
+        () => this.props.updateSelectedList(this.state.selected)
       );
     }
   };
