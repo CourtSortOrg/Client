@@ -87,7 +87,7 @@ const SettingsNavigation = createStackNavigator(
 
 const GroupNavigation = createSwitchNavigator(
   {
-    Group: {
+    GroupPage: {
       screen: Group
     },
     GroupRouter: {
