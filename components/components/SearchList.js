@@ -43,7 +43,8 @@ export default class SearchList extends React.Component {
       this.setState({
         text: "",
         reset: this.props.reset,
-        list: JSON.parse(JSON.stringify(this.props.list.list))
+        list: JSON.parse(JSON.stringify(this.props.list.list)),
+        selected: []
       });
   }
 
