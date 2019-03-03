@@ -13,7 +13,7 @@ export default class GroupRouter extends React.Component {
         ID: id === "NO-ID" ? "" : id
       });
     else {
-      this.props.navigation.navigate("Group", {
+      this.props.navigation.navigate("GroupPage", {
         ID: id
       });
     }
