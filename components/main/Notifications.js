@@ -90,7 +90,7 @@ export default class Notifications extends React.Component {
               notifications: arr
             });
           }
-          
+
           this.setState({
             loadingGroups: false
           });
@@ -102,7 +102,7 @@ export default class Notifications extends React.Component {
   };
 
   removeNotificationFriend = id => {
-    let n = this.state.notifications.splice();
+    let n = this.state.notifications.slice();
     for (let i = 0; i < n.length; i++) {
       if (n[i].Name == "Friend Requests") {
         n[i].items = items.filter(req => req != id);
@@ -115,7 +115,7 @@ export default class Notifications extends React.Component {
   };
 
   removeNotificationGroup = id => {
-    let n = this.state.notifications.splice();
+    let n = this.state.notifications.slice();
     for (let i = 0; i < n.length; i++) {
       if (n[i].Name == "Group Invites") {
         n[i].items = items.filter(req => req != id);
