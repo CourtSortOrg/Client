@@ -89,7 +89,7 @@ export default class ListElement extends React.Component {
               <ListElement
                 key={index}
                 id={index}
-                rank={this.props.rank + 1}
+                rank={1/*this.props.rank + 1*/}
                 expand={this.props.expand}
                 navigation={this.props.navigation}
                 selectFunction={this.props.selectFunction}
@@ -137,7 +137,7 @@ export default class ListElement extends React.Component {
         }
       >
         <TouchableOpacity
-          style={{ flex: 1 }}
+          style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
           onPress={() => {
             if (this.props.onPress) this.props.onPress();
 
@@ -156,11 +156,17 @@ export default class ListElement extends React.Component {
             } else if (this.props.viewMore) this.navigate();
           }}
         >
-          {this.props.renderElement ? (
-            this.props.renderElement(this.props)
-          ) : (
-            <Text type="subHeader">{this.props.Name}</Text>
-          )}
+          {this.props.selectable == true &&
+            (this.state.selected == false ? (
+              <MaterialIcons
+                size={32}
+                name="check-box-outline-blank"
+                color="#E86515"
+              />
+            ) : (
+              <MaterialIcons size={32} name="check-box" color="#E86515" />
+            ))}
+          <Text type="subHeader">{this.props.Name}</Text>
         </TouchableOpacity>
         {this.viewMore()}
       </View>
@@ -170,13 +176,7 @@ export default class ListElement extends React.Component {
   render() {
     if (this.props.renderElement) {
       return (
-        <View
-          style={
-            this.props.selectable == true &&
-            this.state.selected &&
-            this.styles.selected
-          }
-        >
+        <View>
           {this.props.renderElement(this.props)}
           {this.subList()}
         </View>
@@ -184,41 +184,11 @@ export default class ListElement extends React.Component {
     } else if (this.props.type) {
       switch (this.props.type) {
         case "expandable":
-          return (
-            <View
-              style={
-                this.props.selectable == true &&
-                this.state.selected &&
-                this.styles.selected
-              }
-            >
-              {this.expandable()}
-            </View>
-          );
+          return <View>{this.expandable()}</View>;
         case "dropDown":
-          return (
-            <View
-              style={
-                this.props.selectable == true &&
-                this.state.selected &&
-                this.styles.selected
-              }
-            >
-              {this.dropDown()}
-            </View>
-          );
+          return <View>{this.dropDown()}</View>;
         case "element":
-          return (
-            <View
-              style={
-                this.props.selectable == true &&
-                this.state.selected &&
-                this.styles.selected
-              }
-            >
-              {this.element()}
-            </View>
-          );
+          return <View>{this.element()}</View>;
       }
     }
     return (
@@ -259,9 +229,6 @@ export default class ListElement extends React.Component {
     },
     elementShaded: {
       backgroundColor: "#ddd"
-    },
-    selected: {
-      backgroundColor: "red"
     }
   });
 }
