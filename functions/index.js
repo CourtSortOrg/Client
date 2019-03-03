@@ -446,12 +446,21 @@ exports.getUserHandle = functions.https.onRequest((request, response) => {
   }
   else {
     var userRef = db.collection("User");
-    var query = userRef.where("uid", "==", uid)
+    var query = userRef.where("uid", "==", uid).limit(1)
     .get()
     .then(function(querySnapshot) {
-      querySnapshot.forEach(function(doc) {
-        response.send(doc.data().userHandle);
-      });
+      if (querySnapshot.empty) {
+        response.send({
+          "error":"user does not exist in database"
+        });
+      }
+      else {
+        querySnapshot.forEach(function(doc) {
+          response.send({
+            "userHandle":doc.data().userHandle
+          });
+        });
+      }
     })
     .catch(function(error) {
       console.log(error);
