@@ -64,7 +64,7 @@ export default class Group extends React.Component {
         );
         this.props.navigation.goBack();
       })
-      .catch(error => console.log(`leaveGroupFirebaseFunction: ${error}`));
+      .catch(error => console.error(`leaveGroupFirebaseFunction: ${error}`));
   }
 
   render() {

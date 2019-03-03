@@ -4,6 +4,7 @@ import { Col, Row, Grid } from "react-native-easy-grid";
 
 import Screen from "../Nav/Screen";
 import Card from "../components/Card";
+import { ListItem } from "react-native-elements";
 
 const restrictions = [
   {
@@ -69,6 +70,59 @@ export default class EditProfile extends React.Component {
     this.state = { restrictions: restrictions };
   }
 
+  renderRestriction(data, index) {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.5}
+        style={{ alignItems: "center", marginVertical: 5 }}
+        onPress={() => {
+          this.state.restrictions[index].enabled = !this.state.restrictions[
+            index
+          ].enabled;
+          this.setState({ restrictions: this.state.restrictions });
+        }}
+      >
+        {data.enabled ? (
+          <Image
+            source={data.image}
+            style={{
+              width: 50,
+              height: 50,
+              resizeMode: "contain"
+            }}
+          />
+        ) : (
+          <View>
+            <Image
+              source={data.image}
+              style={{
+                width: 50,
+                height: 50,
+                resizeMode: "contain",
+                tintColor: "gray"
+              }}
+            />
+            <Image
+              source={data.image}
+              style={{
+                opacity: 0.3,
+                position: "absolute",
+                width: 50,
+                height: 50,
+                resizeMode: "contain"
+              }}
+            />
+          </View>
+        )}
+        {data.enabled ? (
+          <Text>{data.name}</Text>
+        ) : (
+          <Text style={{ color: "gray" }}>{data.name}</Text>
+        )}
+      </TouchableOpacity>
+    );
+  }
+
   render() {
     return (
       <Screen
@@ -76,61 +130,16 @@ export default class EditProfile extends React.Component {
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >
+        <Card header={"User Information"}>
+          <ListItem title={`Profile Name: ${this.props.screenProps.user.displayName}`} chevron/>
+          <ListItem title={`Profile Picture:`} chevron/>
+
+        </Card>
         <Card header={"Dietary Restrictions"}>
           <RestrictionGrid
             data={this.state.restrictions}
             colPattern={[3, 3, 3, 2]}
-            renderItem={(data, index) => {
-              return (
-                <TouchableOpacity
-                  activeOpacity={0.5}
-                  style={{ alignItems: "center", marginVertical: 5 }}
-                  onPress={() => {
-                    this.state.restrictions[index].enabled = !this.state
-                      .restrictions[index].enabled;
-                    this.setState({ restrictions: this.state.restrictions });
-                  }}
-                >
-                  {data.enabled ? (
-                    <Image
-                      source={data.image}
-                      style={{
-                        width: 50,
-                        height: 50,
-                        resizeMode: "contain"
-                      }}
-                    />
-                  ) : (
-                    <View>
-                      <Image
-                        source={data.image}
-                        style={{
-                          width: 50,
-                          height: 50,
-                          resizeMode: "contain",
-                          tintColor: "gray"
-                        }}
-                      />
-                      <Image
-                        source={data.image}
-                        style={{
-                          opacity: 0.3,
-                          position: "absolute",
-                          width: 50,
-                          height: 50,
-                          resizeMode: "contain"
-                        }}
-                      />
-                    </View>
-                  )}
-                  {data.enabled ? (
-                    <Text>{data.name}</Text>
-                  ) : (
-                    <Text style={{ color: "gray" }}>{data.name}</Text>
-                  )}
-                </TouchableOpacity>
-              );
-            }}
+            renderItem={this.renderRestriction}
           />
         </Card>
       </Screen>
