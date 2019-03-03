@@ -221,7 +221,6 @@ export default class Meals extends React.Component {
                 subList: {
                   list: "Items",
                   type: "element",
-                  selectable: true,
                   subList: false,
                   viewMore: {
                     page: "MealItem",
