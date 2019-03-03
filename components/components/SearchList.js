@@ -14,7 +14,8 @@ export default class SearchList extends React.Component {
     this.state = {
       text: "",
       reset: this.props.reset || false,
-      list: JSON.parse(JSON.stringify(props.list.list))
+      list: JSON.parse(JSON.stringify(props.list.list)),
+      selected: []
     };
   }
 
@@ -42,14 +43,46 @@ export default class SearchList extends React.Component {
       this.setState({
         text: "",
         reset: this.props.reset,
-        list: JSON.parse(JSON.stringify(this.props.list.list))
+        list: JSON.parse(JSON.stringify(this.props.list.list)),
+        selected: []
       });
   }
+
+  toggleSelected = (item, id, nextSelectedState) => {
+    // if selected
+    if (nextSelectedState) {
+      const arr = this.state.selected.slice();
+      arr.push({ item, id });
+
+      this.setState(
+        {
+          selected: arr
+        },
+        () => this.props.updateSelectedList(this.state.selected)
+      );
+    } else {
+      const arr = this.state.selected.filter(i => i.id !== id);
+
+      this.setState(
+        {
+          selected: arr
+        },
+        () => this.props.updateSelectedList(this.state.selected)
+      );
+    }
+  };
 
   render() {
     return (
       <View style={{ flex: 1 }}>
-        <View style={{ flex: 1, flexDirection: "row", justifyContent: 'center', alignItems: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center"
+          }}
+        >
           <View style={{ flex: 1, flexGrow: 1 }}>
             <SearchBar
               lightTheme
@@ -62,26 +95,27 @@ export default class SearchList extends React.Component {
           </View>
           {this.props.extendedSearch != undefined && (
             <TouchableOpacity
-              style={{padding: 8}}
+              style={{ padding: 8 }}
               onPress={() => this.props.extendedSearch(this.state.text)}
             >
-              <AntDesign name="adduser" size={32} />
+              <AntDesign name="plussquareo" size={32} />
             </TouchableOpacity>
           )}
         </View>
         {this.state.list.length != 0 ? (
           <List
             navigation={this.props.navigation}
-            expand={this.state.text.length != 0}
+            {...this.props.list}
             list={this.state.list}
-            type={this.props.list.type}
-            subList={this.props.list.subList}
-            viewMore={this.props.list.viewMore}
-            rank={this.props.list.rank}
-            renderElement={this.props.list.renderElement}
+            expand={this.state.text.length != 0}
+            selectFunction={this.toggleSelected}
           />
         ) : (
-          <ListElement type={this.props.list.type} Name="No item found" />
+          <ListElement
+            type={this.props.list.type}
+            rank={1}
+            Name="No item found"
+          />
         )}
       </View>
     );

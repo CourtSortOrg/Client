@@ -36,6 +36,8 @@ import EditProfile from "./components/Settings/EditProfile";
 import Group from "./components/Groups/Group";
 import GroupInvite from "./components/Groups/GroupInvite";
 import GroupSettings from "./components/Groups/GroupSettings";
+import GroupRouter from "./components/Groups/GroupRouter";
+import GroupCreate from "./components/Groups/GroupCreate";
 
 import * as firebase from "firebase";
 import config from "./config";
@@ -88,6 +90,12 @@ const GroupNavigation = createSwitchNavigator(
     Group: {
       screen: Group
     },
+    GroupRouter: {
+      screen: GroupRouter
+    },
+    GroupCreate: {
+      screen: GroupCreate
+    },
     GroupInvite: {
       screen: GroupInvite
     },
@@ -96,7 +104,8 @@ const GroupNavigation = createSwitchNavigator(
     }
   },
   {
-    headerMode: "none"
+    headerMode: "none",
+    initialRouteName: "GroupRouter"
   }
 );
 
@@ -211,7 +220,7 @@ export default class App extends React.Component {
 
   componentDidMount = async () => {
     this._retrieveData();
-    this.fetchMeals(0, 1);
+    this.fetchMeals(0, 7);
     //this.updateUser();
     //If the authentification state changes
     firebase.auth().onAuthStateChanged(user => this.updateUser(user));
@@ -486,7 +495,7 @@ export default class App extends React.Component {
     date.setDate(date.getDate() + from);
     const dateStr = `${date.getFullYear()}-${
       date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
-    }-${date.getDate()}`;
+    }-${date.getDate() < 10 ? `0${date.getDate()}` : date.getDate()}`;
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchDishes",
       {
@@ -502,6 +511,7 @@ export default class App extends React.Component {
     )
       .then(data => {
         try {
+          console.log(data);
           const meals = this.state.meals.slice(0);
           meals.push(JSON.parse(data._bodyText));
           this.setState(

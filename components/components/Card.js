@@ -3,6 +3,13 @@ import { View, TouchableOpacity, StyleSheet } from "react-native";
 
 import Text from "./Text";
 
+/*
+ Card expects:
+ header: string.
+ footer: string || array of button objects: { text, onPress }
+ nested elements
+ */
+
 export default class Card extends React.Component {
   render() {
     return (

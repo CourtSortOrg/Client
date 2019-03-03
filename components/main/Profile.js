@@ -10,6 +10,7 @@ import Text from "../components/Text";
 import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
+import ListElementProfile from "../components/ListElementProfile";
 
 export default class Profile extends React.Component {
   constructor(props) {
@@ -284,24 +285,7 @@ class FriendsList extends React.Component {
           type: "element",
           subList: false,
           rank: 1,
-          renderElement: item => {
-            return (
-              <ListItem
-                chevron
-                bottomDivider
-                // leftAvatar={{
-                //   source: { uri: item.image },
-                //   containerStyle: styles.friendPicture
-                // }}
-                // subtitle={`@${item.username}`}
-                title={item.Name}
-                onPress={() =>
-                  this.props.navigation.navigate("Friend", { ID: item.Name })
-                }
-                topDivider
-              />
-            );
-          },
+          renderElement: item => <ListElementProfile {...item} />,
           viewMore: {
             page: "Message",
             item: "ID"
@@ -322,6 +306,12 @@ class GroupsList extends React.Component {
       <SearchList
         navigation={this.props.navigation}
         filterFunction={this.filterGroup}
+        extendedSearch={text =>
+          this.props.navigation.navigate("GroupRouter", {
+            ID: text,
+            create: true
+          })
+        }
         list={{
           list: this.props.groups,
           type: "element",

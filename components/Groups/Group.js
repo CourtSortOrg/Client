@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text } from "react-native";
 
 import Screen from "../Nav/Screen";
+import Card from "../components/Card";
 
 export default class Group extends React.Component {
   constructor(props) {
