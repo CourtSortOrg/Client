@@ -433,6 +433,35 @@ exports.removeDietaryRestriction = functions.https.onRequest((request, response)
   }
 });
 
+//get a user handle from a uid
+//PARAMETERS: uid
+exports.getUserHandle = functions.https.onRequest((request, response) => {
+  var uid = request.body.uid;
+  console.log(uid);
+
+  if (uid == null) {
+    response.send({
+      "error":"uid not passed in"
+    });
+  }
+  else {
+    var userRef = db.collection("User");
+    var query = userRef.where("uid", "==", uid)
+    .get()
+    .then(function(querySnapshot) {
+      querySnapshot.forEach(function(doc) {
+        response.send(doc.data().userHandle);
+      });
+    })
+    .catch(function(error) {
+      console.log(error);
+      response.send({
+        "error":error
+      });
+    });
+  }
+});
+
 //add user to database
 //PARAMETERS: uid, userHandle, name
 exports.addUserToDatabase = functions.https.onRequest((request, response) => {
@@ -1062,7 +1091,7 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
   });
 });
 
-exports.setUserStatus = functions.http.onRequest((request, reponse) =>{
+/*exports.setUserStatus = functions.https.onRequest((request, reponse) =>{
   var name = request.body.name;
   var status = request.body.name;
 
@@ -1078,7 +1107,7 @@ exports.setUserStatus = functions.http.onRequest((request, reponse) =>{
   });
 });
 
-exports.getUserStatus = functions.http.onRequest((request, response) => {
+exports.getUserStatus = functions.https.onRequest((request, response) => {
   var name = request.body.name;
 
   console.log(name);
@@ -1088,7 +1117,7 @@ exports.getUserStatus = functions.http.onRequest((request, response) => {
   }).catch(function(error){
     console.error("Error getting user status: ", error);
   });
-});
+});*/
 
 //PARAMETERS: userHandle, groupName
 exports.createGroup = functions.https.onRequest((request, response) => {
