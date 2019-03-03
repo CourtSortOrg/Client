@@ -11,12 +11,9 @@ module.exports = {
     // PARAMETERS: (dish name, rating, userHandle)
     // adds a new rating
     setRating: async function(dish, rating, userHandle){
-        var ratingObj = {
-            rating: rating,
-            userHandle: userHandle
-        };
 
         var itemRef = db.collection('Dish').doc(dish);
+        var userRef = db.collection('User').doc(userHandle).collection('ItemRatings').doc(dish);
     
         var getItem = await itemRef.get().then(async doc => {
             if (!doc.exists) {
@@ -26,12 +23,10 @@ module.exports = {
                 var itemJSON = await doc.data();
                 await console.log(itemJSON);
                 if("ratings" in itemJSON){
-                    await itemRef.update({ ratings: admin.firestore.FieldValue.arrayUnion(ratingObj)});
-
                     var currScore = itemJSON['totalScore'];
                     if(currScore == undefined)
                         currScore = 0;
-                    await itemRef.update({ totalScore: Number(currScore) + Number(ratingObj['rating'])});
+                    await itemRef.update({ totalScore: Number(currScore) + Number(rating)});
 
                     var currVotes = itemJSON['totalVotes'];
                     if(currVotes == undefined)
@@ -39,13 +34,14 @@ module.exports = {
                     await itemRef.update({ totalVotes: currVotes + 1});
                 }
                 else{
-                    itemRef.update({ratings: [ratingObj]});
-                    itemRef.update({totalScore: ratingObj['rating']});
+                    itemRef.update({totalScore: rating});
                     itemRef.update({totalVotes: 1});
                 }
             }
         }).catch(err => {
             console.log('Error getting document', err);
         });
+        
+        await userRef.set({rating: rating});
     }
 }

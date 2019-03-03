@@ -389,7 +389,7 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
       allCourts['Courts'].push({Name: menuJSON['Location'], Meals: meals});
     }
     console.log(date);
-    db.collection("DateDishes").doc(date).set(allCourts);
+    await db.collection("DateDishes").doc(date).set(allCourts);
   }
 
   var data = []
