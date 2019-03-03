@@ -4,6 +4,8 @@ import { Button } from "react-native-elements";
 
 export default class Footer extends React.Component {
   render() {
+    if(this.props.showNavigation == false)
+      return <View/>
     return (
       <View
         style={{

@@ -6,6 +6,7 @@ import { Col, Row, Grid } from "react-native-easy-grid";
 import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import Text from "../components/Text";
+import { ListItem } from "react-native-elements";
 
 const restrictions = [
   {
@@ -71,7 +72,8 @@ export default class EditProfile extends React.Component {
     this.state = { restrictions: restrictions };
   }
 
-  renderRestriction = (data, index) => {
+
+  renderRestriction(data, index) {
     return (
       <TouchableOpacity
         activeOpacity={0.5}
@@ -132,20 +134,11 @@ export default class EditProfile extends React.Component {
         backButton={true}
       >
         <Card header={"User Information"}>
-          <Input
-            placeholder="INPUT WITH ICON"
-            leftIcon={{ type: "material", name: "person" }} shake
-          />
-          <Text>Here is Some Text</Text>
-          <Text>Here is Some Text</Text>
-          <Text>Here is Some Text</Text>
-          <Text>Here is Some Text</Text>
-          <Text>Here is Some Text</Text>
-          <Text>Here is Some Text</Text>
-          <Text>Here is Some Text</Text>
-          <Text>Here is Some Text</Text>
-        </Card>
 
+          <ListItem title={`Profile Name: ${this.props.screenProps.user.displayName}`} chevron/>
+          <ListItem title={`Profile Picture:`} chevron/>
+
+        </Card>
         <Card header={"Dietary Restrictions"}>
           <RestrictionGrid
             data={this.state.restrictions}

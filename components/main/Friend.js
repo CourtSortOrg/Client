@@ -88,19 +88,26 @@ export default class Friend extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.id,
-          friendName: this.state.otherUser.id
+          userHandle: this.state.id,
+          friendHandle: this.state.otherUser.userHandle
         })
       }
     )
-      .then(() => {
-        this.props.screenProps.functions.updateFriend(
-          this.state.otherUser.id,
-          false
-        );
-        this.props.navigation.goBack();
+      .then(data => {
+        try {
+          JSON.parse(data._bodyText);
+          this.props.screenProps.functions.updateFriend(
+            this.state.otherUser.id,
+            false
+          );
+          this.props.navigation.goBack();
+        } catch (error) {
+          console.error(
+            `removeFriendFirebaseFunction: ${error}: ${data._bodyText}`
+          );
+        }
       })
-      .catch(error => console.log(`removeFriendFirebaseFunction: ${error}`));
+      .catch(error => console.error(`removeFriendFirebaseFunction: ${error}`));
   }
 
   blockUserFirebaseFunction() {
@@ -111,18 +118,25 @@ export default class Friend extends React.Component {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: this.state.id,
-        blockedName: this.state.otherUser.id
+        userHandle: this.state.id,
+        blockedHandle: this.state.otherUser.userHandle
       })
     })
-      .then(() => {
-        this.props.screenProps.functions.updateFriend(
-          this.state.otherUser.id,
-          false
-        );
-        this.props.navigation.goBack();
+      .then(data => {
+        try {
+          JSON.parse(data._bodyText);
+          this.props.screenProps.functions.updateFriend(
+            this.state.otherUser.id,
+            false
+          );
+          this.props.navigation.goBack();
+        } catch (error) {
+          console.error(
+            `blockUserFirebaseFunction: ${error}: ${data._bodyText}`
+          );
+        }
       })
-      .catch(error => console.log(`blockUserFirebaseFunction: ${error}`));
+      .catch(error => console.error(`blockUserFirebaseFunction: ${error}`));
   }
 
   render() {

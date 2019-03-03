@@ -86,12 +86,18 @@ export default class Map extends React.Component {
           date: dateStr //TODO: Don't hardcode this
         })
       }
-    ).then(data => {
-      this.setState({
-        diningLocations: JSON.parse(data._bodyText),
-        loading: false
-      });
-    });
+    )
+      .then(data => {
+        try {
+          this.setState({
+            diningLocations: JSON.parse(data._bodyText),
+            loading: false
+          });
+        } catch (error) {
+          console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`fetchDiningTimes: ${error}`));
   }
 
   renderDiningCard = ({ item }) => {

@@ -10,6 +10,7 @@ import Text from "../components/Text";
 import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
+import ListElementProfile from "../components/ListElementProfile";
 
 export default class Profile extends React.Component {
   constructor(props) {
@@ -38,6 +39,12 @@ export default class Profile extends React.Component {
     }
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+    }
+  }
+
   // Method to change the currently selected index of the button group
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
@@ -48,66 +55,20 @@ export default class Profile extends React.Component {
     return expr ? comp1 : comp2;
   };
 
-  deleteAccount = () => {
-    //TODO: Delete user's ratings
-    //TODO: Remove user from all groups
-
-    user = firebase.auth().currentUser;
-    //get list of friends
-    //get list of individual ratings
-    user
-      .delete()
-      .then(() => {
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.props.screenProps.user.id
-            })
-          }
-        )
-          .then(data => console.log(data._bodyText))
-          .catch(error =>
-            console.log(`deleteAccount: removeFromAllFriends: ${error}`)
-          );
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.props.screenProps.user.id
-            })
-          }
-        )
-          .then(data => console.log(data._bodyText))
-          .catch(error =>
-            console.log(`deleteAccount: removeUserFromDatabase: ${error}`)
-          );
-        //navigate to SignIn Screen
-        this.props.screenProps.functions.updateUser();
-        this.props.navigation.navigate("Auth");
-        this.setState({ isEditing: false });
-      })
-      .catch(function(error) {
-        alert("ERROR: " + error.message);
-        this.props.screenProps.functions.updateUser();
-      });
-  };
-
   render() {
     // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
     // Retrieve user data from state
     const { friends, groups, ratings, selectedIndex } = this.state;
+
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+      return (
+        <View>
+          <Text>Navigation</Text>
+        </View>
+      );
+    }
 
     return (
       <Screen
@@ -276,13 +237,13 @@ class FriendsList extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.props.id,
-          friendName: text
+          userHandle: this.props.id,
+          friendHandle: text
         })
       }
     )
       .then(data => {
-        console.log(data);
+        console.log(`sendFriendRequest: Successful: ${data._bodyText}`);
         if (data._bodyText == "success")
           Alert.alert(
             "Friend Request",
@@ -306,7 +267,7 @@ class FriendsList extends React.Component {
             { cancelable: false }
           );
       })
-      .catch(error => console.log(`sendFriendRequest: ${error}`));
+      .catch(error => console.error(`sendFriendRequest: ${error}`));
   }
 
   filterProfile(list, text) {
@@ -324,24 +285,7 @@ class FriendsList extends React.Component {
           type: "element",
           subList: false,
           rank: 1,
-          renderElement: item => {
-            return (
-              <ListItem
-                chevron
-                bottomDivider
-                // leftAvatar={{
-                //   source: { uri: item.image },
-                //   containerStyle: styles.friendPicture
-                // }}
-                // subtitle={`@${item.username}`}
-                title={item.Name}
-                onPress={() =>
-                  this.props.navigation.navigate("Friend", { ID: item.Name })
-                }
-                topDivider
-              />
-            );
-          },
+          renderElement: item => <ListElementProfile {...item} />,
           viewMore: {
             page: "Message",
             item: "ID"
@@ -362,6 +306,12 @@ class GroupsList extends React.Component {
       <SearchList
         navigation={this.props.navigation}
         filterFunction={this.filterGroup}
+        extendedSearch={text =>
+          this.props.navigation.navigate("GroupRouter", {
+            ID: text,
+            create: true
+          })
+        }
         list={{
           list: this.props.groups,
           type: "element",
