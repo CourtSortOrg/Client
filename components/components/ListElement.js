@@ -93,9 +93,7 @@ export default class ListElement extends React.Component {
                 expand={this.props.expand}
                 navigation={this.props.navigation}
                 selectFunction={this.props.selectFunction}
-
                 {...element}
-
                 {...this.props.subList}
               />
             );
@@ -143,13 +141,19 @@ export default class ListElement extends React.Component {
           onPress={() => {
             if (this.props.onPress) this.props.onPress();
 
-            if (this.props.selectable) {
-              this.props.selectFunction(this.props, !this.state.selected);
-              this.setState({
-                selected: !this.state.selected
-              });
-            }
-            else if (this.props.viewMore) this.navigate();
+            if (this.props.selectable == true) {
+              this.setState(
+                {
+                  selected: !this.state.selected
+                },
+                () =>
+                  this.props.selectFunction(
+                    this.props,
+                    this.props.Name,
+                    this.state.selected
+                  )
+              );
+            } else if (this.props.viewMore) this.navigate();
           }}
         >
           {this.props.renderElement ? (
@@ -166,7 +170,13 @@ export default class ListElement extends React.Component {
   render() {
     if (this.props.renderElement) {
       return (
-        <View style={selected && styles.selected}>
+        <View
+          style={
+            this.props.selectable == true &&
+            this.state.selected &&
+            this.styles.selected
+          }
+        >
           {this.props.renderElement(this.props)}
           {this.subList()}
         </View>
@@ -175,19 +185,37 @@ export default class ListElement extends React.Component {
       switch (this.props.type) {
         case "expandable":
           return (
-            <View style={this.props.selected && styles.selected}>
+            <View
+              style={
+                this.props.selectable == true &&
+                this.state.selected &&
+                this.styles.selected
+              }
+            >
               {this.expandable()}
             </View>
           );
         case "dropDown":
           return (
-            <View style={this.props.selected && styles.selected}>
+            <View
+              style={
+                this.props.selectable == true &&
+                this.state.selected &&
+                this.styles.selected
+              }
+            >
               {this.dropDown()}
             </View>
           );
         case "element":
           return (
-            <View style={this.props.selected && styles.selected}>
+            <View
+              style={
+                this.props.selectable == true &&
+                this.state.selected &&
+                this.styles.selected
+              }
+            >
               {this.element()}
             </View>
           );

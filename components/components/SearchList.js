@@ -47,23 +47,27 @@ export default class SearchList extends React.Component {
       });
   }
 
-  toggleSelected(item, nextSelectedState) {
+  toggleSelected = (item, id, nextSelectedState) => {
     // if selected
     if (nextSelectedState) {
       const arr = this.state.selected.slice();
-      arr.push(item);
+      arr.push({ item, id });
 
-      this.setState({
-        selected: arr
-      });
+      this.setState(
+        {
+          selected: arr
+        },
+      );
     } else {
-      const arr = this.state.selected.filter(i => i !== item);
+      const arr = this.state.selected.filter(i => i.id !== id);
 
-      this.setState({
-        selected: arr
-      });
+      this.setState(
+        {
+          selected: arr
+        },
+      );
     }
-  }
+  };
 
   render() {
     return (
