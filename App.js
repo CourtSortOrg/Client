@@ -235,30 +235,33 @@ export default class App extends React.Component {
   updateUser = async (user, callback) => {
     try {
       if (user) {
-        await fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserHandle",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              uid: user.uid
-            })
-          }
-        )
-          .then(data => data.json())
-          .then(data => {
-            try {
-              this.setState({
-                user: { ...user, userHandle: data.userHandle }
-              });
-            } catch (error) {
-              console.error(`updateUser: getUserHandle: ${error}: ${data}`);
+        if (this.state.user == undefined || this.state.user.userHandle == undefined) {
+          await fetch(
+            "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserHandle",
+            {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                uid: user.uid
+              })
             }
-          })
-          .catch(error => console.error(`updateUser: getUserHandle: ${error}`));
+          )
+            .then(data => {
+              try {
+                this.setState({
+                  user: { ...this.state.user, userHandle: JSON.parse(data._bodyText).userHandle }
+                });
+              } catch (error) {
+                console.error(`updateUser: getUserHandle: ${error}: ${data}`);
+              }
+            })
+            .catch(error =>
+              console.error(`updateUser: getUserHandle: ${error}`)
+            );
+        }
 
         await this.setState({
           user: {
