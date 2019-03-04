@@ -243,7 +243,7 @@ class FriendsList extends React.Component {
       }
     )
       .then(data => {
-        console.log(`sendFriendRequest: Successful: ${data._bodyText}`);
+        console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
         if (data._bodyText == "success")
           Alert.alert(
             "Friend Request",
