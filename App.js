@@ -235,7 +235,10 @@ export default class App extends React.Component {
   updateUser = async (user, callback) => {
     try {
       if (user) {
-        if (this.state.user == undefined || this.state.user.userHandle == undefined) {
+        if (
+          this.state.user == undefined ||
+          this.state.user.userHandle == undefined
+        ) {
           await fetch(
             "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserHandle",
             {
@@ -252,7 +255,10 @@ export default class App extends React.Component {
             .then(data => {
               try {
                 this.setState({
-                  user: { ...this.state.user, userHandle: JSON.parse(data._bodyText).userHandle }
+                  user: {
+                    ...this.state.user,
+                    userHandle: JSON.parse(data._bodyText).userHandle
+                  }
                 });
               } catch (error) {
                 console.error(`updateUser: getUserHandle: ${error}: ${data}`);
@@ -330,7 +336,7 @@ export default class App extends React.Component {
     this.fetchUser(this.state.user.userHandle, data => {
       this.setState(
         {
-          user: { ...this.state.user, ...data, id: data.userHandle }
+          user: { ...this.state.user, ...data, friends: [], groups: [], id: data.userHandle }
         },
         callback
       );
@@ -338,15 +344,9 @@ export default class App extends React.Component {
   };
 
   updateFriends = async callback => {
-    this.fetchFriends(this.state.user.id, data => {
-      //data.forEach(friend => this.updateFriend(friend, true));
-      this.setState(
-        {
-          user: { ...this.state.user, friends: data.slice() }
-        },
-        callback
-      );
-    });
+    this.fetchFriends(this.state.user.id, data =>
+      data.forEach(friend => this.updateFriend(friend.friendHandle, true))
+    );
   };
 
   updateGroups = async callback => {
@@ -360,36 +360,26 @@ export default class App extends React.Component {
     });
   };
 
-  updateFriend = (friend, action) => {
+  updateFriend = (id, action) => {
     // action == true, add friend.
     if (action) {
-      const arr = this.state.user.friends.slice();
-      arr.push(friend);
-
-      this.setState({
-        user: {
-          ...this.state.user,
-          friends: arr
-        }
-      });
-      /*this.fetchUser(friend, data => {
+      this.fetchUser(id, data => {
         const arr = this.state.user.friends.slice();
-        arr.push(data.id);
-
+        arr.push(data);
         this.setState({
           user: {
             ...this.state.user,
             friends: arr
           }
         });
-      });*/
+      });
     }
     // action == false, remove friend.
     else {
       this.setState({
         user: {
           ...this.state.user,
-          friends: this.state.user.friends.filter(f => f != friend)
+          friends: this.state.user.friends.filter(f => f.userHandle != id)
         }
       });
     }
@@ -445,15 +435,15 @@ export default class App extends React.Component {
     );
   };
 
-  handleData(functionName, data, callback) {
+  handleData = (functionName, data, callback) => {
     try {
       if (callback) callback(JSON.parse(data._bodyText));
     } catch (error) {
       console.error(`${functionName}: ${error}: ${data._bodyText}`);
     }
-  }
+  };
 
-  fetchUser(id, callback) {
+  fetchUser = (id, callback) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
       {
@@ -469,9 +459,9 @@ export default class App extends React.Component {
     )
       .then(data => this.handleData(`fetchUser`, data, callback))
       .catch(error => console.error(`fetchUser: ${error}`));
-  }
+  };
 
-  fetchFriends(id, callback) {
+  fetchFriends = (id, callback) => {
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
       method: "POST",
       headers: {
@@ -484,9 +474,9 @@ export default class App extends React.Component {
     })
       .then(data => this.handleData(`fetchFriends`, data, callback))
       .catch(error => console.error(`fetchFriends: ${error}`));
-  }
+  };
 
-  fetchGroups(id, callback) {
+  fetchGroups = (id, callback) => {
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
       method: "POST",
       headers: {
@@ -499,9 +489,9 @@ export default class App extends React.Component {
     })
       .then(data => this.handleData(`fetchGroups`, data, callback))
       .catch(error => console.error(`fetchFriends: ${error}`));
-  }
+  };
 
-  fetchMeals(from, left) {
+  fetchMeals = (from, left) => {
     if (left == 0) {
       this.setState({ mealsLoaded: true });
       return;
@@ -543,7 +533,7 @@ export default class App extends React.Component {
         }
       })
       .catch(error => console.error(`fetchMeals: ${error}`));
-  }
+  };
 
   render() {
     if (

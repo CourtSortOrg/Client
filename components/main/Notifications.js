@@ -36,7 +36,7 @@ export default class Notifications extends React.Component {
         try {
           const arr = this.state.notifications.slice();
           const items = [...JSON.parse(data._bodyText)].map(item => {
-            return { Name: `${item.friendName}  @${item.friendHandle}`, item, onPress: () => this.friendAlert(item.friendHandle) };
+            return { Name: `${item.friendName}  @${item.friendHandle}`, ...item, onPress: () => this.friendAlert(item.friendHandle) };
           });
 
           if (items.length != 0) {
@@ -105,7 +105,7 @@ export default class Notifications extends React.Component {
     let n = this.state.notifications.slice();
     for (let i = 0; i < n.length; i++) {
       if (n[i].Name == "Friend Requests") {
-        n[i].items = items.filter(req => req.Name != id);
+        n[i].items = n[i].items.filter(req => req.friendHandle != id);
       }
     }
 
