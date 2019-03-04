@@ -36,7 +36,7 @@ export default class Notifications extends React.Component {
         try {
           const arr = this.state.notifications.slice();
           const items = [...JSON.parse(data._bodyText)].map(item => {
-            return { Name: item, onPress: () => this.friendAlert(item) };
+            return { Name: `${item.friendName}  @${item.friendHandle}`, ...item, onPress: () => this.friendAlert(item.friendHandle) };
           });
 
           if (items.length != 0) {
@@ -105,7 +105,7 @@ export default class Notifications extends React.Component {
     let n = this.state.notifications.slice();
     for (let i = 0; i < n.length; i++) {
       if (n[i].Name == "Friend Requests") {
-        n[i].items = items.filter(req => req != id);
+        n[i].items = n[i].items.filter(req => req.friendHandle != id);
       }
     }
 
@@ -118,7 +118,7 @@ export default class Notifications extends React.Component {
     let n = this.state.notifications.slice();
     for (let i = 0; i < n.length; i++) {
       if (n[i].Name == "Group Invites") {
-        n[i].items = items.filter(req => req != id);
+        n[i].items = items.filter(req => req.Name != id);
       }
     }
 
@@ -128,7 +128,7 @@ export default class Notifications extends React.Component {
   };
 
   friendAlert = id => {
-    Alert.alert("Friend Request", `Accept request from ${id}?`, [
+    Alert.alert("Friend Request", `Accept request from @${id}?`, [
       {
         text: "Cancel"
       },
@@ -176,7 +176,7 @@ export default class Notifications extends React.Component {
     )
       .then(data => {
         try {
-          JSON.parse(data._bodyText);
+          //JSON.parse(data._bodyText);
           this.removeNotificationFriend(id);
           this.props.screenProps.functions.updateFriend(id, true);
         } catch (error) {
@@ -203,7 +203,7 @@ export default class Notifications extends React.Component {
     )
       .then(data => {
         try {
-          JSON.parse(data._bodyText);
+          //JSON.parse(data._bodyText);
           this.removeNotificationFriend(id);
         } catch (error) {
           console.error(`denyFriendRequest: ${error}: ${data._bodyText}`);
@@ -229,7 +229,7 @@ export default class Notifications extends React.Component {
     )
       .then(data => {
         try {
-          JSON.parse(data._bodyText);
+          //JSON.parse(data._bodyText);
           this.removeNotificationGroup(id);
           this.props.screenProps.functions.updateGroup(id, true);
         } catch (error) {
@@ -256,7 +256,7 @@ export default class Notifications extends React.Component {
     )
       .then(data => {
         try {
-          JSON.parse(data._bodyText);
+          //JSON.parse(data._bodyText);
           this.removeNotificationGroup(id);
         } catch (error) {
           console.error(`denyGroupInvitation: ${error}: ${data._bodyText}`);

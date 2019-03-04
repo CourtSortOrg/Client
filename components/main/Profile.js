@@ -271,7 +271,14 @@ class FriendsList extends React.Component {
   }
 
   filterProfile(list, text) {
-    return list.filter(item => item.Name.includes(text));
+    return list.filter(item => {
+      try {
+        return item.name.includes(text) || item.userHandle.includes(text);
+      } catch(error) {
+        console.error("filterProfile: Ill defined item:");
+        console.error(item);
+      }
+    })
   }
 
   render() {
@@ -281,15 +288,11 @@ class FriendsList extends React.Component {
         filterFunction={this.filterProfile}
         extendedSearch={text => this.sendFriendRequest(text)}
         list={{
-          list: this.props.friends.map(friend => ({ Name: friend })),
+          list: this.props.friends,
           type: "element",
           subList: false,
           rank: 1,
-          renderElement: item => <ListElementProfile {...item} />,
-          viewMore: {
-            page: "Message",
-            item: "ID"
-          }
+          renderElement: item => <ListElementProfile navigation={this.props.navigation} {...item} />,
         }}
       />
     );

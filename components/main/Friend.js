@@ -14,7 +14,7 @@ export default class Friend extends React.Component {
 
     this.state = {
       otherUser: {
-        id: this.props.navigation.getParam("ID", "NO-ID")
+        userHandle: this.props.navigation.getParam("ID", "NO-ID")
       },
       initials: "",
       groups: [],
@@ -24,12 +24,24 @@ export default class Friend extends React.Component {
   }
 
   componentDidMount() {
-    this.props.screenProps.functions.fetchUser(this.state.otherUser.id, data =>
-      this.setState({
-        otherUser: { ...this.state.otherUser, ...data }
-        //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
-      })
+    const friend = this.props.screenProps.user.friends.filter(
+      friend => friend.userHandle === this.state.otherUser.userHandle
     );
+    if (friend.length == 1)
+      this.setState({
+        otherUser: { ...friend[0] }
+      });
+    else {
+      console.log("Refetching friend");
+      this.props.screenProps.functions.fetchUser(
+        this.state.otherUser.userHandle,
+        data =>
+          this.setState({
+            otherUser: { ...this.state.otherUser, ...data }
+            //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
+          })
+      );
+    }
   }
 
   removeFriend() {
@@ -95,9 +107,9 @@ export default class Friend extends React.Component {
     )
       .then(data => {
         try {
-          JSON.parse(data._bodyText);
+          //JSON.parse(data._bodyText);
           this.props.screenProps.functions.updateFriend(
-            this.state.otherUser.id,
+            this.state.otherUser.userHandle,
             false
           );
           this.props.navigation.goBack();
@@ -124,9 +136,9 @@ export default class Friend extends React.Component {
     })
       .then(data => {
         try {
-          JSON.parse(data._bodyText);
+          //JSON.parse(data._bodyText);
           this.props.screenProps.functions.updateFriend(
-            this.state.otherUser.id,
+            this.state.otherUser.userHandle,
             false
           );
           this.props.navigation.goBack();

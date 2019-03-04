@@ -12,13 +12,15 @@ export default class ListElementProfile extends React.Component {
         //   source: { uri: item.image },
         //   containerStyle: styles.friendPicture
         // }}
-        // subtitle={`@${item.username}`}
-        title={this.props.Name}
-        onPress={() =>
-          this.props.navigation.navigate("Friend", {
-            ID: item.props.Name
-          })
-        }
+        subtitle={`@${this.props.userHandle}`}
+        title={this.props.name}
+        onPress={() => {
+          if (this.props.onPress) this.props.onPress();
+          else
+            this.props.navigation.navigate("Friend", {
+              ID: this.props.userHandle
+            });
+        }}
         topDivider
       />
     );
