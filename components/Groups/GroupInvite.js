@@ -6,6 +6,7 @@ import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
 import Card from "../components/Card";
 import ListElementProfile from "../components/ListElementProfile";
+import ProfileList from "../components/ProfileList";
 
 export default class GroupInvite extends React.Component {
   constructor(props) {
@@ -28,10 +29,6 @@ export default class GroupInvite extends React.Component {
     });
   };
 
-  filterFriends(list, text) {
-    return list.filter(item => item.Name.includes(text));
-  }
-
   render() {
     const obj = {};
     if (this.props.groupID && this.props.groupID !== "NO-ID")
@@ -44,22 +41,11 @@ export default class GroupInvite extends React.Component {
 
     return (
       <Card header="Invite Friends" footer={obj.footer}>
-        <SearchList
+        <ProfileList
           navigation={this.props.navigation}
-          filterFunction={this.filterFriends}
+          list={this.state.friends}
+          selectable={true}
           updateSelectedList={this.props.updateSelectedList}
-          list={{
-            list: this.state.friends,
-            type: "element",
-            subList: false,
-            selectable: true,
-            rank: 1,
-            renderElement: item => <ListElementProfile {...item} />,
-            viewMore: {
-              page: "Message",
-              item: "ID"
-            }
-          }}
         />
       </Card>
     );

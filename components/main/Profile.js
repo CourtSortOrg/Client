@@ -11,6 +11,7 @@ import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
 import ListElementProfile from "../components/ListElementProfile";
+import ProfileList from "../components/ProfileList";
 
 export default class Profile extends React.Component {
   constructor(props) {
@@ -270,32 +271,13 @@ class FriendsList extends React.Component {
       .catch(error => console.error(`sendFriendRequest: ${error}`));
   }
 
-  filterProfile(list, text) {
-    return list.filter(item => {
-      try {
-        return item.name.includes(text) || item.userHandle.includes(text);
-      } catch (error) {
-        console.error("filterProfile: Ill defined item:");
-        console.error(item);
-      }
-    });
-  }
-
   render() {
     return (
-      <SearchList
+      <ProfileList
         navigation={this.props.navigation}
-        filterFunction={this.filterProfile}
-        extendedSearch={text => this.sendFriendRequest(text)}
-        list={{
-          list: this.props.friends,
-          type: "element",
-          subList: false,
-          rank: 1,
-          renderElement: item => (
-            <ListElementProfile navigation={this.props.navigation} {...item} />
-          )
-        }}
+        extendedSearch={this.sendFriendRequest}
+        selectable={true}
+        list={this.props.friends}
       />
     );
   }

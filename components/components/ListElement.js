@@ -89,7 +89,7 @@ export default class ListElement extends React.Component {
               <ListElement
                 key={index}
                 id={index}
-                rank={1/*this.props.rank + 1*/}
+                rank={1 /*this.props.rank + 1*/}
                 expand={this.props.expand}
                 navigation={this.props.navigation}
                 selectFunction={this.props.selectFunction}
@@ -177,7 +177,7 @@ export default class ListElement extends React.Component {
     if (this.props.renderElement) {
       return (
         <View>
-          {this.props.renderElement(this.props)}
+          {this.props.renderElement(this.props, this.state)}
           {this.subList()}
         </View>
       );
