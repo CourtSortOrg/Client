@@ -311,7 +311,7 @@ class GroupsList extends React.Component {
       <SearchList
         navigation={this.props.navigation}
         filterFunction={this.filterGroup}
-        extendedSearch={text => this.props.navigation.navigate("Group")}
+        extendedSearch={text => this.props.navigation.navigate("GroupSettings")}
         list={{
           list: this.props.groups,
           type: "element",
