@@ -91,7 +91,10 @@ export default class GroupSettings extends React.Component {
       )
         .then(data => {
           //this.handleInvites();
-          this.props.screenProps.functions.updateGroup(this.state.group.name/*groupID*/, true);
+          this.props.screenProps.functions.updateGroup(
+            this.state.group.name /*groupID*/,
+            true
+          );
         })
         .catch(error => console.error(`createGroup: ${error}`));
     } else {
@@ -102,6 +105,48 @@ export default class GroupSettings extends React.Component {
       ]);
     }
   };
+
+  leaveGroup = () => {
+    Alert.alert(
+      "Leave Group",
+      `You are about to leave ${this.state.group.name}. You can always rejoin ${
+        this.state.group.name
+      }.`,
+      [
+        {
+          text: "Yes",
+          onPress: () => this.leaveGroupFirebaseFunction()
+        },
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
+  leaveGroupFirebaseFunction = () => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/leaveGroup", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: this.state.groupID
+      })
+    })
+      .then(() => {
+        this.props.screenProps.functions.updateGroup(
+          this.state.groupID,
+          false
+        );
+        this.props.navigation.goBack();
+      })
+      .catch(error => console.error(`leaveGroupFirebaseFunction: ${error}`));
+  }
 
   render() {
     return (
@@ -123,7 +168,7 @@ export default class GroupSettings extends React.Component {
           updateSelectedList={this.updateSelectedList}
           handleInvites={this.handleInvites}
         />
-        {this.state.groupID === "NO-ID" && (
+        {this.state.groupID === "NO-ID" ? (
           <Card
             footer={[
               {
@@ -132,11 +177,18 @@ export default class GroupSettings extends React.Component {
               },
               {
                 text: "Create",
-                onPress: () => this.createGroup()
+                onPress: this.createGroup
               }
             ]}
           />
-        )}
+        ) : <Card
+            footer={[
+              {
+                text: "Leave Group",
+                onPress: this.leaveGroup
+              },
+            ]}
+          />}
       </Screen>
     );
   }

@@ -31,48 +31,6 @@ export default class Group extends React.Component {
     }
   }
 
-  leaveGroup() {
-    Alert.alert(
-      "Leave Group",
-      `You are about to leave ${this.state.group.name}. You can always rejoin ${
-        this.state.group.name
-      }.`,
-      [
-        {
-          text: "Yes",
-          onPress: () => this.leaveGroupFirebaseFunction()
-        },
-        {
-          text: "No",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel"
-        }
-      ],
-      { cancelable: false }
-    );
-  }
-
-  leaveGroupFirebaseFunction() {
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/leaveGroup", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name: this.state.id
-      })
-    })
-      .then(() => {
-        this.props.screenProps.functions.updateGroup(
-          this.state.group.id,
-          false
-        );
-        this.props.navigation.goBack();
-      })
-      .catch(error => console.error(`leaveGroupFirebaseFunction: ${error}`));
-  }
-
   render() {
     return (
       <Screen
@@ -82,7 +40,12 @@ export default class Group extends React.Component {
       >
         <Card
           header={this.state.group.name}
-          footer={[{ text: "Leave", onPress: () => this.leaveGroup() }]}
+          footer={[
+            {
+              text: "Edit Group",
+              onPress: () => this.props.navigation.navigate("GroupSettings")
+            }
+          ]}
         >
           {/*Upcoming events. Make new event*/}
           <Text type="subHeader" style={{ padding: 8 }}>
