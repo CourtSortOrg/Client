@@ -18,11 +18,17 @@ export default class Group extends React.Component {
   }
 
   componentDidMount() {
-    this.props.screenProps.functions.fetchGroup(this.state.group.id, data =>
-      this.setState({
-        group: { ...this.state.group.id, ...data }
-      })
-    );
+    if (groupID === "NO-ID")
+      this.props.navigation.navigate("GroupCreate", {
+        ID: groupID
+      });
+    else {
+      this.props.screenProps.functions.fetchGroup(this.state.group.id, data =>
+        this.setState({
+          group: { ...this.state.group.id, ...data }
+        })
+      );
+    }
   }
 
   leaveGroup() {

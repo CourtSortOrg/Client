@@ -274,11 +274,11 @@ class FriendsList extends React.Component {
     return list.filter(item => {
       try {
         return item.name.includes(text) || item.userHandle.includes(text);
-      } catch(error) {
+      } catch (error) {
         console.error("filterProfile: Ill defined item:");
         console.error(item);
       }
-    })
+    });
   }
 
   render() {
@@ -292,7 +292,9 @@ class FriendsList extends React.Component {
           type: "element",
           subList: false,
           rank: 1,
-          renderElement: item => <ListElementProfile navigation={this.props.navigation} {...item} />,
+          renderElement: item => (
+            <ListElementProfile navigation={this.props.navigation} {...item} />
+          )
         }}
       />
     );
@@ -309,12 +311,7 @@ class GroupsList extends React.Component {
       <SearchList
         navigation={this.props.navigation}
         filterFunction={this.filterGroup}
-        extendedSearch={text =>
-          this.props.navigation.navigate("GroupRouter", {
-            ID: text,
-            create: true
-          })
-        }
+        extendedSearch={text => this.props.navigation.navigate("Group")}
         list={{
           list: this.props.groups,
           type: "element",

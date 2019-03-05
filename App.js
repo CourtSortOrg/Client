@@ -34,10 +34,7 @@ import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
 
 import Group from "./components/Groups/Group";
-import GroupInvite from "./components/Groups/GroupInvite";
 import GroupSettings from "./components/Groups/GroupSettings";
-import GroupRouter from "./components/Groups/GroupRouter";
-import GroupCreate from "./components/Groups/GroupCreate";
 
 import * as firebase from "firebase";
 import config from "./config";
@@ -90,22 +87,13 @@ const GroupNavigation = createSwitchNavigator(
     GroupPage: {
       screen: Group
     },
-    GroupRouter: {
-      screen: GroupRouter
-    },
-    GroupCreate: {
-      screen: GroupCreate
-    },
-    GroupInvite: {
-      screen: GroupInvite
-    },
     GroupSettings: {
       screen: GroupSettings
     }
   },
   {
     headerMode: "none",
-    initialRouteName: "GroupRouter"
+    initialRouteName: "GroupPage"
   }
 );
 
@@ -336,7 +324,13 @@ export default class App extends React.Component {
     this.fetchUser(this.state.user.userHandle, data => {
       this.setState(
         {
-          user: { ...this.state.user, ...data, friends: [], groups: [], id: data.userHandle }
+          user: {
+            ...this.state.user,
+            ...data,
+            friends: [],
+            groups: [],
+            id: data.userHandle
+          }
         },
         callback
       );
@@ -388,26 +382,16 @@ export default class App extends React.Component {
   updateGroup = (group, action) => {
     // action == true, add friend.
     if (action) {
-      const arr = this.state.user.groups.slice();
-      arr.push(group);
-
-      this.setState({
-        user: {
-          ...this.state.user,
-          groups: arr
-        }
-      });
-      /*this.fetchGroup(group, data => {
+      this.fetchGroup(id, data => {
         const arr = this.state.user.groups.slice();
-        arr.push(data.id);
-
+        arr.push(data);
         this.setState({
           user: {
             ...this.state.user,
             groups: arr
           }
         });
-      });*/
+      });
     }
     // action == false, remove group.
     else {
@@ -476,6 +460,24 @@ export default class App extends React.Component {
       .catch(error => console.error(`fetchFriends: ${error}`));
   };
 
+  fetchFriend = (id, callback) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: id
+        })
+      }
+    )
+      .then(data => this.handleData(`fetchFriend`, data, callback))
+      .catch(error => console.error(`fetchFriend: ${error}`));
+  };
+
   fetchGroups = (id, callback) => {
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
       method: "POST",
@@ -490,6 +492,8 @@ export default class App extends React.Component {
       .then(data => this.handleData(`fetchGroups`, data, callback))
       .catch(error => console.error(`fetchFriends: ${error}`));
   };
+
+  fetchGroup = (id, callback) => {};
 
   fetchMeals = (from, left) => {
     if (left == 0) {
@@ -547,6 +551,8 @@ export default class App extends React.Component {
           screenProps={{
             functions: {
               fetchUser: this.fetchUser,
+              fetchFriend: this.fetchFriend,
+              fetchGroup: this.fetchGroup,
               updateUser: this.updateUser,
               updateFriend: this.updateFriend,
               updateGroup: this.updateGroup,
