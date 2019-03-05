@@ -5,7 +5,6 @@ import Text from "../components/Text";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
 import Card from "../components/Card";
-import ListElementProfile from "../components/ListElementProfile";
 import ProfileList from "../components/ProfileList";
 
 export default class GroupInvite extends React.Component {

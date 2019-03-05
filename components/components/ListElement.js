@@ -142,17 +142,7 @@ export default class ListElement extends React.Component {
             if (this.props.onPress) this.props.onPress();
 
             if (this.props.selectable == true) {
-              this.setState(
-                {
-                  selected: !this.state.selected
-                },
-                () =>
-                  this.props.selectFunction(
-                    this.props,
-                    this.props.Name,
-                    this.state.selected
-                  )
-              );
+              this.toggleSelect();
             } else if (this.props.viewMore) this.navigate();
           }}
         >
@@ -173,11 +163,25 @@ export default class ListElement extends React.Component {
     );
   };
 
+  toggleSelect = () => {
+    this.setState(
+      {
+        selected: !this.state.selected
+      },
+      () =>
+        this.props.selectFunction(
+          this.props,
+          this.props.Name,
+          this.state.selected
+        )
+    );
+  }
+
   render() {
     if (this.props.renderElement) {
       return (
         <View>
-          {this.props.renderElement(this.props, this.state)}
+          {this.props.renderElement(this)}
           {this.subList()}
         </View>
       );
