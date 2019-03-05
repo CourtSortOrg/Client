@@ -82,21 +82,6 @@ const SettingsNavigation = createStackNavigator(
   }
 );
 
-const GroupNavigation = createSwitchNavigator(
-  {
-    GroupPage: {
-      screen: Group
-    },
-    GroupSettings: {
-      screen: GroupSettings
-    }
-  },
-  {
-    headerMode: "none",
-    initialRouteName: "GroupPage"
-  }
-);
-
 const MainNavigation = createStackNavigator(
   {
     Messages: {
@@ -109,7 +94,10 @@ const MainNavigation = createStackNavigator(
       screen: Friend
     },
     Group: {
-      screen: GroupNavigation
+      screen: Group
+    },
+    GroupSettings: {
+      screen: GroupSettings
     },
     Notifications: {
       screen: Notifications
