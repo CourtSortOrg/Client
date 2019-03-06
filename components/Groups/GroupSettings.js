@@ -70,7 +70,7 @@ export default class GroupSettings extends React.Component {
       }
     )
       //.then(data => )
-      .catch(error => console.error(`fetchUser: ${error}`));
+      .catch(error => console.error(`inviteToGroup: ${error}`));
   };
 
   createGroup = () => {
@@ -90,10 +90,18 @@ export default class GroupSettings extends React.Component {
         }
       )
         .then(data => {
-          //this.handleInvites();
-          this.props.screenProps.functions.updateGroup(
-            this.state.group.name /*groupID*/,
-            true
+          this.setState(
+            {
+              groupID: data._bodyText
+            },
+            () => {
+              this.handleInvites();
+
+              this.props.screenProps.functions.updateGroup(
+                this.state.groupID,
+                true
+              );
+            }
           );
         })
         .catch(error => console.error(`createGroup: ${error}`));
@@ -125,7 +133,7 @@ export default class GroupSettings extends React.Component {
       ],
       { cancelable: false }
     );
-  }
+  };
 
   leaveGroupFirebaseFunction = () => {
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/leaveGroup", {
@@ -139,14 +147,11 @@ export default class GroupSettings extends React.Component {
       })
     })
       .then(() => {
-        this.props.screenProps.functions.updateGroup(
-          this.state.groupID,
-          false
-        );
+        this.props.screenProps.functions.updateGroup(this.state.groupID, false);
         this.props.navigation.goBack();
       })
       .catch(error => console.error(`leaveGroupFirebaseFunction: ${error}`));
-  }
+  };
 
   render() {
     return (
@@ -181,14 +186,16 @@ export default class GroupSettings extends React.Component {
               }
             ]}
           />
-        ) : <Card
+        ) : (
+          <Card
             footer={[
               {
                 text: "Leave Group",
                 onPress: this.leaveGroup
-              },
+              }
             ]}
-          />}
+          />
+        )}
       </Screen>
     );
   }
