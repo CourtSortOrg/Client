@@ -14,13 +14,13 @@ import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
 
-export default class ProfileList extends React.Component {
+export default class GroupList extends React.Component {
   filter(list, text) {
     return list.filter(item => {
       try {
-        return item.name.includes(text) || item.userHandle.includes(text);
+        return item.name.includes(text);
       } catch (error) {
-        console.error("filterProfile: Ill defined item:");
+        console.error("filterGroup: Ill defined item:");
         console.error(item);
       }
     });
@@ -35,8 +35,8 @@ export default class ProfileList extends React.Component {
             if (item.props.selectable == true) {
               item.toggleSelect();
             } else {
-              item.props.navigation.navigate("Friend", {
-                ID: item.props.userHandle
+              item.props.navigation.navigate("Group", {
+                ID: item.props.groupID
               });
             }
           }}
@@ -58,13 +58,12 @@ export default class ProfileList extends React.Component {
             <Text type="header" style={{ padding: 0 }}>
               {item.props.name}
             </Text>
-            <Text type="subHeader">{`@${item.props.userHandle}`}</Text>
           </View>
           <TouchableOpacity
             style={{padding: 0}}
             onPress={() => {
-              item.props.navigation.navigate("Friend", {
-                ID: item.props.userHandle
+              item.props.navigation.navigate("Group", {
+                ID: item.props.groupID
               });
             }}
           >
@@ -90,7 +89,7 @@ export default class ProfileList extends React.Component {
     return (
       <SearchList
         navigation={this.props.navigation}
-        filterFunction={this.filter}
+        filterFunction={this.filterProfile}
         extendedSearch={this.props.extendedSearch}
         updateSelectedList={this.props.updateSelectedList}
         list={{
