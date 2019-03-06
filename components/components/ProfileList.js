@@ -28,7 +28,7 @@ export default class ProfileList extends React.Component {
 
   renderElement(item) {
     return (
-      <View>
+      <View style={{padding: 8}}>
         <TouchableOpacity
           style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
           onPress={() => {
@@ -42,7 +42,7 @@ export default class ProfileList extends React.Component {
           }}
         >
           {item.props.selectable == true && (
-            <View style={{padding: 8}}>
+            <View style={{ padding: 0 }}>
               {item.state.selected == false ? (
                 <MaterialIcons
                   size={32}
@@ -54,16 +54,25 @@ export default class ProfileList extends React.Component {
               )}
             </View>
           )}
+          <View style={{ flex: 1, paddingLeft: 8 }}>
+            <Text type="header" style={{ padding: 0 }}>
+              {item.props.name}
+            </Text>
+            <Text type="subHeader">{`@${item.props.userHandle}`}</Text>
+          </View>
           <TouchableOpacity
-            style={{ flex: 1 }}
+            style={{padding: 0}}
             onPress={() => {
               item.props.navigation.navigate("Friend", {
                 ID: item.props.userHandle
               });
             }}
           >
-            <Text type="header" style={{padding: 0}}>{item.props.name}</Text>
-            <Text type="subHeader">{`@${item.props.userHandle}`}</Text>
+            <MaterialIcons
+              size={32}
+              name="keyboard-arrow-right"
+              color="#E86515"
+            />
           </TouchableOpacity>
         </TouchableOpacity>
       </View>
