@@ -33,7 +33,7 @@ export default class Friend extends React.Component {
       });
     else {
       console.log("Refetching friend");
-      this.props.screenProps.functions.fetchUser(
+      this.props.screenProps.functions.fetchFriend(
         this.state.otherUser.userHandle,
         data =>
           this.setState({
