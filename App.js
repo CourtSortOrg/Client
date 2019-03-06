@@ -478,6 +478,7 @@ export default class App extends React.Component {
   };
 
   fetchGroup = (id, callback) => {
+    /*
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup",
       {
@@ -494,6 +495,7 @@ export default class App extends React.Component {
     )
       .then(data => this.handleData(`getGroup`, data, callback))
       .catch(error => console.error(`getGroup: ${error}`));
+    */
   };
 
 
