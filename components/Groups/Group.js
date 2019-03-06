@@ -9,8 +9,10 @@ export default class Group extends React.Component {
     super(props);
 
     this.state = {
+      groupID: this.props.navigation.getParam("ID", "NO-ID"),
       group: {
-        id: this.props.navigation.getParam("ID", "NO-ID")
+        name: "",
+        members: []
       },
 
       ...this.props.screenProps.user
@@ -18,17 +20,11 @@ export default class Group extends React.Component {
   }
 
   componentDidMount() {
-    if (groupID === "NO-ID")
-      this.props.navigation.navigate("GroupCreate", {
-        ID: groupID
-      });
-    else {
-      this.props.screenProps.functions.fetchGroup(this.state.group.id, data =>
-        this.setState({
-          group: { ...this.state.group.id, ...data }
-        })
-      );
-    }
+    this.props.screenProps.functions.fetchGroup(this.state.groupID, data =>
+      this.setState({
+        group: { ...data }
+      })
+    );
   }
 
   render() {
@@ -48,9 +44,11 @@ export default class Group extends React.Component {
           ]}
         >
           {/*Upcoming events. Make new event*/}
+          /*
           <Text type="subHeader" style={{ padding: 8 }}>
             Status: {this.state.otherUser.status}
           </Text>
+          */
           <Separator />
           {/* Members list.*/}
           <List

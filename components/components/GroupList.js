@@ -94,6 +94,7 @@ export default class GroupList extends React.Component {
         updateSelectedList={this.props.updateSelectedList}
         list={{
           list: this.props.list,
+          type: "element",
           subList: false,
           rank: 1,
           selectable: this.props.selectable,
