@@ -332,14 +332,9 @@ export default class App extends React.Component {
   };
 
   updateGroups = async callback => {
-    this.fetchGroups(this.state.user.id, data => {
-      this.setState(
-        {
-          user: { ...this.state.user, groups: data.slice() }
-        },
-        callback
-      );
-    });
+    this.fetchGroups(this.state.user.id, data =>
+      data.forEach(group => this.updateGroup(group.groupID, true))
+    );
   };
 
   updateFriend = (id, action) => {
@@ -367,7 +362,7 @@ export default class App extends React.Component {
     }
   };
 
-  updateGroup = (group, action) => {
+  updateGroup = (id, action) => {
     // action == true, add friend.
     if (action) {
       this.fetchGroup(id, data => {
@@ -386,7 +381,7 @@ export default class App extends React.Component {
       this.setState({
         user: {
           ...this.state.user,
-          groups: this.state.user.groups.filter(g => g != group)
+          groups: this.state.user.groups.filter(g => g.groupID != id)
         }
       });
     }
@@ -448,6 +443,7 @@ export default class App extends React.Component {
       .catch(error => console.error(`fetchFriends: ${error}`));
   };
 
+  // Update to get friend.
   fetchFriend = (id, callback) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
@@ -481,7 +477,25 @@ export default class App extends React.Component {
       .catch(error => console.error(`fetchFriends: ${error}`));
   };
 
-  fetchGroup = (id, callback) => {};
+  fetchGroup = (id, callback) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          groupID: id,
+          userHandle: this.state.user.userHandle
+        })
+      }
+    )
+      .then(data => this.handleData(`getGroup`, data, callback))
+      .catch(error => console.error(`getGroup: ${error}`));
+  };
+
 
   fetchMeals = (from, left) => {
     if (left == 0) {
@@ -538,9 +552,7 @@ export default class App extends React.Component {
         <Navigation
           screenProps={{
             functions: {
-              fetchUser: this.fetchUser,
               fetchFriend: this.fetchFriend,
-              fetchGroup: this.fetchGroup,
               updateUser: this.updateUser,
               updateFriend: this.updateFriend,
               updateGroup: this.updateGroup,
