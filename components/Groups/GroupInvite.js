@@ -11,21 +11,23 @@ export default class GroupInvite extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      friends: []
+      friends: this.props.friends
     };
   }
 
   componentDidMount = () => {
-    let friends = this.props.friends.filter(friend => {
-      this.props.members.forEach(member => {
-        if (member.userHandle === friend.userHandle) return false;
+    if (this.props.groupID !== "NO-ID") {
+      let friends = this.state.friends.filter(friend => {
+        this.props.members.forEach(member => {
+          if (member.userHandle === friend.userHandle) return false;
+        });
+        return true;
       });
-      return true;
-    });
 
-    this.setState({
-      friends
-    });
+      this.setState({
+        friends
+      });
+    }
   };
 
   render() {
