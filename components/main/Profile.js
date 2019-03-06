@@ -17,8 +17,6 @@ export default class Profile extends React.Component {
     super(props);
 
     // Dummy data used for now, should not be hardcoded
-    //var ratingData = require("../../testData/ratingData.json");
-    //var groupData = require("../../testData/groupData.json");
 
     this.state = {
       selectedIndex: 0,
