@@ -53,7 +53,7 @@ export default class Profile extends React.Component {
     return expr ? comp1 : comp2;
   };
 
-  sendFriendRequest(text) {
+  sendFriendRequest = (text) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
       {
@@ -95,6 +95,7 @@ export default class Profile extends React.Component {
       })
       .catch(error => console.error(`sendFriendRequest: ${error}`));
   }
+
   render() {
     // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];

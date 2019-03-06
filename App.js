@@ -334,9 +334,8 @@ export default class App extends React.Component {
 
   updateGroups = async callback => {
     this.fetchGroups(this.state.user.userHandle, data => {
-      data.forEach(groupID => this.updateGroup(groupID, true))
-    }
-    );
+      data.forEach(groupID => this.updateGroup(groupID, true));
+    });
   };
 
   updateFriend = (id, action) => {
@@ -369,7 +368,7 @@ export default class App extends React.Component {
     if (action) {
       this.fetchGroup(id, data => {
         const arr = this.state.user.groups.slice();
-        arr.push(data);
+        arr.push({ ...data, groupID: id });
         this.setState({
           user: {
             ...this.state.user,
@@ -480,20 +479,17 @@ export default class App extends React.Component {
   };
 
   fetchGroup = (id, callback) => {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          groupID: id,
-          userHandle: this.state.user.userHandle
-        })
-      }
-    )
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        groupID: id,
+        userHandle: this.state.user.userHandle
+      })
+    })
       .then(data => this.handleData(`getGroup`, data, callback))
       .catch(error => console.error(`getGroup: ${error}`));
   };

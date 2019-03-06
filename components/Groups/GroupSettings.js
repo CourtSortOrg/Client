@@ -176,7 +176,7 @@ export default class GroupSettings extends React.Component {
     })
       .then(() => {
         this.props.screenProps.functions.updateGroup(this.state.groupID, false);
-        this.props.navigation.goBack();
+        this.props.navigation.pop(2);
       })
       .catch(error => console.error(`leaveGroupFirebaseFunction: ${error}`));
   };
@@ -186,6 +186,7 @@ export default class GroupSettings extends React.Component {
       <Screen
         title={this.state.groupID !== "NO-ID" ? "Edit Group" : "Create Group"}
         navigation={this.props.navigation}
+        backButton={true}
         showNavigation={this.state.groupID !== "NO-ID"}
       >
         <GroupEdit

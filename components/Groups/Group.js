@@ -19,10 +19,6 @@ export default class Group extends React.Component {
 
       ...this.props.screenProps.user
     };
-  }
-
-  componentDidMount() {
-    console.log(this.state.groupID);
     if (this.state.groupID !== "NO-ID") {
       let groups = this.props.screenProps.user.groups.filter(
         group => group.groupID === this.state.groupID
@@ -33,10 +29,7 @@ export default class Group extends React.Component {
           group => group.groupID === this.state.groupID
         );
       }
-      this.setState({
-        group: groups[0]
-      }, () => console.log(this.state.group));
-
+      this.state.group = { ...groups[0] };
     }
   }
 
@@ -48,15 +41,14 @@ export default class Group extends React.Component {
         backButton={true}
       >
         <Card
-        header={this.state.group.groupName}
+          header={this.state.group.groupName}
           footer={[
             {
               text: "Edit Group",
               onPress: () => {
-                console.log(this.state.groupID);
                 this.props.navigation.navigate("GroupSettings", {
                   ID: this.state.groupID
-                })
+                });
               }
             }
           ]}

@@ -46,7 +46,7 @@ export default class Notifications extends React.Component {
             });
             this.setState({
               notifications: arr
-            });
+            }, () => console.log(this.state.notifications));
           }
           this.setState({
             loadingFriends: false
@@ -144,7 +144,7 @@ export default class Notifications extends React.Component {
   };
 
   groupAlert = id => {
-    Alert.alert("Group Invite", `Join ${id} group?`, [
+    Alert.alert("Group Invite", `Join ${id}?`, [
       {
         text: "Cancel"
       },
@@ -267,7 +267,7 @@ export default class Notifications extends React.Component {
 
   componentDidMount() {
     this.getIncomingFriendRequests();
-    //this.getGroupInvites();
+    this.getGroupInvites();
     //this.getGroupEvents();
     //this.getDiningCourtNotifications();
   }
@@ -294,8 +294,8 @@ export default class Notifications extends React.Component {
                   <ListItem
                     chevron
                     bottomDivider
-                    title={item.Name}
-                    onPress={() => item.onPress()}
+                    title={item.props.Name}
+                    onPress={() => item.props.onPress()}
                     topDivider
                   />
                 );
