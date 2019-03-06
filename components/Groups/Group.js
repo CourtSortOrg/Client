@@ -3,6 +3,8 @@ import { View, Text } from "react-native";
 
 import Screen from "../Nav/Screen";
 import Card from "../components/Card";
+import ProfileList from "../components/ProfileList";
+import Separator from "../components/Separator";
 
 export default class Group extends React.Component {
   constructor(props) {
@@ -11,8 +13,8 @@ export default class Group extends React.Component {
     this.state = {
       groupID: this.props.navigation.getParam("ID", "NO-ID"),
       group: {
-        name: "",
-        members: []
+        groupName: "",
+        memberObjects: []
       },
 
       ...this.props.screenProps.user
@@ -20,49 +22,49 @@ export default class Group extends React.Component {
   }
 
   componentDidMount() {
-    this.props.screenProps.functions.fetchGroup(this.state.groupID, data =>
+    console.log(this.state.groupID);
+    if (this.state.groupID !== "NO-ID") {
+      let groups = this.props.screenProps.user.groups.filter(
+        group => group.groupID === this.state.groupID
+      );
+      if (groups.length === 0) {
+        this.props.screenProps.functions.updateGroup(this.state.groupID, true);
+        groups = this.props.screenProps.user.groups.filter(
+          group => group.groupID === this.state.groupID
+        );
+      }
       this.setState({
-        group: { ...data }
-      })
-    );
+        group: groups[0]
+      }, () => console.log(this.state.group));
+
+    }
   }
 
   render() {
     return (
       <Screen
-        title="Friend"
+        title="Group"
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >
         <Card
-          header={this.state.group.name}
+        header={this.state.group.groupName}
           footer={[
             {
               text: "Edit Group",
-              onPress: () => this.props.navigation.navigate("GroupSettings")
+              onPress: () => {
+                console.log(this.state.groupID);
+                this.props.navigation.navigate("GroupSettings", {
+                  ID: this.state.groupID
+                })
+              }
             }
           ]}
-        >
-          {/*Upcoming events. Make new event*/}
-          /*
-          <Text type="subHeader" style={{ padding: 8 }}>
-            Status: {this.state.otherUser.status}
-          </Text>
-          */
-          <Separator />
-          {/* Members list.*/}
-          <List
+        />
+        <Card header="Members">
+          <ProfileList
             navigation={this.props.navigation}
-            list={[]}
-            type={"expandable"}
-            expand={true}
-            rank={0}
-            subList={{
-              list: "members",
-              type: "element",
-              subList: false,
-              viewMore: { page: "Message", item: "ID" }
-            }}
+            list={this.state.group.memberObjects}
           />
         </Card>
       </Screen>
