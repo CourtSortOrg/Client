@@ -10,7 +10,6 @@ import Text from "../components/Text";
 import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
-import ListElementProfile from "../components/ListElementProfile";
 import ProfileList from "../components/ProfileList";
 
 export default class Profile extends React.Component {
@@ -276,7 +275,6 @@ class FriendsList extends React.Component {
       <ProfileList
         navigation={this.props.navigation}
         extendedSearch={this.sendFriendRequest}
-        selectable={true}
         list={this.props.friends}
       />
     );
