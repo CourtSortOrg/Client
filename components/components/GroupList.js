@@ -18,7 +18,7 @@ export default class GroupList extends React.Component {
   filter(list, text) {
     return list.filter(item => {
       try {
-        return item.name.includes(text);
+        return item.groupName.includes(text);
       } catch (error) {
         console.error("filterGroup: Ill defined item:");
         console.error(item);
@@ -56,7 +56,7 @@ export default class GroupList extends React.Component {
           )}
           <View style={{ flex: 1, paddingLeft: 8 }}>
             <Text type="header" style={{ padding: 0 }}>
-              {item.props.name}
+              {item.props.groupName}
             </Text>
           </View>
           <TouchableOpacity

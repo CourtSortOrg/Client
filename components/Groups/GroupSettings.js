@@ -15,24 +15,35 @@ export default class GroupSettings extends React.Component {
       groupID: this.props.navigation.getParam("ID", "NO-ID"),
       group: {
         members: [],
-        name: ""
+        groupName: ""
       }
     };
   }
 
   componentDidMount = () => {
-    // fetchGroup.
+    // get group from screenProps.
+    console.log(this.state.groupID);
+    if(this.state.groupID !== "NO-ID") {
+      let groups = this.props.screenProps.user.groups.filter(group => group.groupID === this.state.groupID);
+      if(groups.length === 0) {
+          this.props.screenProps.functions.updateGroup(this.state.groupID, true);
+          groups = this.props.screenProps.user.groups.filter(group => group.groupID === this.state.groupID);
+      }
+      this.setState({
+        group: groups[0]
+      });
+    }
   };
 
-  updateGroup = name => {
-    console.log(`Update Group Name: ${name}`);
+  updateGroup = groupName => {
+    console.log(`Update Group Name: ${groupName}`);
   };
 
-  updateGroupName = name => {
+  updateGroupName = groupName => {
     this.setState({
       group: {
         ...this.state.group,
-        name
+        groupName
       }
     });
   };
@@ -49,7 +60,7 @@ export default class GroupSettings extends React.Component {
 
   handleInvites = () => {
     this.state.selectedFriends.forEach(friend =>
-      inviteToGroup(friend.userHandle)
+      this.inviteToGroup(friend.userHandle)
     );
   };
 
@@ -74,7 +85,7 @@ export default class GroupSettings extends React.Component {
   };
 
   createGroup = () => {
-    if (this.state.group.name !== "" && this.state.selectedFriends.length > 0) {
+    if (this.state.group.groupName !== "" && this.state.selectedFriends.length > 0) {
       fetch(
         "https://us-central1-courtsort-e1100.cloudfunctions.net/createGroup",
         {
@@ -85,7 +96,7 @@ export default class GroupSettings extends React.Component {
           },
           body: JSON.stringify({
             userHandle: this.props.screenProps.user.userHandle,
-            groupName: this.state.group.name
+            groupName: this.state.group.groupName
           })
         }
       )
@@ -106,7 +117,7 @@ export default class GroupSettings extends React.Component {
         })
         .catch(error => console.error(`createGroup: ${error}`));
     } else {
-      if (this.state.group.name === "") {
+      if (this.state.group.groupName === "") {
         Alert.alert(
           "Create Group",
           `Cannot create group. Please supply a name`,
@@ -133,8 +144,8 @@ export default class GroupSettings extends React.Component {
   leaveGroup = () => {
     Alert.alert(
       "Leave Group",
-      `You are about to leave ${this.state.group.name}. You can always rejoin ${
-        this.state.group.name
+      `You are about to leave ${this.state.group.groupName}. You can always rejoin ${
+        this.state.group.groupName
       }.`,
       [
         {
@@ -159,7 +170,8 @@ export default class GroupSettings extends React.Component {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: this.state.groupID
+        groupID: this.state.groupID,
+        userHandle: this.props.screenProps.user.userHandle,
       })
     })
       .then(() => {
@@ -177,7 +189,7 @@ export default class GroupSettings extends React.Component {
         showNavigation={this.state.groupID !== "NO-ID"}
       >
         <GroupEdit
-          groupName={this.state.group.name}
+          groupName={this.state.group.groupName}
           groupID={this.state.groupID}
           updateGroupName={this.updateGroupName}
           setGroupName={this.setGroupName}

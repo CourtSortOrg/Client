@@ -24,7 +24,7 @@ export default class Profile extends React.Component {
       selectedIndex: 0,
       isEditing: false,
 
-      name: "",
+      userName: "",
       initials: "",
       restrictions: "",
 

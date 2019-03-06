@@ -18,7 +18,7 @@ export default class ProfileList extends React.Component {
   filter(list, text) {
     return list.filter(item => {
       try {
-        return item.name.includes(text) || item.userHandle.includes(text);
+        return item.userName.includes(text) || item.userHandle.includes(text);
       } catch (error) {
         console.error("filterProfile: Ill defined item:");
         console.error(item);
@@ -56,7 +56,7 @@ export default class ProfileList extends React.Component {
           )}
           <View style={{ flex: 1, paddingLeft: 8 }}>
             <Text type="header" style={{ padding: 0 }}>
-              {item.props.name}
+              {item.props.userName}
             </Text>
             <Text type="subHeader">{`@${item.props.userHandle}`}</Text>
           </View>

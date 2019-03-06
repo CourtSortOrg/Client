@@ -48,9 +48,9 @@ export default class Friend extends React.Component {
     Alert.alert(
       "Unfriend",
       `You are about to unfriend ${
-        this.state.otherUser.name
+        this.state.otherUser.userName
       }. You will remain in shared groups, but to make a new group with ${
-        this.state.otherUser.name
+        this.state.otherUser.userName
       }, they will have to consent.`,
       [
         {
@@ -71,9 +71,9 @@ export default class Friend extends React.Component {
     Alert.alert(
       "Block",
       `You are about to block ${
-        this.state.otherUser.name
+        this.state.otherUser.userName
       }. You will be removed from shared groups, and ${
-        this.state.otherUser.name
+        this.state.otherUser.userName
       } cannot send you any messages.`,
       [
         {
@@ -159,7 +159,7 @@ export default class Friend extends React.Component {
         backButton={true}
       >
         <Card
-          header={this.state.otherUser.name}
+          header={this.state.otherUser.userName}
           footer={[
             { text: "Unfriend", onPress: () => this.removeFriend() },
             { text: "Block", onPress: () => this.blockUser() }

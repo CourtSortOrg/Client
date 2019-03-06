@@ -250,6 +250,7 @@ export default class App extends React.Component {
             ...this.state.user,
             id: this.state.user.userHandle,
             displayName: user.displayName,
+            //userName: user.displayName,
             email: user.email,
             emailVerified: user.emailVerified,
             phoneNumber: user.phoneNumber,
@@ -271,7 +272,7 @@ export default class App extends React.Component {
             body: JSON.stringify({
               userHandle: this.state.user.userHandle,
               uid: this.state.user.uid,
-              name: this.state.user.name
+              userName: this.state.user.userName
             })
           }
         )
@@ -332,8 +333,9 @@ export default class App extends React.Component {
   };
 
   updateGroups = async callback => {
-    this.fetchGroups(this.state.user.id, data =>
-      data.forEach(group => this.updateGroup(group.groupID, true))
+    this.fetchGroups(this.state.user.userHandle, data => {
+      data.forEach(groupID => this.updateGroup(groupID, true))
+    }
     );
   };
 
@@ -478,7 +480,6 @@ export default class App extends React.Component {
   };
 
   fetchGroup = (id, callback) => {
-    /*
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup",
       {
@@ -495,9 +496,7 @@ export default class App extends React.Component {
     )
       .then(data => this.handleData(`getGroup`, data, callback))
       .catch(error => console.error(`getGroup: ${error}`));
-    */
   };
-
 
   fetchMeals = (from, left) => {
     if (left == 0) {
