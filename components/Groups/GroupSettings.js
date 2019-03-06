@@ -74,7 +74,7 @@ export default class GroupSettings extends React.Component {
   };
 
   createGroup = () => {
-    if (this.state.group.name !== "") {
+    if (this.state.group.name !== "" && this.state.selectedFriends.length > 0) {
       fetch(
         "https://us-central1-courtsort-e1100.cloudfunctions.net/createGroup",
         {
@@ -106,11 +106,27 @@ export default class GroupSettings extends React.Component {
         })
         .catch(error => console.error(`createGroup: ${error}`));
     } else {
-      Alert.alert("Create Group", `Cannot create group. Please supply a name`, [
-        {
-          text: "Ok"
-        }
-      ]);
+      if (this.state.group.name === "") {
+        Alert.alert(
+          "Create Group",
+          `Cannot create group. Please supply a name`,
+          [
+            {
+              text: "Ok"
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          "Create Group",
+          `Cannot create group. Please select members to invite`,
+          [
+            {
+              text: "Ok"
+            }
+          ]
+        );
+      }
     }
   };
 
