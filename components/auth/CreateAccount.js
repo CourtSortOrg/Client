@@ -1,5 +1,5 @@
 import React from "react";
-import * as firebase from 'firebase';
+import * as firebase from "firebase";
 import {
   Alert,
   Button,
@@ -16,6 +16,8 @@ import {
   View
 } from "react-native";
 
+import { Ionicons } from "@expo/vector-icons";
+
 export default class CreateAccount extends React.Component {
   constructor(props) {
     super(props);
@@ -23,7 +25,8 @@ export default class CreateAccount extends React.Component {
   }
 
   state = {
-    name: "",
+    userName: "",
+    userHandle: "",
     email: "",
     password: "",
     isVegan: false,
@@ -33,31 +36,64 @@ export default class CreateAccount extends React.Component {
   createAccount = () => {
     Alert.alert(
       "Name: " +
-        this.state.name +
+        this.state.userName +
         "\nEmail: " +
         this.state.email +
         "\nPassword: " +
         this.state.password
     );
     Keyboard.dismiss();
-    var email = this.state.email;
-    var password = this.state.password;
+    let email = this.state.email;
+    let password = this.state.password;
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
-      .then((user) => {
-        var user = firebase.auth().currentUser;
+      .then(user => {
+        user = firebase.auth().currentUser;
         user
           .updateProfile({
-            displayName: this.state.name
-          })
-          .then(function() {
-            alert(user.displayName);
+            displayName: this.state.ame,
+            userHandle: this.state.userHandle
           })
           .catch(function(error) {
-            alert(error.message);
+            console.error(`createAccount: updateProfile: ${error.message}`);
           });
-          this.props.navigation.navigate("Home");
+
+        fetch(
+          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              uid: user.uid,
+              userHandle: this.state.userHandle,
+              userName: this.state.userName
+            })
+          }
+        )
+          .then(data => {
+            try {
+              //JSON.parse(data._bodyText);
+
+              this.props.screenProps.functions.getUserHandle(
+                this.state.userHandle,
+                () =>
+                  this.props.screenProps.functions.updateUser(user, () =>
+                    this.props.navigation.navigate("Home")
+                  )
+              );
+            } catch (error) {
+              console.error(
+                `createAccount: addUserToDatabase: ${error}: ${data._bodyText}`
+              );
+            }
+          })
+          .catch(error =>
+            console.error(`createAccount: addUserToDatabase: ${error}`)
+          );
       })
       .catch(function(error) {
         var errorCode = error.code;
@@ -65,6 +101,7 @@ export default class CreateAccount extends React.Component {
         if (errorCode == "auth/weak-password") {
           Alert.alert("the password is too weak");
         } else {
+          //console.error(`createAccount: createUserWithEmailAndPassword: ${error.message}`);
           Alert.alert("Error", error.message);
         }
       });
@@ -77,6 +114,15 @@ export default class CreateAccount extends React.Component {
         activeOpacity={1}
         onPress={Keyboard.dismiss}
       >
+        <Ionicons
+          color="black"
+          name="ios-arrow-back"
+          onPress={() => {
+            this.props.navigation.navigate("Signin");
+          }}
+          size={32}
+          style={{ position: "absolute", top: 16, left: 16 }}
+        />
         {/* Wrapped in a TouchableOpacity so the keyboard can dismiss upon clicking outside of the TextInputs */}
 
         {/* Hide the StatusBar for the CreateAccount Screen */}
@@ -84,7 +130,10 @@ export default class CreateAccount extends React.Component {
 
         {/* The header for the CreateAccount Screen (purely visual) */}
         <View style={styles.header}>
-          <Image style={styles.logo} source={require("../../assets/logo.png")} />
+          <Image
+            style={styles.logo}
+            source={require("../../assets/logo.png")}
+          />
           <Text style={styles.greeting}>Create a new account!</Text>
         </View>
 
@@ -96,15 +145,31 @@ export default class CreateAccount extends React.Component {
             autoCapitalize="none"
             blurOnSubmit={false}
             onSubmitEditing={() => {
-              this.email.focus();
+              this.userHandle.focus();
             }}
             placeholder="Name"
             placeholderTextColor="#999"
-            onChangeText={text => this.setState({ name: text })}
+            onChangeText={text => this.setState({ userName: text })}
             returnKeyType={"next"}
             underlineColorAndroid="transparent"
           />
 
+          <TextInput
+            style={styles.input}
+            autoCapitalize="none"
+            blurOnSubmit={false}
+            onSubmitEditing={() => {
+              this.email.focus();
+            }}
+            ref={input => {
+              this.userHandle = input;
+            }}
+            placeholder="Handle"
+            placeholderTextColor="#999"
+            onChangeText={text => this.setState({ userHandle: text })}
+            returnKeyType={"next"}
+            underlineColorAndroid="transparent"
+          />
           {/* TextInput for the email */}
           <TextInput
             style={styles.input}
@@ -127,12 +192,13 @@ export default class CreateAccount extends React.Component {
           <TextInput
             style={styles.input}
             autoCapitalize="none"
-            blurOnSubmit={false}
+            blurfOnSubmit={false}
             placeholder="Password"
             placeholderTextColor="#999"
             ref={input => {
               this.password = input;
             }}
+            onSubmitEditing={() => Keyboard.dismiss()}
             onChangeText={text => this.setState({ password: text })}
             secureTextEntry={true}
             underlineColorAndroid="transparent"
@@ -212,9 +278,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 15
   },
-  allergenList:  {
+  allergenList: {
     width: "100%"
   },
-  image: {
-  }
+  image: {}
 });

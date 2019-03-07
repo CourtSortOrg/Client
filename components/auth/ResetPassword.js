@@ -1,7 +1,15 @@
 import React from "react";
-import { StyleSheet, TextInput, View } from "react-native";
-import { Button } from "react-native-elements";
+import {
+  Button,
+  Keyboard,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity
+} from "react-native";
 import * as firebase from "firebase";
+import { Ionicons } from "@expo/vector-icons";
+
+import Text from "../components/Text"
 
 export default class ResetPassword extends React.Component {
   constructor(props) {
@@ -14,7 +22,7 @@ export default class ResetPassword extends React.Component {
   resetPassword = () => {
     firebase
       .auth()
-      .sendPasswordResetEmail(this.state.email.toString())
+      .sendPasswordResetEmail(this.state.email)
       .then(function() {
         alert("Email Sent");
       })
@@ -25,25 +33,68 @@ export default class ResetPassword extends React.Component {
 
   render() {
     return (
-      <View
-        style={{
-          flex:1 ,
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center"
-        }}
+      <TouchableOpacity
+        style={styles.container}
+        activeOpacity={1}
+        onPress={Keyboard.dismiss}
       >
+        <Ionicons
+          color="black"
+          name="ios-arrow-back"
+          onPress={() => {
+            this.props.navigation.navigate("Signin");
+          }}
+          size={32}
+          style={{ position: "absolute", top: 16, left: 16 }}
+        />
+        <Text style={styles.header}>Forgot your Password?</Text>
+        <Text style={{ width: "70%", textAlign: "center", marginBottom: 15 }}>
+          Enter you email we'll send you a link to reset your password
+        </Text>
         <TextInput
-          style={{ borderColor: "black" }}
+          style={styles.input}
           autoCapitalize="none"
           blurOnSubmit={false}
           placeholder="Email"
           placeholderTextColor="#999"
           onChangeText={text => this.setState({ email: text })}
+          onSubmitEditing={() => {
+            Keyboard.dismiss();
+            this.resetPassword();
+          }}
           underlineColorAndroid="transparent"
         />
-        <Button onPress={this.resetPassword} title="Submit" />
-      </View>
+        <Button
+          color="#e9650d"
+          onPress={this.resetPassword}
+          title="Reset Password"
+        />
+      </TouchableOpacity>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  header: {
+    fontSize: 20,
+    fontWeight: "500",
+    marginVertical: 15
+  },
+  input: {
+    backgroundColor: "#eee",
+    borderColor: "#e9650d",
+    borderRadius: 5,
+    borderWidth: 2,
+    height: 40,
+    marginBottom: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    width: "70%"
+  }
+});

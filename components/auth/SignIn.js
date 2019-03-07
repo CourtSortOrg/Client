@@ -6,7 +6,6 @@ import {
   Keyboard,
   StatusBar,
   StyleSheet,
-  Text,
   TextInput,
   TouchableHighlight,
   TouchableOpacity,
@@ -17,59 +16,53 @@ import { Facebook, Google } from "expo";
 import { FontAwesome } from "@expo/vector-icons";
 import * as firebase from "firebase";
 
-import config from "../../config";
-
-if (!firebase.apps.length) {
-  firebase.initializeApp(config);
-}
+import Text from "../components/Text";
 
 export default class SignIn extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      username: "",
+      email: "",
       password: ""
     };
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (user) {
-        props.navigation.navigate("Home");
-      }
+
+    firebase.auth().onAuthStateChanged(user => {
+      this.props.screenProps.functions.updateUser(user, () =>
+        this.props.navigation.navigate("Home")
+      );
     });
   }
 
   signInNative = () => {
-    // Alert.alert('Clicked Sign In', 'Attempt to login user, for now will
-    // automagically continue to main');
+    //Dismiss the keyboard
     Keyboard.dismiss();
-    //Alert.alert("Credentials", this.state.username+"\n"+this.state.password)
 
-    var username = this.state.username.toString();
-    var pass = this.state.password.toString();
+    //Attempt to sign the user in with firebase
     firebase
       .auth()
-      .signInWithEmailAndPassword(username, pass)
+      .signInWithEmailAndPassword(this.state.email, this.state.password)
       .then(() => {
-        this.props.navigation.navigate("Home");
+        //If they successfully signed in, navigate to the home screen
+        //this.props.navigation.navigate("Home");
+        this.props.screenProps.functions.updateUser(firebase.auth().currentUser, () =>
+          this.props.navigation.navigate("Home")
+        );
       })
       .catch(function(error) {
         alert(error.message);
       });
   };
-  createAccount = async () => {
+
+  createAccount = () => {
     this.props.navigation.navigate("CreateAccount");
   };
 
-  forgotPassword = async () => {
+  forgotPassword = () => {
     this.props.navigation.navigate("ResetPassword");
-    // firebase
-    //   .auth()
-    //   .sendPasswordResetEmail(this.state.username.toString())
-    //   .then(function() {
-    //     alert("Email Sent");
-    //   })
-    //   .catch(function(error) {
-    //     alert(error.message);
-    //   });
+  };
+
+  useAsGuest = () => {
+    this.props.navigation.navigate("Home");
   };
 
   signInGoogleAsync = async () => {
@@ -82,7 +75,7 @@ export default class SignIn extends React.Component {
         scopes: ["profile", "email"]
       });
 
-      this.props.navigation.navigate("Home");
+      //this.props.navigation.navigate("Home");
 
       if (result.type === "success") {
         firebase
@@ -112,28 +105,19 @@ export default class SignIn extends React.Component {
   signInFacebookAsync = async () => {
     // TODO: Maybe need to add Android hashes?? APPID 279514589383224
     try {
-      const {
-        type,
-        token,
-        expires,
-        permissions,
-        declinedPermissions
-      } = await Facebook.logInWithReadPermissionsAsync("279514589383224", {
-        permissions: ["public_profile"]
-      });
+      const { type, token } = await Facebook.logInWithReadPermissionsAsync(
+        "279514589383224",
+        {
+          permissions: ["public_profile"]
+        }
+      );
       if (type === "success") {
         // Get the user's name using Facebook's Graph API
-        const response = await fetch(
-          `https://graph.facebook.com/me?access_token=${token}`
-        );
-        Alert.alert("Logged in!", `Hi ${(await response.json()).name}!`);
         firebase
           .auth()
           .signInAndRetrieveDataWithCredential(
             firebase.auth.FacebookAuthProvider.credential(token)
           );
-      } else {
-        // type === 'cancel'
       }
     } catch ({ message }) {
       alert(`Facebook Login Error: ${message}`);
@@ -174,7 +158,7 @@ export default class SignIn extends React.Component {
             placeholder="Email"
             placeholderTextColor="#999"
             returnKeyType={"next"}
-            onChangeText={username => this.setState({ username })}
+            onChangeText={email => this.setState({ email: email })}
             underlineColorAndroid="transparent"
           />
 
@@ -205,7 +189,6 @@ export default class SignIn extends React.Component {
             <View style={styles.divider} />
           </View>
 
-          {/* TODO: Set up Facebook authentication */}
           <View style={styles.authentication}>
             {/* The branded Button for Google Authentification */}
             <TouchableHighlight
@@ -269,7 +252,7 @@ export default class SignIn extends React.Component {
                 activeOpacity={0.65}
                 underlayColor="#FFF"
               >
-                <Text style={styles.linkingText}>Create an Account</Text>
+                <Text style={styles.linkingText}>Create an account</Text>
               </TouchableHighlight>
               <TouchableHighlight
                 onPress={this.forgotPassword}
@@ -277,6 +260,13 @@ export default class SignIn extends React.Component {
                 underlayColor="#FFF"
               >
                 <Text style={styles.linkingText}>Forgot your password?</Text>
+              </TouchableHighlight>
+              <TouchableHighlight
+                onPress={this.useAsGuest}
+                activeOpacity={0.65}
+                underlayColor="#FFF"
+              >
+                <Text style={styles.linkingText}>Use as guest</Text>
               </TouchableHighlight>
             </View>
           </View>

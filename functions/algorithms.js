@@ -61,7 +61,7 @@ RETURN: a boolean value representing if the dining court is currently open
 */
 function is_open(dining_court){
   var date  = today.getDate();
-  var currTime = today.getHours() + today.getMinutes() +  today.getSeconds();
+  var currTime = today.getHours() + ":" + today.getMinutes();
   var i;
 
   var times = get_times(dining_court, date);
@@ -70,10 +70,10 @@ function is_open(dining_court){
     return false;
   }
 
-  for(i = 0; i < (times.length)/2; i=i+2){
+  for(i = 0; i < times.length; i=i+2){
     var startTime = times[i];
     var endTime = times[i+1];
-    if( (startTime < currTime) && (currTime < endTime) ){
+    if( (startTime <= currTime) && (currTime <= endTime) ){
       return true;
     }
   }
@@ -88,8 +88,7 @@ RETURN:
     get_times function returns an array of times for a given dining court on a specific day
     The contents will be ordered as such:
       [ Start_Time_1, End_Time_1, Start_Time_2, End_Time_2, ... ]
-    The length of the array will be a multiple of 2.
-    ( A better solution is use a struct-type data structure to keep the start and end times together )
+    The length of the array will be a multiple of 2
 */
 function get_times(dining_court){
     // @TODO - Tyler

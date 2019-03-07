@@ -2,14 +2,15 @@ import React from "react";
 import { StyleSheet, View, TouchableOpacity, Image } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import Text from "../Nav/Text";
+import Text from "./Text";
 
 export default class ListElement extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      expand: this.props.expand
+      expand: this.props.expand,
+      selected: false
     };
   }
 
@@ -27,12 +28,16 @@ export default class ListElement extends React.Component {
   expandable = () => {
     return (
       <View style={{ ...this.styles.listElement, ...this.styles.expandable }}>
-        <View style={this.styles.expandableHeader}>
-          <TouchableOpacity onPress={() => this.toggleExpansion()}>
-            <Text type="header">{this.props.Name}</Text>
-            {this.viewMore()}
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={this.styles.expandableHeader}
+          onPress={() => {
+            if (this.props.onPress) this.props.onPress();
+            this.toggleExpansion();
+          }}
+        >
+          <Text type="header">{this.props.Name}</Text>
+          {this.viewMore()}
+        </TouchableOpacity>
         {this.subList()}
       </View>
     );
@@ -43,7 +48,10 @@ export default class ListElement extends React.Component {
       <View style={{ ...this.styles.listElement, ...this.styles.dropDown }}>
         <TouchableOpacity
           style={this.styles.dropDownHeader}
-          onPress={() => this.toggleExpansion()}
+          onPress={() => {
+            if (this.props.onPress) this.props.onPress();
+            this.toggleExpansion();
+          }}
         >
           <View style={{ marginLeft: -12 }}>
             {this.state.expand ? (
@@ -70,22 +78,26 @@ export default class ListElement extends React.Component {
 
   subList = () => {
     if (this.props.subList) {
+      let list = this.props[this.props.subList.list];
+      if (this.props.subList.extend) list = list[0][this.props.subList.extend];
       return (
         <View
           style={this.state.expand ? this.styles.subList : { display: "none" }}
         >
-          {this.props[this.props.subList.list].map((element, index) => (
-            <ListElement
-              key={index}
-              id={index}
-              rank={this.props.rank + 1}
-              expand={this.props.expand}
-              navigation={this.props.navigation}
-              renderElement={this.props.renderElement}
-              {...element}
-              {...this.props.subList}
-            />
-          ))}
+          {list.map((element, index) => {
+            return (
+              <ListElement
+                key={index}
+                id={index}
+                rank={1 /*this.props.rank + 1*/}
+                expand={this.props.expand}
+                navigation={this.props.navigation}
+                selectFunction={this.props.selectFunction}
+                {...element}
+                {...this.props.subList}
+              />
+            );
+          })}
         </View>
       );
     }
@@ -104,7 +116,7 @@ export default class ListElement extends React.Component {
           <MaterialIcons
             size={32}
             name="keyboard-arrow-right"
-            color="#E86515"
+            color={this.props.type == "expandable" ? "black" : "#E86515"}
           />
         </TouchableOpacity>
       );
@@ -125,28 +137,63 @@ export default class ListElement extends React.Component {
         }
       >
         <TouchableOpacity
-          style={{ flex: 1 }}
-          onPress={() => this.props.viewMore && this.navigate()}
+          style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+          onPress={() => {
+            if (this.props.onPress) this.props.onPress();
+
+            if (this.props.selectable == true) {
+              this.toggleSelect();
+            } else if (this.props.viewMore) this.navigate();
+          }}
         >
-          {this.props.renderElement ? (
-            this.props.renderElement(this.props)
-          ) : (
-            <Text type="subHeader">{this.props.Name}</Text>
-          )}
+          {this.props.selectable == true &&
+            (this.state.selected == false ? (
+              <MaterialIcons
+                size={32}
+                name="check-box-outline-blank"
+                color="#E86515"
+              />
+            ) : (
+              <MaterialIcons size={32} name="check-box" color="#E86515" />
+            ))}
+          <Text type="subHeader">{this.props.Name}</Text>
         </TouchableOpacity>
         {this.viewMore()}
       </View>
     );
   };
 
+  toggleSelect = () => {
+    this.setState(
+      {
+        selected: !this.state.selected
+      },
+      () =>
+        this.props.selectFunction(
+          this.props,
+          this.props.Name,
+          this.state.selected
+        )
+    );
+  }
+
   render() {
-    switch (this.props.type) {
-      case "expandable":
-        return this.expandable();
-      case "dropDown":
-        return this.dropDown();
-      case "element":
-        return this.element();
+    if (this.props.renderElement) {
+      return (
+        <View>
+          {this.props.renderElement(this)}
+          {this.subList()}
+        </View>
+      );
+    } else if (this.props.type) {
+      switch (this.props.type) {
+        case "expandable":
+          return <View>{this.expandable()}</View>;
+        case "dropDown":
+          return <View>{this.dropDown()}</View>;
+        case "element":
+          return <View>{this.element()}</View>;
+      }
     }
     return (
       <View>
@@ -186,7 +233,6 @@ export default class ListElement extends React.Component {
     },
     elementShaded: {
       backgroundColor: "#ddd"
-    },
-    subList: {}
+    }
   });
 }

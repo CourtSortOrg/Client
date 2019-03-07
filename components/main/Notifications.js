@@ -1,10 +1,277 @@
 import React from "react";
-import { View, Text } from "react-native";
-import { Button } from "react-native-elements";
+import { ActivityIndicator, Alert, FlatList } from "react-native";
+import { ListItem } from "react-native-elements";
+import * as firebase from "firebase";
 
 import Screen from "../Nav/Screen";
+import List from "../components/List";
 
 export default class Notifications extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      loadingGroups: false,
+      loadingFriends: true,
+      notifications: [],
+
+      ...this.props.screenProps.user
+    };
+  }
+
+  getIncomingFriendRequests = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getIncomingFriendRequests",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.id
+        })
+      }
+    )
+      .then(data => {
+        try {
+          const arr = this.state.notifications.slice();
+          const items = [...JSON.parse(data._bodyText)].map(item => {
+            return { Name: `${item.friendName}  @${item.friendHandle}`, ...item, onPress: () => this.friendAlert(item.friendHandle) };
+          });
+
+          if (items.length != 0) {
+            arr.push({
+              Name: "Friend Requests",
+              items: items
+            });
+            this.setState({
+              notifications: arr
+            }, () => console.log(this.state.notifications));
+          }
+          this.setState({
+            loadingFriends: false
+          });
+        } catch (error) {
+          console.error(
+            `getIncomingFriendRequests: ${error}: ${data._bodyText}`
+          );
+        }
+      })
+      .catch(error => console.error(`getIncomingFriendRequests: ${error}`));
+  };
+
+  getGroupInvites = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getGroupInvites",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.id
+        })
+      }
+    )
+      .then(data => {
+        try {
+          const arr = this.state.notifications.slice();
+          const items = [...JSON.parse(data._bodyText)].map(item => {
+            return { Name: item, onPress: () => this.groupAlert(item) };
+          });
+          if (items.length != 0) {
+            arr.push({
+              Name: "Group Invites",
+              items: items
+            });
+
+            this.setState({
+              notifications: arr
+            });
+          }
+
+          this.setState({
+            loadingGroups: false
+          });
+        } catch (error) {
+          console.error(`getGroupInvites: ${error}: ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`getGroupInvites: ${error}`));
+  };
+
+  removeNotificationFriend = id => {
+    let n = this.state.notifications.slice();
+    for (let i = 0; i < n.length; i++) {
+      if (n[i].Name == "Friend Requests") {
+        n[i].items = n[i].items.filter(req => req.friendHandle != id);
+      }
+    }
+
+    this.setState({
+      notifications: n
+    });
+  };
+
+  removeNotificationGroup = id => {
+    let n = this.state.notifications.slice();
+    for (let i = 0; i < n.length; i++) {
+      if (n[i].Name == "Group Invites") {
+        n[i].items = items.filter(req => req.Name != id);
+      }
+    }
+
+    this.setState({
+      notifications: n
+    });
+  };
+
+  friendAlert = id => {
+    Alert.alert("Friend Request", `Accept request from @${id}?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "Deny",
+        onPress: () => this.denyFriendRequest(id)
+      },
+      {
+        text: "Accept",
+        onPress: () => this.acceptFriendRequest(id)
+      }
+    ]);
+  };
+
+  groupAlert = id => {
+    Alert.alert("Group Invite", `Join ${id}?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "Deny",
+        onPress: () => this.denyGroupInvitation(id)
+      },
+      {
+        text: "Accept",
+        onPress: () => this.acceptGroupInvitation(id)
+      }
+    ]);
+  };
+
+  acceptFriendRequest = id => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptFriendRequest",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.id,
+          friendHandle: id
+        })
+      }
+    )
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+          this.removeNotificationFriend(id);
+          this.props.screenProps.functions.updateFriend(id, true);
+        } catch (error) {
+          console.error(`acceptFriendRequest: ${error}: ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`acceptFriendRequest: ${error}`));
+  };
+
+  denyFriendRequest = id => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/denyFriendRequest",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.setState.id,
+          friendHandle: id
+        })
+      }
+    )
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+          this.removeNotificationFriend(id);
+        } catch (error) {
+          console.error(`denyFriendRequest: ${error}: ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`denyFriendRequest: ${error}`));
+  };
+
+  acceptGroupInvitation = id => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptGroupInvitation",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.id,
+          groupId: id
+        })
+      }
+    )
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+          this.removeNotificationGroup(id);
+          this.props.screenProps.functions.updateGroup(id, true);
+        } catch (error) {
+          console.error(`acceptGroupInvitation: ${error}: ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`acceptGroupInvitation: ${error}`));
+  };
+
+  denyGroupInvitation = id => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/denyGroupInvitation",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.setState.id,
+          groupId: id
+        })
+      }
+    )
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+          this.removeNotificationGroup(id);
+        } catch (error) {
+          console.error(`denyGroupInvitation: ${error}: ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`denyGroupInvitation: ${error}`));
+  };
+
+  componentDidMount() {
+    this.getIncomingFriendRequests();
+    this.getGroupInvites();
+    //this.getGroupEvents();
+    //this.getDiningCourtNotifications();
+  }
+
   render() {
     return (
       <Screen
@@ -12,7 +279,30 @@ export default class Notifications extends React.Component {
         navigation={{ ...this.props.navigation }}
         backButton={false}
       >
-        <Text>Notifications</Text>
+        {this.state.loadingGroups || this.state.loadingFriends ? (
+          <ActivityIndicator size="large" color="#e9650d" />
+        ) : (
+          <List
+            list={this.state.notifications}
+            type="expandable"
+            expanded={true}
+            subList={{
+              list: "items",
+              type: "element",
+              renderElement: item => {
+                return (
+                  <ListItem
+                    chevron
+                    bottomDivider
+                    title={item.props.Name}
+                    onPress={() => item.props.onPress()}
+                    topDivider
+                  />
+                );
+              }
+            }}
+          />
+        )}
       </Screen>
     );
   }

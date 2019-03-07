@@ -1,241 +1,258 @@
 import React from "react";
 import * as firebase from "firebase";
-import {
-  Alert,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
-} from "react-native";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
 
-import { Card, ListItem, Rating, Button } from "react-native-elements";
+import { ListItem, Rating, Button } from "react-native-elements";
 import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
-import { EvilIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
+import Text from "../components/Text";
+import Card from "../components/Card";
 import Screen from "../Nav/Screen";
+import ProfileList from "../components/ProfileList";
+import GroupList from "../components/GroupList";
 
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
-    var userData = require("../../testData/userData.json");
-    var ratingData = require("../../testData/ratingData.json");
-    var friendData = require("../../testData/friendData.json");
-    var groupData = require("../../testData/groupData.json");
+
+    // Dummy data used for now, should not be hardcoded
 
     this.state = {
       selectedIndex: 0,
       isEditing: false,
 
-      name: userData.name,
-      initials: userData.initials,
-      image: userData.image,
-      restrictions: userData.restrictions,
+      userName: "",
+      initials: "",
+      restrictions: "",
 
-      ratings: ratingData.ratings,
-      friends: friendData.users,
-      groups: groupData.groups
+      image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
   }
 
+  componentDidMount() {
+    // If the user is a guest, send them to the sign in screen
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+    }
+  }
+
+  // Method to change the currently selected index of the button group
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
   };
 
+  // Helper method to choose whether to render a component
   shouldRender = (expr, comp1, comp2) => {
     return expr ? comp1 : comp2;
   };
 
-  deleteAccount = () => {
-    user = firebase.auth().currentUser;
-    //get list of friends
-    //get list of individual ratings
-    user
-      .delete()
-      .then(() => {
-        //navigate to SignIn Screen
-        this.props.navigation.navigate("Auth");
-        this.setState({ isEditing: false });
-        //remove this user from all lists of friends
-        //remove this user's individual ratings
+  sendFriendRequest = (text) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.props.screenProps.user.userHandle,
+          friendHandle: text
+        })
+      }
+    )
+      .then(data => {
+        console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+        if (data._bodyText == "success")
+          Alert.alert(
+            "Friend Request",
+            `You sent a friend request to ${text}.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
+        else
+          Alert.alert(
+            "Friend Request",
+            `Friend request to ${text} could not be sent.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
       })
-      .catch(function(error) {
-        alert("ERROR: " + error.message);
-      });
-  };
-
-  signOut = () => {
-    firebase
-      .auth()
-      .signOut()
-      .then(() => {
-        this.setState({ isEditing: false });
-        this.props.navigation.navigate("Auth");
-        //go back to SignIn screen
-      })
-      .catch(error => {
-        alert(error.message);
-      });
-  };
-
-  createUser = async () => {
-    let response = await fetch('https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uid: "test-uid",
-      }),
-    });
+      .catch(error => console.error(`sendFriendRequest: ${error}`));
   }
 
   render() {
+    // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
-    const {
-      friends,
-      groups,
-      restrictions,
-      ratings,
-      selectedIndex
-    } = this.state;
+    // Retrieve user data from state
+    const { friends, groups, ratings, selectedIndex } = this.state;
+
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+      return (
+        <View>
+          <Text>Navigation</Text>
+        </View>
+      );
+    }
+
     return (
       <Screen
         backButton={false}
         navigation={{ ...this.props.navigation }}
         title="Profile"
       >
-        {/* "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png" */}
-        <ScrollView style={styles.backgroundColor}>
-          <Card
-            containerStyle={styles.card}
-            wrapperStyle={styles.profileInformation}
-          >
-            <Avatar
-              containerStyle={styles.profilePicture}
-              rounded
-              size={100}
-              source={{ uri: this.state.image }}
-              title={this.state.initials}
-            />
-            <Text style={styles.profileName}>{this.state.name}</Text>
-            <EvilIcons
-              color="gray"
-              name="pencil"
-              onPress={() => {
-                this.setState({ isEditing: true });
-              }}
-              size={35}
-              style={styles.editInformation}
-            />
-            {/* {restrictions.length > 0 ? (
-              <View style={{ flex: 1, borderRadius: 5 }}>
-                <View
-                  style={{
-                    backgroundColor: "white",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    paddingVertical: 5
-                  }}
-                >
-                  <Text style={{ fontWeight: "bold" }}>
-                    Allergens and Preferences
-                  </Text>
-                  {restrictions.map((data, key) => {
-                    return <Text key={key}>{data}</Text>;
-                  })}
-                </View>
-              </View>
-            ) : null} */}
-          </Card>
-          <Card containerStyle={styles.card}>
-            <ButtonGroup
-              buttons={buttons}
-              onPress={this.updateIndex}
-              selectedIndex={selectedIndex}
-            />
+        {/* Card that shows user information */}
+        <Card style={styles.profileInformation}>
+          {/* Avatar to show profile picture */}
+          <Avatar
+            containerStyle={styles.profilePicture}
+            rounded
+            size={100}
+            source={{ uri: this.state.image }}
+            title={this.state.initials}
+          />
+          {/* Test to show profile name */}
+          <Text style={styles.profileName}>
+            {this.props.screenProps.user.displayName}
+          </Text>
+          {/* Icon to navigate to Settings */}
+          <MaterialIcons
+            color="gray"
+            name="settings"
+            // TODO: Navigate to settings
+            onPress={() => {
+              this.props.navigation.navigate("Settings");
+              // this.setState({ isEditing: true });
+            }}
+            size={28}
+            style={styles.settingsIcon}
+          />
+        </Card>
 
-            {this.shouldRender(
-              selectedIndex == 0,
-              <RatingsList ratings={ratings} />,
-              null
-            )}
-            {this.shouldRender(
-              selectedIndex == 1,
-              <FriendsList friends={friends} />,
-              null
-            )}
-            {this.shouldRender(
-              selectedIndex == 2,
-              <GroupsList groups={groups} />,
-              null
-            )}
-          </Card>
-          <Overlay
-            borderRadius={4}
-            height="90%"
-            isVisible={this.state.isEditing}
-            overlayBackgroundColor="white"
-            width="90%"
-            windowBackgroundColor="rgba(0, 0, 0, .5)"
+        {/* TODO: Add user dietary restrictions */}
+
+        {/* Card to show user ratings, friends, and groups */}
+
+        <Card>
+          {/* ButtonGroup to choose tab */}
+          <ButtonGroup
+            buttons={buttons}
+            onPress={this.updateIndex}
+            selectedIndex={selectedIndex}
+          />
+
+          {/* Render the ratings list if on the ratings tab */}
+          {this.shouldRender(
+            selectedIndex == 0,
+            <RatingsList
+              id={this.props.screenProps.user.id}
+              ratings={this.props.screenProps.user.ratings}
+            />,
+            null
+          )}
+
+          {/* Render the friends list if on the friends tab */}
+          {this.shouldRender(
+            selectedIndex == 1,
+            <ProfileList
+              navigation={this.props.navigation}
+              extendedSearch={this.sendFriendRequest}
+              list={this.props.screenProps.user.friends}
+            />,
+            null
+          )}
+
+          {/* Render the groups list if on the groups tab */}
+          {this.shouldRender(
+            selectedIndex == 2,
+            <GroupList
+              navigation={this.props.navigation}
+              extendedSearch={text =>
+                this.props.navigation.navigate("GroupSettings")
+              }
+              list={this.props.screenProps.user.groups}
+            />,
+            null
+          )}
+        </Card>
+
+        {/* TODO: Phase this out into Settings screen */}
+        <Overlay
+          borderRadius={4}
+          height="90%"
+          isVisible={this.state.isEditing}
+          overlayBackgroundColor="white"
+          width="90%"
+          windowBackgroundColor="rgba(0, 0, 0, .5)"
+        >
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: 15
+            }}
           >
+            <MaterialIcons
+              color="gray"
+              name="close"
+              onPress={() => {
+                this.setState({ isEditing: false });
+              }}
+              size={24}
+              style={styles.settingsIcon}
+            />
+            <Text>Edit Profile</Text>
             <View
               style={{
-                flex: 1,
-                flexDirection: "column",
+                flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "space-between",
-                padding: 15
+                justifyContent: "space-between"
               }}
             >
-              <EvilIcons
-                color="gray"
-                name="close"
-                onPress={() => {
-                  this.setState({ isEditing: false });
-                }}
-                size={24}
-                style={styles.editInformation}
+              <Button
+                title="Sign Out"
+                onPress={this.signOut}
+                containerStyle={{ flex: 1, marginHorizontal: 5 }}
               />
-              <Text>Edit Profile</Text>
-              <Button 
-                  title="Create Account"
-                  onPress={this.createUser}/>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between"
-                }}
-              >
-              
-                <Button
-                  title="Sign Out"
-                  onPress={this.signOut}
-                  containerStyle={{ flex: 1, marginHorizontal: 5 }}
-                />
-                <Button
-                  title="Delete Account"
-                  onPress={this.deleteAccount}
-                  containerStyle={{ flex: 1, marginHorizontal: 5 }}
-                />
-              </View>
+              <Button
+                title="Delete Account"
+                onPress={this.deleteAccount}
+                containerStyle={{ flex: 1, marginHorizontal: 5 }}
+              />
             </View>
-          </Overlay>
-        </ScrollView>
+          </View>
+        </Overlay>
       </Screen>
     );
   }
 }
 
+// Ratings List Component
+// TODO: Add styles of Ratings List instead of hardcoding
 function RatingsList(props) {
   return (
     <FlatList
       data={props.ratings}
       keyExtractor={item => item.id}
-      renderItem={({ item, index }) => (
+      renderItem={({ item }) => (
         <ListItem
           bottomDivider
           subtitle={
@@ -252,54 +269,14 @@ function RatingsList(props) {
   );
 }
 
-function FriendsList(props) {
-  return (
-    <FlatList
-      keyExtractor={item => item.id}
-      data={props.friends}
-      renderItem={({ item }) => (
-        <ListItem
-          chevron
-          bottomDivider
-          leftAvatar={{
-            source: { uri: item.image },
-            containerStyle: styles.friendPicture
-          }}
-          subtitle={`@${item.username}`}
-          title={item.name}
-          topDivider
-        />
-      )}
-    />
-  );
-}
-
-function GroupsList(props) {
-  return (
-    <FlatList
-      keyExtractor={item => item.id}
-      data={props.groups}
-      renderItem={({ item }) => (
-        <ListItem chevron bottomDivider title={item.name} topDivider />
-      )}
-    />
-  );
-}
-
 const styles = StyleSheet.create({
   backgroundColor: {
     backgroundColor: "lightgray"
   },
-  card: {
-    padding: 0,
-    borderRadius: 4,
-    marginVertical: 5,
-    marginHorizontal: 10
-  },
-  editInformation: {
+  settingsIcon: {
     position: "absolute",
-    top: 4,
-    right: 4
+    top: 8,
+    right: 8
   },
   profileInformation: {
     alignItems: "center",
