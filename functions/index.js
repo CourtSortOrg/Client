@@ -1249,6 +1249,7 @@ exports.rateDiningCourt = functions.https.onRequest(async (request, response) =>
             });
 
             userDiningRef.set({
+              "diningCourt":diningCourt,
               "rating":rating
             });
           }
@@ -1276,6 +1277,7 @@ exports.rateDiningCourt = functions.https.onRequest(async (request, response) =>
             });
 
             userDiningRef.update({
+              "diningCourt":diningCourt,
               "rating":rating
             });
           }
@@ -1303,6 +1305,39 @@ exports.removeDiningCourtRating = functions.https.onRequest((request, response) 
           response.send({
             "success":true
           });
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+      else {
+        throw new Error("user does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
+//get the list of dining court ratings from a user
+//PARAMETERS: userHandle
+exports.getDiningCourtRatings = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle
+
+  if (userHandle == null) {
+    throw new Error("incorrect parameters");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        userRef.collection("diningCourtRatings").get().then(function(querySnapshot) {
+          var diningCourtRatingsArr = [];
+          querySnapshot.forEach(function(diningCourtDoc) {
+            diningCourtRatingsArr.push(diningCourtDoc.data());
+          });
+          response.send(diningCourtRatingsArr);
         })
         .catch(function(error) {
           throw new Error(error);
