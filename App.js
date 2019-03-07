@@ -34,10 +34,7 @@ import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
 
 import Group from "./components/Groups/Group";
-import GroupInvite from "./components/Groups/GroupInvite";
 import GroupSettings from "./components/Groups/GroupSettings";
-import GroupRouter from "./components/Groups/GroupRouter";
-import GroupCreate from "./components/Groups/GroupCreate";
 
 import * as firebase from "firebase";
 import config from "./config";
@@ -85,30 +82,6 @@ const SettingsNavigation = createStackNavigator(
   }
 );
 
-const GroupNavigation = createSwitchNavigator(
-  {
-    GroupPage: {
-      screen: Group
-    },
-    GroupRouter: {
-      screen: GroupRouter
-    },
-    GroupCreate: {
-      screen: GroupCreate
-    },
-    GroupInvite: {
-      screen: GroupInvite
-    },
-    GroupSettings: {
-      screen: GroupSettings
-    }
-  },
-  {
-    headerMode: "none",
-    initialRouteName: "GroupRouter"
-  }
-);
-
 const MainNavigation = createStackNavigator(
   {
     Messages: {
@@ -121,7 +94,10 @@ const MainNavigation = createStackNavigator(
       screen: Friend
     },
     Group: {
-      screen: GroupNavigation
+      screen: Group
+    },
+    GroupSettings: {
+      screen: GroupSettings
     },
     Notifications: {
       screen: Notifications
@@ -235,7 +211,10 @@ export default class App extends React.Component {
   updateUser = async (user, callback) => {
     try {
       if (user) {
-        if (this.state.user == undefined || this.state.user.userHandle == undefined) {
+        if (
+          this.state.user == undefined ||
+          this.state.user.userHandle == undefined
+        ) {
           await fetch(
             "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserHandle",
             {
@@ -252,7 +231,10 @@ export default class App extends React.Component {
             .then(data => {
               try {
                 this.setState({
-                  user: { ...this.state.user, userHandle: JSON.parse(data._bodyText).userHandle }
+                  user: {
+                    ...this.state.user,
+                    userHandle: JSON.parse(data._bodyText).userHandle
+                  }
                 });
               } catch (error) {
                 console.error(`updateUser: getUserHandle: ${error}: ${data}`);
@@ -268,6 +250,7 @@ export default class App extends React.Component {
             ...this.state.user,
             id: this.state.user.userHandle,
             displayName: user.displayName,
+            //userName: user.displayName,
             email: user.email,
             emailVerified: user.emailVerified,
             phoneNumber: user.phoneNumber,
@@ -289,7 +272,7 @@ export default class App extends React.Component {
             body: JSON.stringify({
               userHandle: this.state.user.userHandle,
               uid: this.state.user.uid,
-              name: this.state.user.name
+              userName: this.state.user.userName
             })
           }
         )
@@ -330,7 +313,13 @@ export default class App extends React.Component {
     this.fetchUser(this.state.user.userHandle, data => {
       this.setState(
         {
-          user: { ...this.state.user, ...data, id: data.userHandle }
+          user: {
+            ...this.state.user,
+            ...data,
+            friends: [],
+            groups: [],
+            id: data.userHandle
+          }
         },
         callback
       );
@@ -338,93 +327,62 @@ export default class App extends React.Component {
   };
 
   updateFriends = async callback => {
-    this.fetchFriends(this.state.user.id, data => {
-      //data.forEach(friend => this.updateFriend(friend, true));
-      this.setState(
-        {
-          user: { ...this.state.user, friends: data.slice() }
-        },
-        callback
-      );
-    });
+    this.fetchFriends(this.state.user.id, data =>
+      data.forEach(friend => this.updateFriend(friend.friendHandle, true))
+    );
   };
 
   updateGroups = async callback => {
-    this.fetchGroups(this.state.user.id, data => {
-      this.setState(
-        {
-          user: { ...this.state.user, groups: data.slice() }
-        },
-        callback
-      );
+    this.fetchGroups(this.state.user.userHandle, data => {
+      data.forEach(groupID => this.updateGroup(groupID, true));
     });
   };
 
-  updateFriend = (friend, action) => {
+  updateFriend = (id, action) => {
     // action == true, add friend.
     if (action) {
-      const arr = this.state.user.friends.slice();
-      arr.push(friend);
-
-      this.setState({
-        user: {
-          ...this.state.user,
-          friends: arr
-        }
-      });
-      /*this.fetchUser(friend, data => {
+      this.fetchUser(id, data => {
         const arr = this.state.user.friends.slice();
-        arr.push(data.id);
-
+        arr.push(data);
         this.setState({
           user: {
             ...this.state.user,
             friends: arr
           }
         });
-      });*/
+      });
     }
     // action == false, remove friend.
     else {
       this.setState({
         user: {
           ...this.state.user,
-          friends: this.state.user.friends.filter(f => f != friend)
+          friends: this.state.user.friends.filter(f => f.userHandle != id)
         }
       });
     }
   };
 
-  updateGroup = (group, action) => {
+  updateGroup = (id, action) => {
     // action == true, add friend.
     if (action) {
-      const arr = this.state.user.groups.slice();
-      arr.push(group);
-
-      this.setState({
-        user: {
-          ...this.state.user,
-          groups: arr
-        }
-      });
-      /*this.fetchGroup(group, data => {
+      this.fetchGroup(id, data => {
         const arr = this.state.user.groups.slice();
-        arr.push(data.id);
-
+        arr.push({ ...data, groupID: id });
         this.setState({
           user: {
             ...this.state.user,
             groups: arr
           }
         });
-      });*/
+      });
     }
     // action == false, remove group.
     else {
       this.setState({
         user: {
           ...this.state.user,
-          groups: this.state.user.groups.filter(g => g != group)
+          groups: this.state.user.groups.filter(g => g.groupID != id)
         }
       });
     }
@@ -445,15 +403,15 @@ export default class App extends React.Component {
     );
   };
 
-  handleData(functionName, data, callback) {
+  handleData = (functionName, data, callback) => {
     try {
       if (callback) callback(JSON.parse(data._bodyText));
     } catch (error) {
       console.error(`${functionName}: ${error}: ${data._bodyText}`);
     }
-  }
+  };
 
-  fetchUser(id, callback) {
+  fetchUser = (id, callback) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
       {
@@ -469,9 +427,9 @@ export default class App extends React.Component {
     )
       .then(data => this.handleData(`fetchUser`, data, callback))
       .catch(error => console.error(`fetchUser: ${error}`));
-  }
+  };
 
-  fetchFriends(id, callback) {
+  fetchFriends = (id, callback) => {
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
       method: "POST",
       headers: {
@@ -484,9 +442,28 @@ export default class App extends React.Component {
     })
       .then(data => this.handleData(`fetchFriends`, data, callback))
       .catch(error => console.error(`fetchFriends: ${error}`));
-  }
+  };
 
-  fetchGroups(id, callback) {
+  // Update to get friend.
+  fetchFriend = (id, callback) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: id
+        })
+      }
+    )
+      .then(data => this.handleData(`fetchFriend`, data, callback))
+      .catch(error => console.error(`fetchFriend: ${error}`));
+  };
+
+  fetchGroups = (id, callback) => {
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
       method: "POST",
       headers: {
@@ -499,9 +476,25 @@ export default class App extends React.Component {
     })
       .then(data => this.handleData(`fetchGroups`, data, callback))
       .catch(error => console.error(`fetchFriends: ${error}`));
-  }
+  };
 
-  fetchMeals(from, left) {
+  fetchGroup = (id, callback) => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        groupID: id,
+        userHandle: this.state.user.userHandle
+      })
+    })
+      .then(data => this.handleData(`getGroup`, data, callback))
+      .catch(error => console.error(`getGroup: ${error}`));
+  };
+
+  fetchMeals = (from, left) => {
     if (left == 0) {
       this.setState({ mealsLoaded: true });
       return;
@@ -543,7 +536,7 @@ export default class App extends React.Component {
         }
       })
       .catch(error => console.error(`fetchMeals: ${error}`));
-  }
+  };
 
   render() {
     if (
@@ -556,7 +549,7 @@ export default class App extends React.Component {
         <Navigation
           screenProps={{
             functions: {
-              fetchUser: this.fetchUser,
+              fetchFriend: this.fetchFriend,
               updateUser: this.updateUser,
               updateFriend: this.updateFriend,
               updateGroup: this.updateGroup,

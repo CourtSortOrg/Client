@@ -25,7 +25,7 @@ export default class CreateAccount extends React.Component {
   }
 
   state = {
-    name: "",
+    userName: "",
     userHandle: "",
     email: "",
     password: "",
@@ -36,7 +36,7 @@ export default class CreateAccount extends React.Component {
   createAccount = () => {
     Alert.alert(
       "Name: " +
-        this.state.name +
+        this.state.userName +
         "\nEmail: " +
         this.state.email +
         "\nPassword: " +
@@ -52,7 +52,7 @@ export default class CreateAccount extends React.Component {
         user = firebase.auth().currentUser;
         user
           .updateProfile({
-            displayName: this.state.name,
+            displayName: this.state.ame,
             userHandle: this.state.userHandle
           })
           .catch(function(error) {
@@ -70,7 +70,7 @@ export default class CreateAccount extends React.Component {
             body: JSON.stringify({
               uid: user.uid,
               userHandle: this.state.userHandle,
-              name: this.state.name
+              userName: this.state.userName
             })
           }
         )
@@ -149,7 +149,7 @@ export default class CreateAccount extends React.Component {
             }}
             placeholder="Name"
             placeholderTextColor="#999"
-            onChangeText={text => this.setState({ name: text })}
+            onChangeText={text => this.setState({ userName: text })}
             returnKeyType={"next"}
             underlineColorAndroid="transparent"
           />
