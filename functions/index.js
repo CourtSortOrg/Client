@@ -1284,3 +1284,36 @@ exports.rateDiningCourt = functions.https.onRequest(async (request, response) =>
     });
   }
 });
+
+//remove a rating from a dining court
+//PARAMETERS: userHandle, diningCourt
+exports.removeDiningCourtRating = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var diningCourt = request.body.diningCourt;
+
+  if (userHandle == null || diningCourt == null) {
+    throw new Error("incorrect parameters");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        userRef.collection("diningCourtRatings").doc(diningCourt).delete().then(function() {
+          console.log("dining court rating deleted");
+          response.send({
+            "success":true
+          });
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+      else {
+        throw new Error("user does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
