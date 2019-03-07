@@ -36,7 +36,11 @@ export default class Notifications extends React.Component {
         try {
           const arr = this.state.notifications.slice();
           const items = [...JSON.parse(data._bodyText)].map(item => {
-            return { Name: `${item.friendName}  @${item.friendHandle}`, ...item, onPress: () => this.friendAlert(item.friendHandle) };
+            return {
+              Name: `${item.friendName}  @${item.friendHandle}`,
+              ...item,
+              onPress: () => this.friendAlert(item.friendHandle)
+            };
           });
 
           if (items.length != 0) {
@@ -46,7 +50,7 @@ export default class Notifications extends React.Component {
             });
             this.setState({
               notifications: arr
-            }, () => console.log(this.state.notifications));
+            });
           }
           this.setState({
             loadingFriends: false
@@ -78,7 +82,11 @@ export default class Notifications extends React.Component {
         try {
           const arr = this.state.notifications.slice();
           const items = [...JSON.parse(data._bodyText)].map(item => {
-            return { Name: item, onPress: () => this.groupAlert(item) };
+            return {
+              Name: `@${item.friendHandle} invited you to join ${item.groupID}`,
+              ...item,
+              onPress: () => this.groupAlert(item.groupName, item.groupID, item.friendHandle)
+            };
           });
           if (items.length != 0) {
             arr.push({
@@ -86,9 +94,12 @@ export default class Notifications extends React.Component {
               items: items
             });
 
-            this.setState({
-              notifications: arr
-            });
+            this.setState(
+              {
+                notifications: arr
+              },
+              () => console.log(this.state.notifications)
+            );
           }
 
           this.setState({
@@ -118,7 +129,7 @@ export default class Notifications extends React.Component {
     let n = this.state.notifications.slice();
     for (let i = 0; i < n.length; i++) {
       if (n[i].Name == "Group Invites") {
-        n[i].items = items.filter(req => req.Name != id);
+        n[i].items = n[i].items.filter(req => req.groupID != id);
       }
     }
 
@@ -143,18 +154,18 @@ export default class Notifications extends React.Component {
     ]);
   };
 
-  groupAlert = id => {
-    Alert.alert("Group Invite", `Join ${id}?`, [
+  groupAlert = (groupName, groupID, friendHandle) => {
+    Alert.alert("Group Invite", `Join group ${groupName} made by @${friendHandle}?`, [
       {
         text: "Cancel"
       },
       {
         text: "Deny",
-        onPress: () => this.denyGroupInvitation(id)
+        onPress: () => this.denyGroupInvitation(groupID, friendHandle)
       },
       {
         text: "Accept",
-        onPress: () => this.acceptGroupInvitation(id)
+        onPress: () => this.acceptGroupInvitation(groupID, friendHandle)
       }
     ]);
   };
@@ -212,7 +223,7 @@ export default class Notifications extends React.Component {
       .catch(error => console.error(`denyFriendRequest: ${error}`));
   };
 
-  acceptGroupInvitation = id => {
+  acceptGroupInvitation = (groupID, friendHandle) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptGroupInvitation",
       {
@@ -223,23 +234,24 @@ export default class Notifications extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.id,
-          groupId: id
+          friendHandle: friendHandle,
+          groupID: groupID
         })
       }
     )
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotificationGroup(id);
-          this.props.screenProps.functions.updateGroup(id, true);
+          this.removeNotificationGroup(groupID);
+          this.props.screenProps.functions.updateGroup(groupID, true);
         } catch (error) {
-          console.error(`acceptGroupInvitation: ${error}: ${data._bodyText}`);
+          console.error(`acceptGroupInvitation: ${error}- ${data._bodyText}`);
         }
       })
       .catch(error => console.error(`acceptGroupInvitation: ${error}`));
   };
 
-  denyGroupInvitation = id => {
+  denyGroupInvitation = (groupID, friendHandle) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/denyGroupInvitation",
       {
@@ -250,16 +262,17 @@ export default class Notifications extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.setState.id,
-          groupId: id
+          friendHandle: friendHandle,
+          groupID: groupID
         })
       }
     )
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotificationGroup(id);
+          this.removeNotificationGroup(groupID);
         } catch (error) {
-          console.error(`denyGroupInvitation: ${error}: ${data._bodyText}`);
+          console.error(`denyGroupInvitation: ${error}- ${data._bodyText}`);
         }
       })
       .catch(error => console.error(`denyGroupInvitation: ${error}`));
@@ -285,7 +298,7 @@ export default class Notifications extends React.Component {
           <List
             list={this.state.notifications}
             type="expandable"
-            expanded={true}
+            expand={true}
             subList={{
               list: "items",
               type: "element",
