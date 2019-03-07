@@ -1205,23 +1205,21 @@ exports.createObject = functions.https.onRequest((request, response) => {
 
 //rate a dining courts
 //PARAMETERS: userHandle, diningCourt, rating
-exports.rateDiningCourt = functions.https.onRequest(async (request, response) => {
+exports.rateDiningCourt = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
   var diningCourt = request.body.diningCourt;
   var rating = request.body.rating;
 
   //check for errors
   if (userHandle == null || diningCourt == null || rating == null) {
-    console.log("error: incorrect parameters");
-    response.send("error");
+    throw new Error("incorrect parameters");
   }
   else {
     //update dining court aggregate rating
     var dRef = db.collection("DiningCourt").doc(diningCourt);
     dRef.get().then(doc => {
       if(!doc.exists) {
-        console.log("error: doc does not exist");
-        response.send("error");
+        throw new Error("doc does not exist");
       }
       else {
         //add rating to user profile
@@ -1241,16 +1239,21 @@ exports.rateDiningCourt = functions.https.onRequest(async (request, response) =>
               "rating":aggregateRating
             })
             .then(function() {
-              response.send("success");
+              userDiningRef.set({
+                "diningCourt":diningCourt,
+                "rating":rating
+              })
+              .then(function() {
+                response.send({
+                  "success":true
+                })
+              })
+              .catch(function(error) {
+                throw new Error(error);
+              });
             })
             .catch(function(error) {
-              console.log(error);
-              response.send("error");
-            });
-
-            userDiningRef.set({
-              "diningCourt":diningCourt,
-              "rating":rating
+              throw new Error(error);
             });
           }
           else {
@@ -1269,16 +1272,21 @@ exports.rateDiningCourt = functions.https.onRequest(async (request, response) =>
               "rating":aggregateRating
             })
             .then(function() {
-              response.send("success");
+              userDiningRef.update({
+                "diningCourt":diningCourt,
+                "rating":rating
+              })
+              .then(function() {
+                response.send({
+                  "success":true
+                })
+              })
+              .catch(function(error) {
+                throw new Error(error);
+              });
             })
             .catch(function(error) {
-              console.log(error);
-              response.send("error");
-            });
-
-            userDiningRef.update({
-              "diningCourt":diningCourt,
-              "rating":rating
+              throw new Error(error);
             });
           }
         });
@@ -1300,11 +1308,46 @@ exports.removeDiningCourtRating = functions.https.onRequest((request, response) 
     var userRef = db.collection("User").doc(userHandle);
     userRef.get().then(function(doc) {
       if (doc.exists) {
-        userRef.collection("diningCourtRatings").doc(diningCourt).delete().then(function() {
-          console.log("dining court rating deleted");
-          response.send({
-            "success":true
-          });
+        userRef.collection("diningCourtRatings").doc(diningCourt).get().then(function(diningCourtDocument) {
+          if (diningCourtDocument.exists) {
+            var dRef = db.collection("DiningCourt").doc(diningCourt);
+            dRef.get().then(function(dRatingDoc) {
+              var aggregateRating = dRatingDoc.data().rating;
+              var n = dRatingDoc.data().n;
+              var r = diningCourtDocument.data().rating;
+
+              aggregateRating = (aggregateRating * n - r) / (--n);
+
+              if (n == 0) {
+                aggregateRating = 0;
+              }
+
+              dRef.update({
+                "n":n,
+                "rating":aggregateRating
+              })
+              .then(function() {
+                userRef.collection("diningCourtRatings").doc(diningCourt).delete().then(function() {
+                  response.send({
+                    "success":true
+                  });
+                })
+                .catch(function(error) {
+                  throw new Error(error);
+                })
+              })
+              .catch(function(error) {
+                throw new Error(error);
+              });
+
+            })
+            .catch(function(error) {
+              throw new Error(error);
+            });
+          }
+          else {
+            throw new Error("rating does not exist");
+          }
         })
         .catch(function(error) {
           throw new Error(error);
