@@ -19,7 +19,7 @@ export default class Card extends React.Component {
           ...this.props.style
         }}
       >
-        {this.props.header && (
+        {this.props.header != undefined && (
           <View style={styles.header}>
             <Text type="header">{this.props.header}</Text>
           </View>

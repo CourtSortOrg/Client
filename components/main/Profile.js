@@ -9,22 +9,20 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Text from "../components/Text";
 import Card from "../components/Card";
 import Screen from "../Nav/Screen";
-import SearchList from "../components/SearchList";
-import ListElementProfile from "../components/ListElementProfile";
+import ProfileList from "../components/ProfileList";
+import GroupList from "../components/GroupList";
 
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
 
     // Dummy data used for now, should not be hardcoded
-    //var ratingData = require("../../testData/ratingData.json");
-    //var groupData = require("../../testData/groupData.json");
 
     this.state = {
       selectedIndex: 0,
       isEditing: false,
 
-      name: "",
+      userName: "",
       initials: "",
       restrictions: "",
 
@@ -54,6 +52,49 @@ export default class Profile extends React.Component {
   shouldRender = (expr, comp1, comp2) => {
     return expr ? comp1 : comp2;
   };
+
+  sendFriendRequest = (text) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.props.screenProps.user.userHandle,
+          friendHandle: text
+        })
+      }
+    )
+      .then(data => {
+        console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+        if (data._bodyText == "success")
+          Alert.alert(
+            "Friend Request",
+            `You sent a friend request to ${text}.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
+        else
+          Alert.alert(
+            "Friend Request",
+            `Friend request to ${text} could not be sent.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
+      })
+      .catch(error => console.error(`sendFriendRequest: ${error}`));
+  }
 
   render() {
     // Create an array of named buttons
@@ -129,10 +170,10 @@ export default class Profile extends React.Component {
           {/* Render the friends list if on the friends tab */}
           {this.shouldRender(
             selectedIndex == 1,
-            <FriendsList
-              id={this.props.screenProps.user.id}
+            <ProfileList
               navigation={this.props.navigation}
-              friends={this.props.screenProps.user.friends}
+              extendedSearch={this.sendFriendRequest}
+              list={this.props.screenProps.user.friends}
             />,
             null
           )}
@@ -140,10 +181,12 @@ export default class Profile extends React.Component {
           {/* Render the groups list if on the groups tab */}
           {this.shouldRender(
             selectedIndex == 2,
-            <GroupsList
-              id={this.props.screenProps.user.id}
-              groups={this.props.screenProps.user.groups}
+            <GroupList
               navigation={this.props.navigation}
+              extendedSearch={text =>
+                this.props.navigation.navigate("GroupSettings")
+              }
+              list={this.props.screenProps.user.groups}
             />,
             null
           )}
@@ -224,110 +267,6 @@ function RatingsList(props) {
       )}
     />
   );
-}
-
-class FriendsList extends React.Component {
-  sendFriendRequest(text) {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userHandle: this.props.id,
-          friendHandle: text
-        })
-      }
-    )
-      .then(data => {
-        console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
-        if (data._bodyText == "success")
-          Alert.alert(
-            "Friend Request",
-            `You sent a friend request to ${text}.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-        else
-          Alert.alert(
-            "Friend Request",
-            `Friend request to ${text} could not be sent.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-      })
-      .catch(error => console.error(`sendFriendRequest: ${error}`));
-  }
-
-  filterProfile(list, text) {
-    return list.filter(item => {
-      try {
-        return item.name.includes(text) || item.userHandle.includes(text);
-      } catch(error) {
-        console.error("filterProfile: Ill defined item:");
-        console.error(item);
-      }
-    })
-  }
-
-  render() {
-    return (
-      <SearchList
-        navigation={this.props.navigation}
-        filterFunction={this.filterProfile}
-        extendedSearch={text => this.sendFriendRequest(text)}
-        list={{
-          list: this.props.friends,
-          type: "element",
-          subList: false,
-          rank: 1,
-          renderElement: item => <ListElementProfile navigation={this.props.navigation} {...item} />,
-        }}
-      />
-    );
-  }
-}
-
-class GroupsList extends React.Component {
-  filterGroup(list, text) {
-    return list.filter(item => item.Name.includes(text));
-  }
-
-  render() {
-    return (
-      <SearchList
-        navigation={this.props.navigation}
-        filterFunction={this.filterGroup}
-        extendedSearch={text =>
-          this.props.navigation.navigate("GroupRouter", {
-            ID: text,
-            create: true
-          })
-        }
-        list={{
-          list: this.props.groups,
-          type: "element",
-          subList: false,
-          rank: 1,
-          viewMore: {
-            page: "Message",
-            item: "ID"
-          }
-        }}
-      />
-    );
-  }
 }
 
 const styles = StyleSheet.create({
