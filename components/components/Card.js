@@ -3,6 +3,13 @@ import { View, TouchableOpacity, StyleSheet } from "react-native";
 
 import Text from "./Text";
 
+/*
+ Card expects:
+ header: string.
+ footer: string || array of button objects: { text, onPress }
+ nested elements
+ */
+
 export default class Card extends React.Component {
   render() {
     return (
@@ -12,7 +19,7 @@ export default class Card extends React.Component {
           ...this.props.style
         }}
       >
-        {this.props.header && (
+        {this.props.header != undefined && (
           <View style={styles.header}>
             <Text type="header">{this.props.header}</Text>
           </View>

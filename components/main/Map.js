@@ -34,7 +34,7 @@ const locations = {
 let date = new Date();
 const dateStr = `${date.getFullYear()}-${
   date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
-}-${date.getDate()}`;
+}-${date.getDate() < 10 ? `0${date.getDate()}` : date.getDate()}`;
 
 const mapStyle = [
   {
@@ -86,12 +86,19 @@ export default class Map extends React.Component {
           date: dateStr //TODO: Don't hardcode this
         })
       }
-    ).then(data => {
-      this.setState({
-        diningLocations: JSON.parse(data._bodyText),
-        loading: false
-      });
-    });
+    )
+      .then(data => {
+        try {
+          let parsedJSON = JSON.parse(data._bodyText);
+          this.setState({
+            diningLocations: parsedJSON,
+            loading: false
+          });
+        } catch (error) {
+          console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`fetchDiningTimes: ${error}`));
   }
 
   renderDiningCard = ({ item }) => {
@@ -155,7 +162,7 @@ export default class Map extends React.Component {
                 ref={c => {
                   this._carousel = c;
                 }}
-                data={this.state.diningLocations.locations}
+                data={this.state.diningLocations.locations ? this.state.diningLocations.locations : []}
                 renderItem={this.renderDiningCard}
                 sliderWidth={width}
                 itemWidth={width * 0.75}

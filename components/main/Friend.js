@@ -14,7 +14,7 @@ export default class Friend extends React.Component {
 
     this.state = {
       otherUser: {
-        id: this.props.navigation.getParam("ID", "NO-ID")
+        userHandle: this.props.navigation.getParam("ID", "NO-ID")
       },
       initials: "",
       groups: [],
@@ -24,21 +24,33 @@ export default class Friend extends React.Component {
   }
 
   componentDidMount() {
-    this.props.screenProps.functions.fetchUser(this.state.otherUser.id, data =>
-      this.setState({
-        otherUser: { ...this.state.otherUser, ...data }
-        //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
-      })
+    const friend = this.props.screenProps.user.friends.filter(
+      friend => friend.userHandle === this.state.otherUser.userHandle
     );
+    if (friend.length == 1)
+      this.setState({
+        otherUser: { ...friend[0] }
+      });
+    else {
+      console.log("Refetching friend");
+      this.props.screenProps.functions.fetchFriend(
+        this.state.otherUser.userHandle,
+        data =>
+          this.setState({
+            otherUser: { ...this.state.otherUser, ...data }
+            //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
+          })
+      );
+    }
   }
 
   removeFriend() {
     Alert.alert(
       "Unfriend",
       `You are about to unfriend ${
-        this.state.otherUser.name
+        this.state.otherUser.userName
       }. You will remain in shared groups, but to make a new group with ${
-        this.state.otherUser.name
+        this.state.otherUser.userName
       }, they will have to consent.`,
       [
         {
@@ -59,9 +71,9 @@ export default class Friend extends React.Component {
     Alert.alert(
       "Block",
       `You are about to block ${
-        this.state.otherUser.name
+        this.state.otherUser.userName
       }. You will be removed from shared groups, and ${
-        this.state.otherUser.name
+        this.state.otherUser.userName
       } cannot send you any messages.`,
       [
         {
@@ -88,19 +100,26 @@ export default class Friend extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.id,
-          friendName: this.state.otherUser.id
+          userHandle: this.state.id,
+          friendHandle: this.state.otherUser.userHandle
         })
       }
     )
-      .then(() => {
-        this.props.screenProps.functions.updateFriend(
-          this.state.otherUser.id,
-          false
-        );
-        this.props.navigation.goBack();
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+          this.props.screenProps.functions.updateFriend(
+            this.state.otherUser.userHandle,
+            false
+          );
+          this.props.navigation.goBack();
+        } catch (error) {
+          console.error(
+            `removeFriendFirebaseFunction: ${error}: ${data._bodyText}`
+          );
+        }
       })
-      .catch(error => console.log(`removeFriendFirebaseFunction: ${error}`));
+      .catch(error => console.error(`removeFriendFirebaseFunction: ${error}`));
   }
 
   blockUserFirebaseFunction() {
@@ -111,18 +130,25 @@ export default class Friend extends React.Component {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name: this.state.id,
-        blockedName: this.state.otherUser.id
+        userHandle: this.state.id,
+        blockedHandle: this.state.otherUser.userHandle
       })
     })
-      .then(() => {
-        this.props.screenProps.functions.updateFriend(
-          this.state.otherUser.id,
-          false
-        );
-        this.props.navigation.goBack();
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+          this.props.screenProps.functions.updateFriend(
+            this.state.otherUser.userHandle,
+            false
+          );
+          this.props.navigation.goBack();
+        } catch (error) {
+          console.error(
+            `blockUserFirebaseFunction: ${error}: ${data._bodyText}`
+          );
+        }
       })
-      .catch(error => console.log(`blockUserFirebaseFunction: ${error}`));
+      .catch(error => console.error(`blockUserFirebaseFunction: ${error}`));
   }
 
   render() {
@@ -133,7 +159,7 @@ export default class Friend extends React.Component {
         backButton={true}
       >
         <Card
-          header={this.state.otherUser.name}
+          header={this.state.otherUser.userName}
           footer={[
             { text: "Unfriend", onPress: () => this.removeFriend() },
             { text: "Block", onPress: () => this.blockUser() }

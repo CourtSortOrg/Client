@@ -9,21 +9,20 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Text from "../components/Text";
 import Card from "../components/Card";
 import Screen from "../Nav/Screen";
-import SearchList from "../components/SearchList";
+import ProfileList from "../components/ProfileList";
+import GroupList from "../components/GroupList";
 
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
 
     // Dummy data used for now, should not be hardcoded
-    //var ratingData = require("../../testData/ratingData.json");
-    //var groupData = require("../../testData/groupData.json");
 
     this.state = {
       selectedIndex: 0,
       isEditing: false,
 
-      name: "",
+      userName: "",
       initials: "",
       restrictions: "",
 
@@ -33,6 +32,12 @@ export default class Profile extends React.Component {
 
   componentDidMount() {
     // If the user is a guest, send them to the sign in screen
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+    }
+  }
+
+  componentDidUpdate(prevProps) {
     if (this.props.screenProps.user == undefined) {
       this.props.navigation.navigate("Auth");
     }
@@ -48,66 +53,63 @@ export default class Profile extends React.Component {
     return expr ? comp1 : comp2;
   };
 
-  deleteAccount = () => {
-    //TODO: Delete user's ratings
-    //TODO: Remove user from all groups
-
-    user = firebase.auth().currentUser;
-    //get list of friends
-    //get list of individual ratings
-    user
-      .delete()
-      .then(() => {
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.props.screenProps.user.id
-            })
-          }
-        )
-          .then(data => console.log(data._bodyText))
-          .catch(error =>
-            console.log(`deleteAccount: removeFromAllFriends: ${error}`)
+  sendFriendRequest = (text) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.props.screenProps.user.userHandle,
+          friendHandle: text
+        })
+      }
+    )
+      .then(data => {
+        console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+        if (data._bodyText == "success")
+          Alert.alert(
+            "Friend Request",
+            `You sent a friend request to ${text}.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
           );
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.props.screenProps.user.id
-            })
-          }
-        )
-          .then(data => console.log(data._bodyText))
-          .catch(error =>
-            console.log(`deleteAccount: removeUserFromDatabase: ${error}`)
+        else
+          Alert.alert(
+            "Friend Request",
+            `Friend request to ${text} could not be sent.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
           );
-        //navigate to SignIn Screen
-        this.props.screenProps.functions.updateUser();
-        this.props.navigation.navigate("Auth");
-        this.setState({ isEditing: false });
       })
-      .catch(function(error) {
-        alert("ERROR: " + error.message);
-        this.props.screenProps.functions.updateUser();
-      });
-  };
+      .catch(error => console.error(`sendFriendRequest: ${error}`));
+  }
 
   render() {
     // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
     // Retrieve user data from state
     const { friends, groups, ratings, selectedIndex } = this.state;
+
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+      return (
+        <View>
+          <Text>Navigation</Text>
+        </View>
+      );
+    }
 
     return (
       <Screen
@@ -168,10 +170,10 @@ export default class Profile extends React.Component {
           {/* Render the friends list if on the friends tab */}
           {this.shouldRender(
             selectedIndex == 1,
-            <FriendsList
-              id={this.props.screenProps.user.id}
+            <ProfileList
               navigation={this.props.navigation}
-              friends={this.props.screenProps.user.friends}
+              extendedSearch={this.sendFriendRequest}
+              list={this.props.screenProps.user.friends}
             />,
             null
           )}
@@ -179,10 +181,12 @@ export default class Profile extends React.Component {
           {/* Render the groups list if on the groups tab */}
           {this.shouldRender(
             selectedIndex == 2,
-            <GroupsList
-              id={this.props.screenProps.user.id}
-              groups={this.props.screenProps.user.groups}
+            <GroupList
               navigation={this.props.navigation}
+              extendedSearch={text =>
+                this.props.navigation.navigate("GroupSettings")
+              }
+              list={this.props.screenProps.user.groups}
             />,
             null
           )}
@@ -263,118 +267,6 @@ function RatingsList(props) {
       )}
     />
   );
-}
-
-class FriendsList extends React.Component {
-  sendFriendRequest(text) {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: this.props.id,
-          friendName: text
-        })
-      }
-    )
-      .then(data => {
-        console.log(data);
-        if (data._bodyText == "success")
-          Alert.alert(
-            "Friend Request",
-            `You sent a friend request to ${text}.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-        else
-          Alert.alert(
-            "Friend Request",
-            `Friend request to ${text} could not be sent.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-      })
-      .catch(error => console.log(`sendFriendRequest: ${error}`));
-  }
-
-  filterProfile(list, text) {
-    return list.filter(item => item.Name.includes(text));
-  }
-
-  render() {
-    return (
-      <SearchList
-        navigation={this.props.navigation}
-        filterFunction={this.filterProfile}
-        extendedSearch={text => this.sendFriendRequest(text)}
-        list={{
-          list: this.props.friends.map(friend => ({ Name: friend })),
-          type: "element",
-          subList: false,
-          rank: 1,
-          renderElement: item => {
-            return (
-              <ListItem
-                chevron
-                bottomDivider
-                // leftAvatar={{
-                //   source: { uri: item.image },
-                //   containerStyle: styles.friendPicture
-                // }}
-                // subtitle={`@${item.username}`}
-                title={item.Name}
-                onPress={() =>
-                  this.props.navigation.navigate("Friend", { ID: item.Name })
-                }
-                topDivider
-              />
-            );
-          },
-          viewMore: {
-            page: "Message",
-            item: "ID"
-          }
-        }}
-      />
-    );
-  }
-}
-
-class GroupsList extends React.Component {
-  filterGroup(list, text) {
-    return list.filter(item => item.Name.includes(text));
-  }
-
-  render() {
-    return (
-      <SearchList
-        navigation={this.props.navigation}
-        filterFunction={this.filterGroup}
-        list={{
-          list: this.props.groups,
-          type: "element",
-          subList: false,
-          rank: 1,
-          viewMore: {
-            page: "Message",
-            item: "ID"
-          }
-        }}
-      />
-    );
-  }
 }
 
 const styles = StyleSheet.create({

@@ -51,11 +51,17 @@ export default class MealItem extends React.Component {
           name: this.state.name
         })
       }
-    ).then(data =>
-      this.setState({
-        ...JSON.parse(data._bodyText)
+    )
+      .then(data => {
+        try {
+          this.setState({
+            ...JSON.parse(data._bodyText)
+          });
+        } catch (error) {
+          console.error(`fetchAllOffered: ${error}: ${data._bodyText}`);
+        }
       })
-    );
+      .catch(error => console.error(`fetchAllOffered: ${error}`));
   }
 
   renderElement(item) {
