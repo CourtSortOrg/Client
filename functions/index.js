@@ -472,22 +472,22 @@ exports.getUserHandle = functions.https.onRequest((request, response) => {
 });
 
 //add user to database
-//PARAMETERS: uid, userHandle, name
+//PARAMETERS: uid, userHandle, userName
 exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   var uid = request.body.uid;
   var userHandle = request.body.userHandle;
-  var name = request.body.name;
+  var userName = request.body.userName;
   console.log(uid);
   console.log(userHandle);
-  console.log(name);
+  console.log(userName);
   if (uid == null) {
     response.send("Must pass uid in body of request");
   }
   if (userHandle == null) {
     response.send("Must pass userHandle in body of request");
   }
-  if (name == null) {
-    response.send("Must pass name in body of request");
+  if (userName == null) {
+    response.send("Must pass userName in body of request");
   }
 
   admin.auth().getUser(uid)
@@ -500,7 +500,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
     response.send("uid is incorrect");
   });
 
-  function checkUserExists(name) {
+  function checkUserExists(userHandle) {
     db.collection("User").doc(userHandle).get().then(doc => {
       if(!doc.exists){
         addUser();
@@ -518,7 +518,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
   function addUser() {
     var updatedUser = {
       uid: uid,
-      name: name,
+      userName: userName,
       userHandle: userHandle,
       initials: "",
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
@@ -581,18 +581,18 @@ exports.removeFriend = functions.https.onRequest(async (request, response) => {
   var userDoc = db.collection("User").doc(userHandle);
 
   //get the user's name
-  var name;
+  var userName;
   await userDoc.get().then(async doc => {
-    name = await doc.data().name;
+    userName = await doc.data().userName;
   });
 
   //get the friend's name
   var friendName;
   await friendDoc.get().then(async doc => {
-    friendName = await doc.data().name;
+    friendName = await doc.data().userName;
   });
 
-  var userObj = {friendHandle: userHandle, friendName: name};
+  var userObj = {friendHandle: userHandle, friendName: userName};
   var friendObj = {friendHandle: friendHandle, friendName: friendName};
 
   userDoc.update({
@@ -627,8 +627,8 @@ exports.removeFromAllFriends = functions.https.onRequest(async (request, respons
 
   //get the user's name
   await userDoc.get().then(async doc => {
-    var name = await doc.data().name;
-    var userObj = {friendHandle: userHandle, friendName: name};
+    var userName = await doc.data().userName;
+    var userObj = {friendHandle: userHandle, friendName: userName};
     var friends = doc.data().friends;
 
     for(var i = 0; i < friends.length; i++){
@@ -679,7 +679,7 @@ exports.getUserProfile = functions.https.onRequest((request, response) => {
 });
 
 //function to get user profile information
-function getProfile(name, response) {
+function getProfile(userHandle, response) {
   var userRef = db.collection("User").doc(userHandle);
   var getDoc = userRef.get()
   .then(doc => {
@@ -728,7 +728,7 @@ exports.blockUser = functions.https.onRequest(async (request, response) => {
       response.send("error");
     }
     else {
-      blockedName = doc.data().name;
+      blockedName = doc.data().userName;
     }
   });
 
@@ -740,7 +740,7 @@ exports.blockUser = functions.https.onRequest(async (request, response) => {
       response.send("error");
     }
     else {
-      userName = doc.data().name;
+      userName = doc.data().userName;
     }
   });
 
@@ -812,7 +812,7 @@ exports.unblockUser = functions.https.onRequest(async (request, response) => {
       response.send("error");
     }
     else {
-      blockedName = doc.data().name;
+      blockedName = doc.data().userName;
     }
   });
 
@@ -824,7 +824,7 @@ exports.unblockUser = functions.https.onRequest(async (request, response) => {
       response.send("error");
     }
     else {
-      userName = doc.data().name;
+      userName = doc.data().userName;
     }
   });
 
@@ -903,11 +903,11 @@ exports.sendFriendRequest = functions.https.onRequest(async (request, response) 
   var userDoc = await db.collection("User").doc(userHandle);
 
   //get the user's name
-  var name;
+  var userName;
   await userDoc.get().then(async doc => {
-    name = await doc.data().name;
+    userName = await doc.data().userName;
   });
-  var userObj = {friendHandle: userHandle, friendName: name};
+  var userObj = {friendHandle: userHandle, friendName: userName};
 
   //check if the friend's id exists
   friendDoc.get().then(async doc => {
@@ -919,7 +919,7 @@ exports.sendFriendRequest = functions.https.onRequest(async (request, response) 
       //get the friend's name
       var friendName;
       await friendDoc.get().then(async doc => {
-        friendName = await doc.data().name;
+        friendName = await doc.data().userName;
       });
 
       var friendObj = {friendHandle: friendHandle, friendName: friendName};
@@ -986,18 +986,18 @@ exports.acceptFriendRequest = functions.https.onRequest(async (request, response
   var userDoc = db.collection("User").doc(userHandle);
 
   //get the user's name
-  var name;
+  var userName;
   await userDoc.get().then(async doc => {
-    name = await doc.data().name;
+    userName = await doc.data().userName;
   });
 
   //get the friend's name
   var friendName;
   await friendDoc.get().then(async doc => {
-    friendName = await doc.data().name;
+    friendName = await doc.data().userName;
   });
 
-  var userObj = {friendHandle: userHandle, friendName: name};
+  var userObj = {friendHandle: userHandle, friendName: userName};
   var friendObj = {friendHandle: friendHandle, friendName: friendName};
 
   userDoc.update({
@@ -1006,7 +1006,7 @@ exports.acceptFriendRequest = functions.https.onRequest(async (request, response
   });
 
   //remove the user from the friend's blockUser list
-  var blockObj = {blockedHandle: userHandle, blockedName: name};
+  var blockObj = {blockedHandle: userHandle, blockedName: userName};
 
   friendDoc.update({
     outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userObj),
@@ -1039,18 +1039,18 @@ exports.denyFriendRequest = functions.https.onRequest(async (request, response) 
   var userDoc = db.collection("User").doc(userHandle);
 
   //get the user's name
-  var name;
+  var userName;
   await userDoc.get().then(async doc => {
-    name = await doc.data().name;
+    userName = await doc.data().userName;
   });
 
   //get the friend's name
   var friendName;
   await friendDoc.get().then(async doc => {
-    friendName = await doc.data().name;
+    friendName = await doc.data().userName;
   });
 
-  var userObj = {friendHandle: userHandle, friendName: name};
+  var userObj = {friendHandle: userHandle, friendName: userName};
   var friendObj = {friendHandle: friendHandle, friendName: friendName};
 
   userDoc.update({
@@ -1143,12 +1143,12 @@ exports.createGroup = functions.https.onRequest((request, response) => {
 
   //get the creator's name
   db.collection("User").doc(userHandle).get().then(doc => {
-    var name = doc.data().name;
+    var userName = doc.data().userName;
 
     //add the group to the database
     db.collection("Group").add({
       memberHandles: [userHandle],
-      memberObjects: [{userHandle: userHandle, userName: name}],
+      memberObjects: [{userHandle: userHandle, userName: userName}],
       messages: [],
       groupName: groupName
     }).then(function(docRef){
@@ -1189,7 +1189,7 @@ exports.getUsersInGroup = functions.https.onRequest((request, response) => {
 });
 
 //PARAMETERS: userHandle, friendHandle, groupID
-exports.inviteToGroup = functions.https.onRequest((request, response) => {
+exports.inviteToGroup = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var groupID = request.body.groupID;
@@ -1212,10 +1212,21 @@ exports.inviteToGroup = functions.https.onRequest((request, response) => {
 
   //check if friends with friendHandle
   userDoc.get().then(doc => {
-    if(doc.data().friends.indexOf(friendHandle) == -1){
+    /*if(doc.data().friends.indexOf(friendHandle) == -1){
       response.send("You are not friends with the user");
+    }*/
+
+    var friends = doc.data().friends;
+    for(var i = 0; i < friends.length; i++){
+      if(friends[i].friendHandle==friendHandle){
+        break;
+      }
+      else if(i == friends.length - 1){
+        response.send("error: not friends");
+        return;
+      }
     }
-    else{
+    //else{
       //check if the user is already in the group
       friendDoc.get().then(fDoc => {
         if(fDoc.data().groups.indexOf(groupID) > -1){
@@ -1232,7 +1243,7 @@ exports.inviteToGroup = functions.https.onRequest((request, response) => {
           });
         }
       });
-    }
+    //}
   });
 });
 
@@ -1266,7 +1277,7 @@ exports.acceptGroupInvitation = functions.https.onRequest((request, response) =>
     userDoc.get().then(doc => {
       db.collection("Group").doc(groupID).update({
         memberHandles: admin.firestore.FieldValue.arrayUnion(userHandle),
-        memberObjects: admin.firestore.FieldValue.arrayUnion({userHandle: userHandle, userName: doc.data().name})
+        memberObjects: admin.firestore.FieldValue.arrayUnion({userHandle: userHandle, userName: doc.data().userName})
       }).then(function(){
         response.send("success");
       }).catch(function(error){
@@ -1329,15 +1340,26 @@ exports.leaveGroup = functions.https.onRequest(async (request, response) => {
   //Take the user out of the group fields
   var userDoc = db.collection("User").doc(userHandle);
   var groupDoc = db.collection("Group").doc(groupID);
-  var name;
+  var userName;
   await userDoc.get().then(async doc => {
-    name = await doc.data().name;
+    userName = await doc.data().userName;
   });
-  await groupDoc.update({
-    memberHandles: admin.firestore.FieldValue.arrayRemove(userHandle),
-    memberObjects: admin.firestore.FieldValue.arrayRemove({userHandle: userHandle, userName: name})
-  }).catch(function(error){
-    response.send(error.message);
+
+  //delete the group if there is no one left
+  await groupDoc.get().then(async doc => {
+    if(doc.data().memberHandles.length == 1){
+      await groupDoc.delete().catch(function (error){
+        response.send("error");
+      });
+    }
+    else{
+      await groupDoc.update({
+        memberHandles: admin.firestore.FieldValue.arrayRemove(userHandle),
+        memberObjects: admin.firestore.FieldValue.arrayRemove({userHandle: userHandle, userName: userName})
+      }).catch(function(error){
+        response.send(error.message);
+      });
+    }
   });
 
   //take the group out of the user
@@ -1383,6 +1405,23 @@ exports.getGroups = functions.https.onRequest((request, response) => {
   }).catch(function(error){
     console.log(error.message);
     response.send("error");
+  });
+});
+
+//PARAMETERS: groupID
+exports.getGroup = functions.https.onRequest((request, response) =>{
+  var groupID = request.body.groupID;
+  console.log(groupID);
+  if (groupID == null) {
+    response.send("Must pass groupID in body of request");
+  }
+
+  var groupDoc = db.collection("Group").doc(groupID);
+
+  groupDoc.get().then(doc => {
+    response.send(doc.data());
+  }).catch(function(error){
+    resonse.send("error");
   });
 });
 
