@@ -85,7 +85,8 @@ export default class Notifications extends React.Component {
             return {
               Name: `@${item.friendHandle} invited you to join ${item.groupID}`,
               ...item,
-              onPress: () => this.groupAlert(item.groupName, item.groupID, item.friendHandle)
+              onPress: () =>
+                this.groupAlert(item.groupName, item.groupID, item.friendHandle)
             };
           });
           if (items.length != 0) {
@@ -94,12 +95,9 @@ export default class Notifications extends React.Component {
               items: items
             });
 
-            this.setState(
-              {
-                notifications: arr
-              },
-              () => console.log(this.state.notifications)
-            );
+            this.setState({
+              notifications: arr
+            });
           }
 
           this.setState({
@@ -155,19 +153,23 @@ export default class Notifications extends React.Component {
   };
 
   groupAlert = (groupName, groupID, friendHandle) => {
-    Alert.alert("Group Invite", `Join group ${groupName} made by @${friendHandle}?`, [
-      {
-        text: "Cancel"
-      },
-      {
-        text: "Deny",
-        onPress: () => this.denyGroupInvitation(groupID, friendHandle)
-      },
-      {
-        text: "Accept",
-        onPress: () => this.acceptGroupInvitation(groupID, friendHandle)
-      }
-    ]);
+    Alert.alert(
+      "Group Invite",
+      `Join group ${groupName} made by @${friendHandle}?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "Deny",
+          onPress: () => this.denyGroupInvitation(groupID, friendHandle)
+        },
+        {
+          text: "Accept",
+          onPress: () => this.acceptGroupInvitation(groupID, friendHandle)
+        }
+      ]
+    );
   };
 
   acceptFriendRequest = id => {

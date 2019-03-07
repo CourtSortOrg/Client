@@ -60,8 +60,6 @@ export default class GroupSettings extends React.Component {
   handleInvites = () => {
     this.state.selectedFriends.forEach(friend =>
       {
-        console.log("friend");
-        console.log(friend);
         this.inviteToGroup(friend.item.userHandle)
       }
     );
@@ -109,7 +107,6 @@ export default class GroupSettings extends React.Component {
               groupID: data._bodyText
             },
             () => {
-              console.log(this.state.groupID)
               this.handleInvites();
 
               this.props.screenProps.functions.updateGroup(
