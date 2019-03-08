@@ -267,7 +267,7 @@ export default class App extends React.Component {
       this.state.user.userHandle != undefined &&
       action
     ) {
-      await this.updateProfile();
+      await this.updateProfile(() => console.log("profile loaded"));
       await this.updateFriends();
       await this.updateGroups();
 
@@ -282,18 +282,16 @@ export default class App extends React.Component {
 
   updateProfile = async callback => {
     await this.fetchUser(this.state.user.userHandle, data => {
-      this.setState(
-        {
-          user: {
-            ...this.state.user,
-            ...data,
-            friends: [],
-            groups: []
-          }
-        },
-        callback
-      );
-    
+      this.setState({
+        user: {
+          ...this.state.user,
+          ...data,
+          friends: [],
+          groups: []
+        }
+      });
+    });
+
     await this.fetchDiningCourtRating(this.state.user.userHandle, data => {
       this.setState({
         user: {
@@ -303,7 +301,7 @@ export default class App extends React.Component {
       });
     });
 
-    callback();
+    if (callback) callback();
   };
 
   updateFriends = async callback => {
@@ -486,7 +484,7 @@ export default class App extends React.Component {
       .catch(error => console.error(`getGroup: ${error}`));
   };
 
-  fetchDiningCourtRating = id => {
+  fetchDiningCourtRating = (id, callback) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getDiningCourtRatings",
       {
