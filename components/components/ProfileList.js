@@ -15,6 +15,20 @@ import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
 
 export default class ProfileList extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      list: props.list
+    };
+
+    if (this.props.selectable) {
+      this.state.list = this.props.list.map(item => {
+        return { ...item, Name: item.userHandle };
+      });
+    }
+  }
+
   filter(list, text) {
     return list.filter(item => {
       try {
@@ -28,7 +42,7 @@ export default class ProfileList extends React.Component {
 
   renderElement(item) {
     return (
-      <View style={{padding: 8}}>
+      <View style={{ padding: 8 }}>
         <TouchableOpacity
           style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
           onPress={() => {
@@ -61,7 +75,7 @@ export default class ProfileList extends React.Component {
             <Text type="subHeader">{`@${item.props.userHandle}`}</Text>
           </View>
           <TouchableOpacity
-            style={{padding: 0}}
+            style={{ padding: 0 }}
             onPress={() => {
               item.props.navigation.navigate("Friend", {
                 ID: item.props.userHandle
@@ -80,13 +94,6 @@ export default class ProfileList extends React.Component {
   }
 
   render() {
-    let list;
-    if (this.props.selectable) {
-      list = this.props.list.map(item => {
-        return { ...item, selectable: true };
-      });
-    }
-
     return (
       <SearchList
         navigation={this.props.navigation}
@@ -94,7 +101,7 @@ export default class ProfileList extends React.Component {
         extendedSearch={this.props.extendedSearch}
         updateSelectedList={this.props.updateSelectedList}
         list={{
-          list: this.props.list,
+          list: this.state.list,
           type: "element",
           subList: false,
           rank: 1,

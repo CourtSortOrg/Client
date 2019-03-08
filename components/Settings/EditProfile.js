@@ -146,7 +146,7 @@ export default class EditProfile extends React.Component {
       >
         <Card header={"User Information"}>
           <ListItem
-            title={`Profile Name: ${this.props.screenProps.user.displayName}`}
+            title={`Profile Name: ${this.props.screenProps.user.userName}`}
             onPress={() => {
               Platform.IOS
                 ? AlertIOS.prompt("Enter new profile name", null, text =>
