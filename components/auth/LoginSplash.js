@@ -8,7 +8,12 @@ import * as firebase from "firebase";
 
 export default class LoginSplash extends React.Component {
   render() {
-    return <Splash />;
+    return (
+      <View>
+        <Text>LOGIN</Text>
+        <Splash />
+      </View>
+    );
   }
 
   componentDidMount() {

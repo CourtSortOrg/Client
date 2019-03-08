@@ -131,7 +131,7 @@ export default class EditProfile extends React.Component {
         backButton={true}
       >
         <Card header={"User Information"}>
-          <ListItem title={`Profile Name: ${this.props.screenProps.user.displayName}`} chevron/>
+          <ListItem title={`Profile Name: ${this.props.screenProps.user.userName}`} chevron/>
           <ListItem title={`Profile Picture:`} chevron/>
 
         </Card>

@@ -60,43 +60,14 @@ export default class CreateAccount extends React.Component {
             console.error(`createAccount: updateProfile: ${error.message}`);
           });
           */
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
+        this.props.screenProps.functions.addUserToDatabase(
           {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              uid: user.uid,
-              userHandle: this.state.userHandle,
-              userName: this.state.userName
-            })
-          }
-        )
-          .then(data => {
-            try {
-              //JSON.parse(data._bodyText);
-              this.props.screenProps.functions.updateUser(
-                true,
-                {
-                  uid: user.uid,
-                  userHandle: this.state.userHandle,
-                  userName: this.state.userName,
-                  email: this.state.email
-                },
-                () => this.props.navigation.navigate("Home")
-              );
-            } catch (error) {
-              console.error(
-                `createAccount: addUserToDatabase: ${error}: ${data._bodyText}`
-              );
-            }
-          })
-          .catch(error =>
-            console.error(`createAccount: addUserToDatabase: ${error}`)
-          );
+            uid: firebase.auth().currentUser.uid,
+            userName: this.state.userName,
+            userHandle: this.state.userHandle
+          },
+          () => this.props.navigation.navigate("Home")
+        );
       })
       .catch(function(error) {
         var errorCode = error.code;

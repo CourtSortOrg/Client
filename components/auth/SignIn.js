@@ -33,6 +33,20 @@ export default class SignIn extends React.Component {
     });*/
   }
 
+  handleAuthenticationUpdate = async signInNative => {
+    const user = firebase.auth().currentUser;
+    this.props.screenProps.functions.updateUser(
+      true,
+      firebase.auth().currentUser,
+      () => this.props.navigation.navigate("Home"),
+      this.handleNoUserHandle
+    );
+  };
+
+  handleNoUserHandle = () => {
+    console.error("NO USER HANDLE");
+  };
+
   signInNative = () => {
     //Dismiss the keyboard
     Keyboard.dismiss();
@@ -42,13 +56,7 @@ export default class SignIn extends React.Component {
       .auth()
       .signInWithEmailAndPassword(this.state.email, this.state.password)
       .then(() => {
-        //If they successfully signed in, navigate to the home screen
-        //this.props.navigation.navigate("Home");
-        this.props.screenProps.functions.updateUser(
-          firebase.auth().currentUser,
-          () => this.props.navigation.navigate("Home")
-        );
-        this.props.navigation.navigate("Home")
+        this.handleAuthenticationUpdate(true);
       })
       .catch(function(error) {
         alert(error.message);
@@ -61,35 +69,6 @@ export default class SignIn extends React.Component {
 
   forgotPassword = () => {
     this.props.navigation.navigate("ResetPassword");
-  };
-
-  getUserHandle = () => {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserHandle",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          uid: user.uid
-        })
-      }
-    )
-      .then(data => {
-        try {
-          this.setState({
-            user: {
-              ...this.state.user,
-              userHandle: JSON.parse(data._bodyText).userHandle
-            }
-          });
-        } catch (error) {
-          console.error(`getUserHandle: ${error}: ${data}`);
-        }
-      })
-      .catch(error => console.error(`getUserHandle: ${error}`));
   };
 
   useAsGuest = () => {
@@ -117,6 +96,9 @@ export default class SignIn extends React.Component {
               result.accessToken
             )
           )
+          .then(() => {
+            this.handleAuthenticationUpdate(false);
+          })
           .catch(function(error) {
             alert("Error", error.message);
           });
@@ -148,7 +130,10 @@ export default class SignIn extends React.Component {
           .auth()
           .signInAndRetrieveDataWithCredential(
             firebase.auth.FacebookAuthProvider.credential(token)
-          );
+          )
+          .then(() => {
+            this.handleAuthenticationUpdate(false);
+          });
       }
     } catch ({ message }) {
       alert(`Facebook Login Error: ${message}`);
