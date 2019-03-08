@@ -267,7 +267,7 @@ export default class App extends React.Component {
       this.state.user.userHandle != undefined &&
       action
     ) {
-      await this.updateProfile();
+      await this.updateProfile(() => console.log("profile loaded"));
       await this.updateFriends();
       await this.updateGroups();
 
@@ -281,19 +281,27 @@ export default class App extends React.Component {
   };
 
   updateProfile = async callback => {
-    this.fetchUser(this.state.user.userHandle, data => {
-      this.setState(
-        {
-          user: {
-            ...this.state.user,
-            ...data,
-            friends: [],
-            groups: []
-          }
-        },
-        callback
-      );
+    await this.fetchUser(this.state.user.userHandle, data => {
+      this.setState({
+        user: {
+          ...this.state.user,
+          ...data,
+          friends: [],
+          groups: []
+        }
+      });
     });
+
+    await this.fetchDiningCourtRating(this.state.user.userHandle, data => {
+      this.setState({
+        user: {
+          ...this.state.user,
+          diningCourtRatings: data
+        }
+      });
+    });
+
+    if (callback) callback();
   };
 
   updateFriends = async callback => {
@@ -474,6 +482,44 @@ export default class App extends React.Component {
     })
       .then(data => this.handleData(`getGroup`, data, callback))
       .catch(error => console.error(`getGroup: ${error}`));
+  };
+
+  fetchDiningCourtRating = (id, callback) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getDiningCourtRatings",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle
+        })
+      }
+    )
+      .then(data => this.handleData(`getDiningCourtRatings`, data, callback))
+      .catch(error => console.error(`getDiningCourtRatings: ${error}`));
+  };
+
+  rateDiningCourt = (diningCourt, rating) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/rateDiningCourt",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          diningCourt,
+          rating
+        })
+      }
+    )
+      .then(data => this.handleData(`getDiningCourtRatings`, data, callback))
+      .catch(error => console.error(`getDiningCourtRatings: ${error}`));
   };
 
   fetchMeals = (from, left) => {

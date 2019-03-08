@@ -103,7 +103,15 @@ export default class Map extends React.Component {
 
   renderDiningCard = ({ item }) => {
     return (
-      <Card header={item.name}>
+      <Card
+        header={item.name}
+        footer={[
+          {
+            text: "Check In",
+            onPress: () => console.log(`Checked into ${item.name}`)
+          }
+        ]}
+      >
         <List
           list={item.meals.map((meal, index) => {
             if (meal.hours) {

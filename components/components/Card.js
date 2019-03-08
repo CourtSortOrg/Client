@@ -26,7 +26,7 @@ export default class Card extends React.Component {
         )}
         {this.props.children}
         {this.props.footer != undefined && Array.isArray(this.props.footer) && (
-          <View style={styles.footer}>
+          <View style={this.props.header == undefined ? styles.buttonList : styles.footer}>
             {this.props.footer.map((button, index) => (
               <TouchableOpacity key={index} onPress={button.onPress} style={styles.button}>
                 <Text type="header">{button.text}</Text>
@@ -46,6 +46,11 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     borderBottomWidth: 3,
     borderColor: "black"
+  },
+  buttonList: {
+    backgroundColor: "#E86515",
+    flex: 1,
+    flexDirection: "row"
   },
   footer: {
     backgroundColor: "#E86515",
