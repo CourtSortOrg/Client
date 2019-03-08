@@ -65,7 +65,7 @@ export default class MealItem extends React.Component {
   }
 
   renderElement(item) {
-    return <NutritionFact {...item} />;
+    return <NutritionFact {...item.props} />;
   }
 
   renderNutrition() {
