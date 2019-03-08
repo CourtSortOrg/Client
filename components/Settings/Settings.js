@@ -17,13 +17,15 @@ export default class Settings extends React.Component {
       .auth()
       .signOut()
       .then(() => {
-        this.props.screenProps.functions.updateUser(undefined, () =>
+        this.props.screenProps.functions.updateUser(false, undefined, () =>
           this.props.navigation.navigate("Auth")
         );
       })
       .catch(error => {
         alert(error.message);
-        this.props.screenProps.functions.updateUser(undefined);
+        this.props.screenProps.functions.updateUser(false, undefined, () =>
+          this.props.navigation.navigate("Auth")
+        );
       });
   };
 
@@ -50,8 +52,8 @@ export default class Settings extends React.Component {
             //get list of individual ratings
             user
               .delete()
-              .then(() => {
-                fetch(
+              .then(async () => {
+                await fetch(
                   "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
                   {
                     method: "POST",
@@ -85,7 +87,7 @@ export default class Settings extends React.Component {
                       `deleteAccount: removeFromAllFriends: ${error}`
                     )
                   );
-                fetch(
+                await fetch(
                   "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
                   {
                     method: "POST",
@@ -120,13 +122,13 @@ export default class Settings extends React.Component {
                     )
                   );
                 //navigate to SignIn Screen
-                this.props.screenProps.functions.updateUser(undefined, () =>
+                this.props.screenProps.functions.updateUser(false, undefined, () =>
                   this.props.navigation.navigate("Auth")
                 );
               })
               .catch(function(error) {
                 alert("Firebase Delete User: " + error.message);
-                this.props.screenProps.functions.updateUser(undefined, () =>
+                this.props.screenProps.functions.updateUser(false, undefined, () =>
                   this.props.navigation.navigate("Auth")
                 );
               });
@@ -162,6 +164,26 @@ export default class Settings extends React.Component {
           topDivider
           bottomDivider
           chevron
+        />
+        <ListItem
+          title="Clear Ratings"
+          subtitle="Delete your account's ratings"
+          leftIcon={<Icon name="clear-all" type="material" />}
+          onPress={() => {
+            Alert.alert("Need to implement this!");
+          }}
+          topDivider
+          bottomDivider
+        />
+        <ListItem
+          title="Reset Password"
+          subtitle="Send an email to reset your password"
+          leftIcon={<Icon name="lock-reset" type="material-community" />}
+          onPress={() => {
+            Alert.alert("Need to implement this!");
+          }}
+          topDivider
+          bottomDivider
         />
         <ListItem
           title="Sign Out"

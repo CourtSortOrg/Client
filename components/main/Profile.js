@@ -129,7 +129,7 @@ export default class Profile extends React.Component {
           />
           {/* Test to show profile name */}
           <Text style={styles.profileName}>
-            {this.props.screenProps.user.displayName}
+            {this.props.screenProps.user.userName}
           </Text>
           {/* Icon to navigate to Settings */}
           <MaterialIcons

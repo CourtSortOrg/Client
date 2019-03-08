@@ -89,7 +89,7 @@ export default class GroupList extends React.Component {
     return (
       <SearchList
         navigation={this.props.navigation}
-        filterFunction={this.filterProfile}
+        filterFunction={this.filter}
         extendedSearch={this.props.extendedSearch}
         updateSelectedList={this.props.updateSelectedList}
         list={{

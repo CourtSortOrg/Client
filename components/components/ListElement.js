@@ -168,12 +168,13 @@ export default class ListElement extends React.Component {
       {
         selected: !this.state.selected
       },
-      () =>
+      () => {
         this.props.selectFunction(
           this.props,
           this.props.Name,
           this.state.selected
         )
+      }
     );
   }
 
