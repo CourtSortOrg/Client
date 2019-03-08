@@ -193,7 +193,7 @@ export default class App extends React.Component {
 
   componentDidMount = async () => {
     await this._retrieveData();
-    //this.fetchMeals(0, 7);
+    this.fetchMeals(0, 7);
     this.updateUser(true);
     //If the authentification state changes
     //firebase.auth().onAuthStateChanged(user => this.updateUser(user, true));
@@ -522,7 +522,7 @@ export default class App extends React.Component {
 
   render() {
     if (
-      //this.state.mealsLoaded &&
+      this.state.mealsLoaded &&
       this.state.fontLoaded &&
       this.state.firebaseLoaded &&
       this.state.userLoaded
