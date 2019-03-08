@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Button, ButtonGroup, ListItem } from "react-native-elements";
 import { Rating } from "react-native-elements";
 
@@ -158,7 +158,6 @@ export default class MealItem extends React.Component {
   }
 
   renderRatings() {
-    //TODO: Check if user is a guest, if so then don't render a user rating
     if (this.state.selectedIndex == 2) {
       return (
         <View>
@@ -175,52 +174,65 @@ export default class MealItem extends React.Component {
               />
             </View>
           </Card>
-          <Card header={`Your Rating`}>
-            <View>
-              <View style={{ alignItems: "center" }}>
-                <Text type="sectionName">
-                  {`${this.state.userRating}`} out of 5 stars
-                </Text>
-                <Rating
-                  style={{ marginTop: 10 }}
-                  fractions={1}
-                  imageSize={45}
-                  startingValue={this.state.userRating}
-                  onFinishRating={userRating => {
-                    this.setState({ userRating: userRating });
+          {this.props.screenProps.user ? (
+            <Card header={`Your Rating`}>
+              <View>
+                <View style={{ alignItems: "center" }}>
+                  <Text type="sectionName">
+                    {`${this.state.userRating}`} out of 5 stars
+                  </Text>
+                  <Rating
+                    style={{ marginTop: 10 }}
+                    fractions={1}
+                    imageSize={45}
+                    startingValue={this.state.userRating}
+                    onFinishRating={userRating => {
+                      this.setState({ userRating: userRating });
+                    }}
+                  />
+                  <Text style={{ color: "gray", marginBottom: 10 }}>
+                    Press and drag to edit rating
+                  </Text>
+                </View>
+
+                <Button
+                  title="Submit Rating"
+                  buttonStyle={{ backgroundColor: "#e9650d" }}
+                  titleStyle={{ color: "black", fontFamily: "Quicksand-Bold" }}
+                  onPress={() => {
+                    Alert.alert(
+                      "Update meal rating?",
+                      `By clicking confirm you will update your rating for ${
+                        this.state.name
+                      }`,
+                      [
+                        {
+                          text: "Cancel",
+                          onPress: () => console.log("Cancel Pressed"),
+                          style: "cancel"
+                        },
+                        {
+                          text: "Confirm",
+                          onPress: () => console.log("Confirm Pressed")
+                        }
+                      ]
+                    );
                   }}
                 />
-                <Text style={{ color: "gray", marginBottom: 10 }}>
-                  Press and drag to edit rating
-                </Text>
               </View>
-
-              <Button
-                title="Submit Rating"
-                buttonStyle={{ backgroundColor: "#e9650d" }}
-                titleStyle={{ color: "black", fontFamily: "Quicksand-Bold" }}
-                onPress={() => {
-                  Alert.alert(
-                    "Update meal rating?",
-                    `By clicking confirm you will update your rating for ${
-                      this.state.name
-                    }`,
-                    [
-                      {
-                        text: "Cancel",
-                        onPress: () => console.log("Cancel Pressed"),
-                        style: "cancel"
-                      },
-                      {
-                        text: "Confirm",
-                        onPress: () => console.log("Confirm Pressed")
-                      }
-                    ]
-                  );
-                }}
-              />
-            </View>
-          </Card>
+            </Card>
+          ) : (
+            <TouchableOpacity
+              style={{ alignItems: "center" }}
+              onPress={() => {
+                this.props.navigation.navigate("Auth");
+              }}
+            >
+              <Text style={{ textDecorationLine: "underline" }}>
+                Sign to rate dishes
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       );
     }

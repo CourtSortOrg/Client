@@ -1,5 +1,4 @@
 import React from "react";
-import * as firebase from "firebase";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
 
 import { ListItem, Rating, Button } from "react-native-elements";

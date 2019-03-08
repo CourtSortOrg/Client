@@ -3,14 +3,12 @@ import * as firebase from "firebase";
 import {
   Alert,
   Button,
-  FlatList,
   Image,
   Keyboard,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
-  TouchableHighlight,
   TouchableOpacity,
   Switch,
   View
