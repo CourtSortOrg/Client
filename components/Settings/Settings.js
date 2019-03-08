@@ -166,6 +166,26 @@ export default class Settings extends React.Component {
           chevron
         />
         <ListItem
+          title="Clear Ratings"
+          subtitle="Delete your account's ratings"
+          leftIcon={<Icon name="clear-all" type="material" />}
+          onPress={() => {
+            Alert.alert("Need to implement this!");
+          }}
+          topDivider
+          bottomDivider
+        />
+        <ListItem
+          title="Reset Password"
+          subtitle="Send an email to reset your password"
+          leftIcon={<Icon name="lock-reset" type="material-community" />}
+          onPress={() => {
+            Alert.alert("Need to implement this!");
+          }}
+          topDivider
+          bottomDivider
+        />
+        <ListItem
           title="Sign Out"
           subtitle="Sign out of your account"
           leftIcon={<Icon name="log-out" type="feather" />}
