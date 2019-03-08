@@ -209,7 +209,7 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          userHandle: this.setState.id,
+          userHandle: this.state.id,
           friendHandle: id
         })
       }
@@ -263,7 +263,7 @@ export default class Notifications extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          userHandle: this.setState.id,
+          userHandle: this.state.id,
           friendHandle: friendHandle,
           groupID: groupID
         })
