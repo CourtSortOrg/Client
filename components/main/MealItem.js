@@ -138,10 +138,10 @@ export default class MealItem extends React.Component {
                 //   source: { uri: item.image },
                 //   containerStyle: styles.friendPicture
                 // }}
-                subtitle={item.date + " " + item.meal}
-                title={item.location}
+                subtitle={item.props.date + " " + item.props.meal}
+                title={item.props.location}
                 onPress={() =>
-                  this.props.navigation.navigate("Map", { ID: item.location })
+                  this.props.navigation.navigate("Map", { ID: item.props.location })
                 }
                 topDivider
               />
