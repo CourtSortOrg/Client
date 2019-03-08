@@ -26,11 +26,11 @@ export default class SignIn extends React.Component {
       password: ""
     };
 
-    firebase.auth().onAuthStateChanged(user => {
+    /*firebase.auth().onAuthStateChanged(user => {
       this.props.screenProps.functions.updateUser(user, () =>
         this.props.navigation.navigate("Home")
       );
-    });
+    });*/
   }
 
   signInNative = () => {
@@ -44,9 +44,11 @@ export default class SignIn extends React.Component {
       .then(() => {
         //If they successfully signed in, navigate to the home screen
         //this.props.navigation.navigate("Home");
-        this.props.screenProps.functions.updateUser(firebase.auth().currentUser, () =>
-          this.props.navigation.navigate("Home")
+        this.props.screenProps.functions.updateUser(
+          firebase.auth().currentUser,
+          () => this.props.navigation.navigate("Home")
         );
+        this.props.navigation.navigate("Home")
       })
       .catch(function(error) {
         alert(error.message);
@@ -59,6 +61,35 @@ export default class SignIn extends React.Component {
 
   forgotPassword = () => {
     this.props.navigation.navigate("ResetPassword");
+  };
+
+  getUserHandle = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserHandle",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          uid: user.uid
+        })
+      }
+    )
+      .then(data => {
+        try {
+          this.setState({
+            user: {
+              ...this.state.user,
+              userHandle: JSON.parse(data._bodyText).userHandle
+            }
+          });
+        } catch (error) {
+          console.error(`getUserHandle: ${error}: ${data}`);
+        }
+      })
+      .catch(error => console.error(`getUserHandle: ${error}`));
   };
 
   useAsGuest = () => {

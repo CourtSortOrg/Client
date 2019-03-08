@@ -49,16 +49,17 @@ export default class CreateAccount extends React.Component {
       .auth()
       .createUserWithEmailAndPassword(email, password)
       .then(user => {
-        user = firebase.auth().currentUser;
+        /*user = firebase.auth().currentUser;
         user
           .updateProfile({
-            displayName: this.state.ame,
+            displayName: this.state.userName,
+            userName: this.state.userName,
             userHandle: this.state.userHandle
           })
           .catch(function(error) {
             console.error(`createAccount: updateProfile: ${error.message}`);
           });
-
+          */
         fetch(
           "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
           {
@@ -77,13 +78,15 @@ export default class CreateAccount extends React.Component {
           .then(data => {
             try {
               //JSON.parse(data._bodyText);
-
-              this.props.screenProps.functions.getUserHandle(
-                this.state.userHandle,
-                () =>
-                  this.props.screenProps.functions.updateUser(user, () =>
-                    this.props.navigation.navigate("Home")
-                  )
+              this.props.screenProps.functions.updateUser(
+                true,
+                {
+                  uid: user.uid,
+                  userHandle: this.state.userHandle,
+                  userName: this.state.userName,
+                  email: this.state.email
+                },
+                () => this.props.navigation.navigate("Home")
               );
             } catch (error) {
               console.error(

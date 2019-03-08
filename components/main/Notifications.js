@@ -5,6 +5,7 @@ import * as firebase from "firebase";
 
 import Screen from "../Nav/Screen";
 import List from "../components/List";
+import ListElement from "../components/ListElement";
 
 export default class Notifications extends React.Component {
   constructor(props) {
@@ -33,33 +34,34 @@ export default class Notifications extends React.Component {
       }
     )
       .then(data => {
-        try {
-          const arr = this.state.notifications.slice();
-          const items = [...JSON.parse(data._bodyText)].map(item => {
-            return {
-              Name: `${item.friendName}  @${item.friendHandle}`,
-              ...item,
-              onPress: () => this.friendAlert(item.friendHandle)
-            };
-          });
+        //try {
+        const arr = this.state.notifications.slice();
+        let items = JSON.parse(data._bodyText);
+        items = items.map(item => {
+          return {
+            Name: `${item.friendName}  @${item.friendHandle}`,
+            ...item,
+            onPress: () => this.friendAlert(item.friendHandle)
+          };
+        });
 
-          if (items.length != 0) {
-            arr.push({
-              Name: "Friend Requests",
-              items: items
-            });
-            this.setState({
-              notifications: arr
-            });
-          }
-          this.setState({
-            loadingFriends: false
+        if (items.length != 0) {
+          arr.push({
+            Name: "Friend Requests",
+            items: items
           });
-        } catch (error) {
+          this.setState({
+            notifications: arr
+          });
+        }
+        this.setState({
+          loadingFriends: false
+        });
+        /*} catch (error) {
           console.error(
             `getIncomingFriendRequests: ${error}: ${data._bodyText}`
           );
-        }
+        }*/
       })
       .catch(error => console.error(`getIncomingFriendRequests: ${error}`));
   };
@@ -80,10 +82,13 @@ export default class Notifications extends React.Component {
     )
       .then(data => {
         try {
+          console.log(data._bodyText);
           const arr = this.state.notifications.slice();
           const items = [...JSON.parse(data._bodyText)].map(item => {
             return {
-              Name: `@${item.friendHandle} invited you to join ${item.groupID}`,
+              Name: `@${item.friendHandle} invited you to join ${
+                item.groupName
+              }`,
               ...item,
               onPress: () =>
                 this.groupAlert(item.groupName, item.groupID, item.friendHandle)
@@ -296,7 +301,7 @@ export default class Notifications extends React.Component {
       >
         {this.state.loadingGroups || this.state.loadingFriends ? (
           <ActivityIndicator size="large" color="#e9650d" />
-        ) : (
+        ) : this.state.notifications.length > 0 ? (
           <List
             list={this.state.notifications}
             type="expandable"
@@ -317,6 +322,8 @@ export default class Notifications extends React.Component {
               }
             }}
           />
+        ) : (
+          <ListElement Name="No new notifications" type="expandable" />
         )}
       </Screen>
     );

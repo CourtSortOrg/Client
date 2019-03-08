@@ -77,7 +77,8 @@ export default class GroupSettings extends React.Component {
         body: JSON.stringify({
           userHandle: this.props.screenProps.user.userHandle,
           friendHandle: id,
-          groupID: this.state.groupID
+          groupID: this.state.groupID,
+          groupName: this.state.group.groupName
         })
       }
     )
