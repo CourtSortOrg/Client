@@ -1,9 +1,10 @@
 import React from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, Platform, TouchableOpacity, View } from "react-native";
 import { Col, Row, Grid } from "react-native-easy-grid";
-
-import Screen from "../Nav/Screen";
+import { ImagePicker } from "expo";
 import Card from "../components/Card";
+import Screen from "../Nav/Screen";
+import Text from "../components/Text";
 import { ListItem } from "react-native-elements";
 
 const restrictions = [
@@ -67,10 +68,10 @@ const restrictions = [
 export default class EditProfile extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { restrictions: restrictions };
+    this.state = { restrictions: restrictions, showNameDialog: false };
   }
 
-  renderRestriction(data, index) {
+  renderRestriction = (data, index) => {
     return (
       <TouchableOpacity
         activeOpacity={0.5}
@@ -121,7 +122,20 @@ export default class EditProfile extends React.Component {
         )}
       </TouchableOpacity>
     );
-  }
+  };
+
+  pickProfilePicture = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 4]
+    });
+
+    console.log(result);
+
+    // if (!result.cancelled) {
+    //   this.setState({ image: result.uri });
+    // }
+  };
 
   render() {
     return (
@@ -131,9 +145,22 @@ export default class EditProfile extends React.Component {
         backButton={true}
       >
         <Card header={"User Information"}>
-          <ListItem title={`Profile Name: ${this.props.screenProps.user.displayName}`} chevron/>
-          <ListItem title={`Profile Picture:`} chevron/>
-
+          <ListItem
+            title={`Profile Name: ${this.props.screenProps.user.userName}`}
+            onPress={() => {
+              Platform.IOS
+                ? AlertIOS.prompt("Enter new profile name", null, text =>
+                    console.log("You entered " + text)
+                  )
+                : Alert.alert("Android TextInput");
+            }}
+            chevron
+          />
+          <ListItem
+            title={`Profile Picture`}
+            onPress={this.pickProfilePicture}
+            chevron
+          />
         </Card>
         <Card header={"Dietary Restrictions"}>
           <RestrictionGrid
@@ -167,12 +194,12 @@ function RestrictionGrid(props) {
     );
   }
 
-  var colPatternIndex = 0,
+  let colPatternIndex = 0,
     num = 0;
   let cols = [],
     rows = [];
 
-  for (var i = 0; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     cols.push(<Col key={i}>{renderItem(data[i], i)}</Col>);
     num++;
     if (num == colPattern[colPatternIndex]) {

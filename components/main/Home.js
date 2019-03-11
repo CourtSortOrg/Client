@@ -3,18 +3,24 @@ import { View, Text } from "react-native";
 import { Button } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
+import CheckInCard from "./CheckInCard";
+import RatingsCard from "./RatingsCard";
 
 export default class Home extends React.Component {
   render() {
     return (
       <Screen
         title="Home"
-        navigation={{ ...this.props.navigation }}
+        navigation={this.props.navigation}
         backButton={false}
       >
-        <Button
-          title="Dining Court"
-          onPress={() => this.props.navigation.push("DiningCourt")}
+        <CheckInCard
+          navigation={this.props.navigation}
+          screenProps={this.props.screenProps}
+        />
+        <RatingsCard
+          navigation={this.props.navigation}
+          screenProps={this.props.screenProps}
         />
       </Screen>
     );

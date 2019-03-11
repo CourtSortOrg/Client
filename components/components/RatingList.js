@@ -13,34 +13,22 @@ import Text from "../components/Text";
 import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
+import Rating from "../components/Rating";
 
-export default class ProfileList extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      list: props.list
-    };
-
-    if (this.props.selectable) {
-      this.state.list = this.props.list.map(item => {
-        return { ...item, Name: item.userHandle };
-      });
-    }
-  }
-
+export default class RatingList extends React.Component {
   filter(list, text) {
     return list.filter(item => {
       try {
-        return item.userName.includes(text) || item.userHandle.includes(text);
+        return item.Name.includes(text);
       } catch (error) {
-        console.error("filterProfile: Ill defined item:");
+        console.error("filterRating: Ill defined item:");
         console.error(item);
       }
     });
   }
 
   renderElement(item) {
+    console.log(item);
     return (
       <View style={{ padding: 8 }}>
         <TouchableOpacity
@@ -49,8 +37,8 @@ export default class ProfileList extends React.Component {
             if (item.props.selectable == true) {
               item.toggleSelect();
             } else {
-              item.props.navigation.navigate("Friend", {
-                ID: item.props.userHandle
+              item.props.navigation.navigate("MealItem", {
+                ID: item.props.Name
               });
             }
           }}
@@ -68,17 +56,28 @@ export default class ProfileList extends React.Component {
               )}
             </View>
           )}
-          <View style={{ flex: 1, paddingLeft: 8 }}>
+          <View
+            style={{
+              flex: 1,
+              paddingLeft: 8,
+              flexDirection: "row",
+              justifyContent: "space-between"
+            }}
+          >
             <Text type="header" style={{ padding: 0 }}>
-              {item.props.userName}
+              {item.props.Name}
             </Text>
-            <Text type="subHeader">{`@${item.props.userHandle}`}</Text>
+            <Rating
+              rating={item.props.rating}
+              user={item.props.userRating}
+              updateRating={item.props.updateRating}
+            />
           </View>
           <TouchableOpacity
             style={{ padding: 0 }}
             onPress={() => {
-              item.props.navigation.navigate("Friend", {
-                ID: item.props.userHandle
+              item.props.navigation.navigate("MealItem", {
+                ID: item.props.Name
               });
             }}
           >
@@ -94,6 +93,13 @@ export default class ProfileList extends React.Component {
   }
 
   render() {
+    let list;
+    if (this.props.selectable) {
+      list = this.props.list.map(item => {
+        return { ...item, selectable: true };
+      });
+    }
+
     return (
       <SearchList
         navigation={this.props.navigation}
@@ -101,7 +107,7 @@ export default class ProfileList extends React.Component {
         extendedSearch={this.props.extendedSearch}
         updateSelectedList={this.props.updateSelectedList}
         list={{
-          list: this.state.list,
+          list: this.props.list,
           type: "element",
           subList: false,
           rank: 1,

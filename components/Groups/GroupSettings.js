@@ -22,7 +22,6 @@ export default class GroupSettings extends React.Component {
 
   componentDidMount = () => {
     // get group from screenProps.
-    console.log(this.state.groupID);
     if(this.state.groupID !== "NO-ID") {
       let groups = this.props.screenProps.user.groups.filter(group => group.groupID === this.state.groupID);
       if(groups.length === 0) {
@@ -60,7 +59,9 @@ export default class GroupSettings extends React.Component {
 
   handleInvites = () => {
     this.state.selectedFriends.forEach(friend =>
-      this.inviteToGroup(friend.userHandle)
+      {
+        this.inviteToGroup(friend.item.userHandle)
+      }
     );
   };
 
@@ -76,11 +77,12 @@ export default class GroupSettings extends React.Component {
         body: JSON.stringify({
           userHandle: this.props.screenProps.user.userHandle,
           friendHandle: id,
-          groupID: this.state.groupID
+          groupID: this.state.groupID,
+          groupName: this.state.group.groupName
         })
       }
     )
-      //.then(data => )
+      .then(data => console.log(`Invited ${id} to group`))
       .catch(error => console.error(`inviteToGroup: ${error}`));
   };
 
@@ -112,6 +114,8 @@ export default class GroupSettings extends React.Component {
                 this.state.groupID,
                 true
               );
+
+              this.props.navigation.goBack();
             }
           );
         })
