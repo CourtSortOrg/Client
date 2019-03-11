@@ -1545,3 +1545,28 @@ exports.deleteGroup = functions.https.onRequest(async (request, response) => {
     response.send(error.message);
   });
 });
+
+//gets the notifications of a user and clears them
+//PARAMETERS: userHandle
+exports.getNotifications = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  if(userHandle == null){
+    response.send("Must pass userHandle in body of request");
+  }
+
+  userDoc = db.collection("User").doc(userHandle);
+
+  userDoc.get().then(doc => {
+    var notifications = doc.data().notifications;
+    var updates = {notifications: []};
+    userDoc.update(updates).then(function(){
+      response.send(notifications);
+    }).catch(function(error){
+      response.send("error");
+    });
+  }).catch(function(error){
+    response.send("error");
+    return;
+  });
+});
