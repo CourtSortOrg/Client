@@ -20,6 +20,7 @@ export default class Profile extends React.Component {
     //var groupData = require("../../testData/groupData.json");
 
     this.state = {
+      stateIndex: 0,
       selectedIndex: 0,
       isEditing: false,
 
@@ -42,6 +43,12 @@ export default class Profile extends React.Component {
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
   };
+
+  // Method to change the user's current status
+  // TODO: Firebase call
+  updateStateIndex (stateIndex) {
+    this.setState({stateIndex})
+  }
 
   // Helper method to choose whether to render a component
   shouldRender = (expr, comp1, comp2) => {
@@ -106,8 +113,10 @@ export default class Profile extends React.Component {
   render() {
     // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
+    // Create an array of buttons for changing status
+    const stateButtons = ["Available", "Eating", "Busy"];
     // Retrieve user data from state
-    const { friends, groups, ratings, selectedIndex } = this.state;
+    const { friends, groups, ratings, selectedIndex, stateIndex } = this.state;
 
     return (
       <Screen
@@ -142,12 +151,12 @@ export default class Profile extends React.Component {
             style={styles.settingsIcon}
           />
           <Icon
-            raised
-            name = "status"
+            reverse
             color = "#FF0000"
             size = "15"
             onPress={() => {
               console.log("Press status button")
+              this.setState({ changeStatus: true });
             }}
           />
         </Card>
@@ -198,6 +207,19 @@ export default class Profile extends React.Component {
         </Card>
 
         {/* TODO: Phase this out into Settings screen */}
+        <Overlay
+          isVisible={this.state.changeStatus}
+          height="50%"
+          width="90%"
+        >
+          <ButtonGroup
+            onPress={this.updateStateIndex}
+            selectedIndex={stateIndex}
+            buttons={stateButtons}
+            containerStyle={{height: 60}}
+          />
+        </Overlay>
+
         <Overlay
           borderRadius={4}
           height="90%"
