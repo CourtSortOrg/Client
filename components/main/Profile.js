@@ -20,13 +20,13 @@ export default class Profile extends React.Component {
     //var groupData = require("../../testData/groupData.json");
 
     this.state = {
-      stateIndex: 0,
       selectedIndex: 0,
       isEditing: false,
 
       name: "",
       initials: "",
       restrictions: "",
+      status: 0,
 
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
@@ -46,13 +46,55 @@ export default class Profile extends React.Component {
 
   // Method to change the user's current status
   // TODO: Firebase call
-  updateStateIndex (stateIndex) {
-    this.setState({stateIndex})
+  updateStatus (status) {
+    this.setState({status})
   }
 
   // Helper method to choose whether to render a component
   shouldRender = (expr, comp1, comp2) => {
     return expr ? comp1 : comp2;
+  };
+
+  getUserStatus = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserStatus",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: this.state.name
+        })
+      }
+    ).then(data => {
+      // Update the user's current stauts
+    })
+    .catch(error => `getUserStatus: ${error}`);
+  };
+
+  setUserStatus = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/setUserStatus",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: this.state.name,
+          status: this.state.status
+        })
+      }
+    )
+    /*
+    .then(data => {
+      // Update the user's current stauts
+    })
+    .catch(error => `setUserStatus: ${error}`);
+    */
   };
 
   deleteAccount = () => {
@@ -116,7 +158,7 @@ export default class Profile extends React.Component {
     // Create an array of buttons for changing status
     const stateButtons = ["Available", "Eating", "Busy"];
     // Retrieve user data from state
-    const { friends, groups, ratings, selectedIndex, stateIndex } = this.state;
+    const { friends, groups, ratings, selectedIndex, status } = this.state;
 
     return (
       <Screen
@@ -213,8 +255,8 @@ export default class Profile extends React.Component {
           width="90%"
         >
           <ButtonGroup
-            onPress={this.updateStateIndex}
-            selectedIndex={stateIndex}
+            onPress={this.updateStatus}
+            selectedIndex={status}
             buttons={stateButtons}
             containerStyle={{height: 60}}
           />
