@@ -22,6 +22,7 @@ export default class Profile extends React.Component {
     this.state = {
       selectedIndex: 0,
       isEditing: false,
+      changeStatus: false,
 
       name: "",
       initials: "",
@@ -46,8 +47,8 @@ export default class Profile extends React.Component {
 
   // Method to change the user's current status
   // TODO: Firebase call
-  updateStatus (status) {
-    this.setState({status})
+  updateStatus = status => {
+    this.setState({status, changeStatus: false})
   }
 
   // Helper method to choose whether to render a component
@@ -156,7 +157,8 @@ export default class Profile extends React.Component {
     // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
     // Create an array of buttons for changing status
-    const stateButtons = ["Available", "Eating", "Busy"];
+    const statusColor = ['#0F0', '#FF0', '#F00']
+    const statusButtons = ["Available", "Eating", "Busy"];
     // Retrieve user data from state
     const { friends, groups, ratings, selectedIndex, status } = this.state;
 
@@ -194,7 +196,7 @@ export default class Profile extends React.Component {
           />
           <Icon
             reverse
-            color = "#FF0000"
+            color = {stateColors[this.state.status]}
             size = "15"
             onPress={() => {
               console.log("Press status button")
@@ -256,8 +258,8 @@ export default class Profile extends React.Component {
         >
           <ButtonGroup
             onPress={this.updateStatus}
-            selectedIndex={status}
-            buttons={stateButtons}
+            selectedIndex={this.state.status}
+            buttons={statusButtons}
             containerStyle={{height: 60}}
           />
         </Overlay>
