@@ -9,6 +9,7 @@ import List from "../components/List";
 import Text from "../components/Text";
 import Card from "../components/Card";
 import ListElement from "../components/ListElement";
+import Separator from "../components/Separator";
 
 export default class MealItem extends React.Component {
   constructor(props) {
@@ -21,6 +22,7 @@ export default class MealItem extends React.Component {
       ingredients: "",
       id: "",
       isVeg: false,
+      warning: false,
       allergens: [],
       offered: [
         {
@@ -54,9 +56,37 @@ export default class MealItem extends React.Component {
     )
       .then(data => {
         try {
-          this.setState({
-            ...JSON.parse(data._bodyText)
-          });
+          this.setState(
+            {
+              ...JSON.parse(data._bodyText)
+            } /*,
+            () => {
+              this.setState(
+                {
+                  allergens: this.state.allergens.filter(a => a.Value == true)
+                },
+                () => {
+                  this.setState({
+                    allergens: this.state.allergens.map(a => ({
+                      ...a,
+                      enabled:
+                        this.props.screenProps.user.dietaryRestrictions.filter(
+                          b => {
+                            if (b.Name == a.Name) {
+                              this.setState({
+                                warning: true
+                              });
+                              return true;
+                            }
+                            return false;
+                          }
+                        ).length != 0
+                    }))
+                  });
+                }
+              );
+            }*/
+          );
         } catch (error) {
           console.error(`fetchAllOffered: ${error}: ${data._bodyText}`);
         }
@@ -69,16 +99,34 @@ export default class MealItem extends React.Component {
   }
 
   renderNutrition() {
+    console.log(this.state.allergens);
     if (this.state.selectedIndex == 0) {
       return (
         <View>
           <Card header="Dietary Restrictions">
+            {this.state.warning == true && (
+              <View>
+                <ListElement type="expandable" Name="Important!" />
+                <ListElement
+                  type="element"
+                  Name="This dish matches a dietary restriction!"
+                  rank={1}
+                />
+                <Separator/>
+              </View>
+            )}
             {this.state.allergens.length != 0 ? (
               <View style={styles.allergens}>
                 {this.state.allergens
                   .filter(allergen => allergen.Value)
                   .map((allergen, index) => {
-                    return <AllergenIcon key={index} name={allergen.Name} enabled={false}/>;
+                    return (
+                      <AllergenIcon
+                        key={index}
+                        name={allergen.Name}
+                        enabled={allergen.enabled}
+                      />
+                    );
                   })}
               </View>
             ) : (
@@ -141,7 +189,9 @@ export default class MealItem extends React.Component {
                 subtitle={item.props.date + " " + item.props.meal}
                 title={item.props.location}
                 onPress={() =>
-                  this.props.navigation.navigate("Map", { ID: item.props.location })
+                  this.props.navigation.navigate("Map", {
+                    ID: item.props.location
+                  })
                 }
                 topDivider
               />
@@ -177,7 +227,13 @@ export default class MealItem extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  allergens: { flex: 1, padding: 8, flexDirection: "row", flexWrap: "wrap", justifyContent: "flex-start"},
+  allergens: {
+    flex: 1,
+    padding: 8,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start"
+  },
   ingredients: { padding: 10 },
   header: {
     backgroundColor: "#E86515",

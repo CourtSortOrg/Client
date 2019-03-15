@@ -131,6 +131,7 @@ export default class Meals extends React.Component {
         title="Meals"
         navigation={{ ...this.props.navigation }}
         backButton={false}
+        map={true}
       >
         <View style={{ flex: 2, height: 75, flexDirection: "row" }}>
           <TouchableOpacity

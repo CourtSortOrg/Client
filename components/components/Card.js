@@ -25,14 +25,24 @@ export default class Card extends React.Component {
           </View>
         )}
         {this.props.children}
-        {this.props.footer != undefined && Array.isArray(this.props.footer) && (
-          <View style={this.props.header == undefined ? styles.buttonList : styles.footer}>
+        {this.props.footer != undefined && Array.isArray(this.props.footer) ? (
+          <View
+            style={
+              this.props.header == undefined ? styles.buttonList : styles.footer
+            }
+          >
             {this.props.footer.map((button, index) => (
-              <TouchableOpacity key={index} onPress={button.onPress} style={styles.button}>
+              <TouchableOpacity
+                key={index}
+                onPress={button.onPress}
+                style={styles.button}
+              >
                 <Text type="header">{button.text}</Text>
               </TouchableOpacity>
             ))}
           </View>
+        ) : (
+          <View style={{ height: 10 }} />
         )}
       </View>
     );
@@ -65,7 +75,7 @@ const styles = StyleSheet.create({
     borderRightWidth: StyleSheet.hairlineWidth,
     justifyContent: "center",
     alignItems: "center",
-    padding: 8,
+    padding: 8
   },
   card: {
     flex: 1,

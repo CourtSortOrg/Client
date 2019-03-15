@@ -108,7 +108,10 @@ export default class Map extends React.Component {
         footer={[
           {
             text: "Check In",
-            onPress: () => console.log(`Checked into ${item.name}`)
+            onPress: () =>
+              this.props.screenProps.functions.checkIn(item.name, () =>
+                this.props.navigation.navigate("Home")
+              )
           }
         ]}
       >
@@ -170,7 +173,11 @@ export default class Map extends React.Component {
                 ref={c => {
                   this._carousel = c;
                 }}
-                data={this.state.diningLocations.locations ? this.state.diningLocations.locations : []}
+                data={
+                  this.state.diningLocations.locations
+                    ? this.state.diningLocations.locations
+                    : []
+                }
                 renderItem={this.renderDiningCard}
                 sliderWidth={width}
                 itemWidth={width * 0.75}

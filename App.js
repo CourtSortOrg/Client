@@ -166,7 +166,11 @@ export default class App extends React.Component {
 
   _storeData = async (key, value) => {
     try {
-      await AsyncStorage.setItem(key, value);
+      if (value != "") {
+        await AsyncStorage.setItem(key, value);
+      } else {
+        await AsyncStorage.removeItem(key);
+      }
     } catch (error) {
       console.error(`_storeData: ${error}`);
     }
@@ -231,7 +235,7 @@ export default class App extends React.Component {
           });
         } catch (error) {
           if (errorHandler) errorHandler();
-          else console.error(`getUserHandle: ${error}: ${data}`);
+          console.error(`getUserHandle: ${error}: ${data}`);
         }
       })
       .catch(error => {
@@ -241,6 +245,9 @@ export default class App extends React.Component {
   };
 
   updateUser = async (action, user, callback, errorHandler) => {
+    console.log("Before:");
+    console.log(this.state.user);
+    console.log(":Before");
     if (user != undefined) {
       if (user.userHandle == undefined)
         await this.getUserHandle(user.uid, errorHandler);
@@ -251,6 +258,7 @@ export default class App extends React.Component {
           }
         });
       }
+
       await this.setState({
         user: {
           id: this.state.user.userHandle,
@@ -269,17 +277,26 @@ export default class App extends React.Component {
       await this.updateFriends(() => console.log("friends loaded"));
       await this.updateGroups(() => console.log("groups loaded"));
 
-      //console.log(this.state.user);
       await this._storeData(`user`, JSON.stringify(this.state.user));
+
+      await this.setState({ firebaseLoaded: true }, () => {
+        console.log("After:");
+        console.log(this.state.user);
+        console.log(":After");
+        if (callback) callback();
+      });
     } else {
       await this._storeData("user", "");
+      await this.setState({ firebaseLoaded: true }, () => {
+        console.log("After::After");
+        if(callback) callback();
+      });
     }
-    this.setState({ firebaseLoaded: true }, callback);
   };
 
   updateProfile = async callback => {
-    await this.fetchUser(this.state.user.userHandle, data => {
-      this.setState({
+    await this.fetchUser(this.state.user.userHandle, async data => {
+      await this.setState({
         user: {
           ...this.state.user,
           ...data,
@@ -289,8 +306,8 @@ export default class App extends React.Component {
       });
     });
 
-    await this.fetchDiningCourtRating(this.state.user.userHandle, data => {
-      this.setState({
+    await this.fetchDiningCourtRating(this.state.user.userHandle, async data => {
+      await this.setState({
         user: {
           ...this.state.user,
           diningCourtRatings: data
@@ -302,24 +319,28 @@ export default class App extends React.Component {
   };
 
   updateFriends = async callback => {
-    this.fetchFriends(this.state.user.userHandle, data =>
-      data.forEach(friend => this.updateFriend(friend.friendHandle, true))
+    await this.fetchFriends(this.state.user.userHandle, async data =>
+      await data.forEach(async friend => await this.updateFriend(friend.friendHandle, true))
     );
+
+    if (callback) callback();
   };
 
   updateGroups = async callback => {
-    this.fetchGroups(this.state.user.userHandle, data => {
-      data.forEach(groupID => this.updateGroup(groupID, true));
+    await this.fetchGroups(this.state.user.userHandle, async data => {
+      await data.forEach(async groupID => await this.updateGroup(groupID, true));
     });
+
+    if (callback) callback();
   };
 
-  updateFriend = (id, action) => {
+  updateFriend = async (id, action) => {
     // action == true, add friend.
     if (action) {
-      this.fetchUser(id, data => {
+      await this.fetchUser(id, async data => {
         const arr = this.state.user.friends.slice();
         arr.push(data);
-        this.setState({
+        await this.setState({
           user: {
             ...this.state.user,
             friends: arr
@@ -329,7 +350,7 @@ export default class App extends React.Component {
     }
     // action == false, remove friend.
     else {
-      this.setState({
+      await this.setState({
         user: {
           ...this.state.user,
           friends: this.state.user.friends.filter(f => f.userHandle != id)
@@ -338,13 +359,13 @@ export default class App extends React.Component {
     }
   };
 
-  updateGroup = (id, action) => {
+  updateGroup = async (id, action) => {
     // action == true, add friend.
     if (action) {
-      this.fetchGroup(id, data => {
+      await this.fetchGroup(id, async data => {
         const arr = this.state.user.groups.slice();
         arr.push({ ...data, groupID: id });
-        this.setState({
+        await this.setState({
           user: {
             ...this.state.user,
             groups: arr
@@ -354,13 +375,112 @@ export default class App extends React.Component {
     }
     // action == false, remove group.
     else {
-      this.setState({
+      await this.setState({
         user: {
           ...this.state.user,
           groups: this.state.user.groups.filter(g => g.groupID != id)
         }
       });
     }
+  };
+
+  checkOut = callback => {
+    Alert.alert("Check Out", `Would you like to check out?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "No"
+      },
+      {
+        text: "Yes",
+        onPress: () =>
+          this.checkOutOfDiningCourt(() =>
+            this.setStatus("not eating", callback)
+          )
+      }
+    ]);
+  };
+
+  checkIn = (courtId, callback) => {
+    Alert.alert(
+      "Check In",
+      `What status would you like to have while you eat at ${courtId}?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "Come eat with me!",
+          onPress: () =>
+            this.checkIntoDiningCourt(courtId, () =>
+              this.setStatus("available", callback)
+            )
+        },
+        {
+          text: "Sorry, I'm busy.",
+          onPress: () =>
+            this.checkIntoDiningCourt(courtId, () =>
+              this.setStatus("busy", callback)
+            )
+        },
+        {
+          text: "I'm no longer eating",
+          onPress: () =>
+            this.checkOutOfDiningCourt(() =>
+              this.setStatus("not eating", callback)
+            )
+        }
+      ]
+    );
+  };
+
+  changeStatus = callback => {
+    let courtId = "set to user court id!";
+    console.log(courtId);
+
+    Alert.alert("Change Status", `What status would you like to have?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "Come eat with me!",
+        onPress: () =>
+          this.checkIntoDiningCourt(courtId, () =>
+            this.setStatus("available", callback)
+          )
+      },
+      {
+        text: "Sorry, I'm busy.",
+        onPress: () =>
+          this.checkIntoDiningCourt(courtId, () =>
+            this.setStatus("busy", callback)
+          )
+      },
+      {
+        text: "I'm no longer eating",
+        onPress: () =>
+          this.checkOutOfDiningCourt(() =>
+            this.setStatus("not eating", callback)
+          )
+      }
+    ]);
+  };
+
+  setStatus = (status, callback) => {
+    // fetch.
+    console.log(`set status to be ${status}`);
+    if (callback) callback();
+  };
+
+  checkIntoDiningCourt = (courtId, callback) => {
+    console.log(`checked into ${courtId}`);
+    if (callback) callback();
+  };
+
+  checkOutOfDiningCourt = callback => {
+    console.log(`checked out`);
+    if (callback) callback();
   };
 
   addUserToDatabase = (user, callback) => {
@@ -398,8 +518,8 @@ export default class App extends React.Component {
     }
   };
 
-  fetchUser = (id, callback) => {
-    fetch(
+  fetchUser = async (id, callback) => {
+    await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
       {
         method: "POST",
@@ -416,8 +536,8 @@ export default class App extends React.Component {
       .catch(error => console.error(`fetchUser: ${error}`));
   };
 
-  fetchFriends = (id, callback) => {
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
+  fetchFriends = async (id, callback) => {
+    await fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -432,8 +552,8 @@ export default class App extends React.Component {
   };
 
   // Update to get friend.
-  fetchFriend = (id, callback) => {
-    fetch(
+  fetchFriend = async (id, callback) => {
+    await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
       {
         method: "POST",
@@ -450,8 +570,8 @@ export default class App extends React.Component {
       .catch(error => console.error(`fetchFriend: ${error}`));
   };
 
-  fetchGroups = (id, callback) => {
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
+  fetchGroups = async (id, callback) => {
+    await fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -465,8 +585,8 @@ export default class App extends React.Component {
       .catch(error => console.error(`fetchFriends: ${error}`));
   };
 
-  fetchGroup = (id, callback) => {
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup", {
+  fetchGroup = async (id, callback) => {
+    await fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -481,8 +601,8 @@ export default class App extends React.Component {
       .catch(error => console.error(`getGroup: ${error}`));
   };
 
-  fetchDiningCourtRating = (id, callback) => {
-    fetch(
+  fetchDiningCourtRating = async (id, callback) => {
+    await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getDiningCourtRatings",
       {
         method: "POST",
@@ -564,9 +684,9 @@ export default class App extends React.Component {
   };
 
   render() {
-
+    /*console.log("render:")
     console.log(this.state.user);
-    
+    console.log(":render")*/
     if (
       this.state.mealsLoaded &&
       this.state.fontLoaded &&
@@ -581,7 +701,10 @@ export default class App extends React.Component {
               updateUser: this.updateUser,
               addUserToDatabase: this.addUserToDatabase,
               updateFriend: this.updateFriend,
-              updateGroup: this.updateGroup
+              updateGroup: this.updateGroup,
+              changeStatus: this.changeStatus,
+              checkIn: this.checkIn,
+              checkOut: this.checkOut
             },
             user: this.state.user,
             meals: this.state.meals

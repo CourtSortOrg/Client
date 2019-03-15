@@ -19,6 +19,7 @@ export default class Screen extends React.Component {
           navigation={{ ...this.props.navigation }}
           title={this.props.title}
           backButton={this.props.backButton}
+          map={this.props.map}
           active={this.props.title}
           {...this.props.header}
         />
@@ -42,6 +43,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     aspectRatio: 1,
-    height: "55%"
+    height: 25
   }
 });
