@@ -11,8 +11,9 @@ export default class Notifications extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loadingGroups: false,
+      loadingGroups: true,
       loadingFriends: true,
+      loadingWarnings: true,
       notifications: [],
 
       ...this.props.screenProps.user
@@ -55,7 +56,7 @@ export default class Notifications extends React.Component {
           });
         }
         this.setState({
-          loadingFriends: false
+          loadingFriends: false,
         });
         /*} catch (error) {
           console.error(
@@ -113,6 +114,51 @@ export default class Notifications extends React.Component {
         }
       })
       .catch(error => console.error(`getGroupInvites: ${error}`));
+  };
+
+  getDiningCourtNotifications = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getDiningCourtNotifications",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify()
+      }
+    )
+      .then(data => {
+        try {
+          console.log(data._bodyText);
+          const arr = this.state.notifications.slice();
+          const items = [...JSON.parse(data._bodyText)].map(item => {
+            return {
+              Name: `${item.diningCourtNotification}`,
+              ...item,
+              onPress: () =>
+                Alert.alert("Warning", item.diningCourtNotification)
+            };
+          });
+          if (items.length != 0) {
+            arr.push({
+              Name: "Dining Court Warnings",
+              items: items
+            });
+
+            this.setState({
+              notifications: arr
+            });
+          }
+
+          this.setState({
+            loadingWarnings: false
+          });
+        } catch (error) {
+          console.error(`getDiningCourtNotifications: ${error} - ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`getDiningCourtNotifications: ${error}`));
   };
 
   removeNotificationFriend = id => {
