@@ -14,11 +14,11 @@ export default class CheckIn extends React.Component {
         footer={[
           {
             text: "Change Status",
-            onPress: () => console.log("change status")
+            onPress: () => this.props.screenProps.functions.changeStatus()
           },
           {
             text: "Check Out",
-            onPress: () => console.log("Check out")
+            onPress: () => this.props.screenProps.functions.checkOut()
           }
         ]}
       >

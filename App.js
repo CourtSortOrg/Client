@@ -363,6 +363,105 @@ export default class App extends React.Component {
     }
   };
 
+  checkOut = callback => {
+    Alert.alert("Check Out", `Would you like to check out?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "No"
+      },
+      {
+        text: "Yes",
+        onPress: () =>
+          this.checkOutOfDiningCourt(() =>
+            this.setStatus("not eating", callback)
+          )
+      }
+    ]);
+  };
+
+  checkIn = (courtId, callback) => {
+    Alert.alert(
+      "Check In",
+      `What status would you like to have while you eat at ${courtId}?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "Come eat with me!",
+          onPress: () =>
+            this.checkIntoDiningCourt(courtId, () =>
+              this.setStatus("available", callback)
+            )
+        },
+        {
+          text: "Sorry, I'm busy.",
+          onPress: () =>
+            this.checkIntoDiningCourt(courtId, () =>
+              this.setStatus("busy", callback)
+            )
+        },
+        {
+          text: "I'm no longer eating",
+          onPress: () =>
+            this.checkOutOfDiningCourt(() =>
+              this.setStatus("not eating", callback)
+            )
+        }
+      ]
+    );
+  };
+
+  changeStatus = callback => {
+    let courtId = "set to user court id!";
+    console.log(courtId);
+
+    Alert.alert("Change Status", `What status would you like to have?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "Come eat with me!",
+        onPress: () =>
+          this.checkIntoDiningCourt(courtId, () =>
+            this.setStatus("available", callback)
+          )
+      },
+      {
+        text: "Sorry, I'm busy.",
+        onPress: () =>
+          this.checkIntoDiningCourt(courtId, () =>
+            this.setStatus("busy", callback)
+          )
+      },
+      {
+        text: "I'm no longer eating",
+        onPress: () =>
+          this.checkOutOfDiningCourt(() =>
+            this.setStatus("not eating", callback)
+          )
+      }
+    ]);
+  };
+
+  setStatus = (status, callback) => {
+    // fetch.
+    console.log(`set status to be ${status}`);
+    if (callback) callback();
+  };
+
+  checkIntoDiningCourt = (courtId, callback) => {
+    console.log(`checked into ${courtId}`);
+    if (callback) callback();
+  };
+
+  checkOutOfDiningCourt = callback => {
+    console.log(`checked out`);
+    if (callback) callback();
+  };
+
   addUserToDatabase = (user, callback) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
@@ -564,9 +663,8 @@ export default class App extends React.Component {
   };
 
   render() {
-
     console.log(this.state.user);
-    
+
     if (
       this.state.mealsLoaded &&
       this.state.fontLoaded &&
@@ -581,7 +679,10 @@ export default class App extends React.Component {
               updateUser: this.updateUser,
               addUserToDatabase: this.addUserToDatabase,
               updateFriend: this.updateFriend,
-              updateGroup: this.updateGroup
+              updateGroup: this.updateGroup,
+              changeStatus: this.changeStatus,
+              checkIn: this.checkIn,
+              checkOut: this.checkOut
             },
             user: this.state.user,
             meals: this.state.meals
