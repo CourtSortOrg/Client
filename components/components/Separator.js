@@ -7,7 +7,9 @@ export default class Separator extends React.Component {
       <View
         style={{
           borderTopWidth: 3,
-          borderColor: "black"
+          borderColor: "black",
+          marginTop: 10,
+          marginBottom: 10
         }}
       />
     );
