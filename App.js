@@ -290,7 +290,7 @@ export default class App extends React.Component {
       });
     });
 
-    await this.getDiningCourtRating(this.state.user.userHandle, data => {
+    await this.fetchDiningCourtRating(this.state.user.userHandle, data => {
       this.setState({
         user: {
           ...this.state.user,
