@@ -251,6 +251,7 @@ export default class App extends React.Component {
           }
         });
       }
+
       await this.setState({
         user: {
           id: this.state.user.userHandle,
@@ -289,7 +290,7 @@ export default class App extends React.Component {
       });
     });
 
-    await this.fetchDiningCourtRating(this.state.user.userHandle, data => {
+    await this.getDiningCourtRating(this.state.user.userHandle, data => {
       this.setState({
         user: {
           ...this.state.user,
