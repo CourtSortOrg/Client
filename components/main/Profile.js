@@ -194,6 +194,7 @@ export default class Profile extends React.Component {
             size={28}
             style={styles.settingsIcon}
           />
+          // Icon that displays the user's status
           <Icon
             reverse
             color = {stateColors[this.state.status]}
@@ -251,11 +252,14 @@ export default class Profile extends React.Component {
         </Card>
 
         {/* TODO: Phase this out into Settings screen */}
+
+        // Overlay to let the user change their status
         <Overlay
           isVisible={this.state.changeStatus}
-          height="50%"
+          height="30%"
           width="90%"
         >
+          <Text style={styles.changeStatusText}>Change your status</Text>
           <ButtonGroup
             onPress={this.updateStatus}
             selectedIndex={this.state.status}
@@ -455,6 +459,10 @@ class GroupsList extends React.Component {
 const styles = StyleSheet.create({
   backgroundColor: {
     backgroundColor: "lightgray"
+  },
+  changeStatusText: {
+    textAlign: "center",
+    fontSize: 30
   },
   settingsIcon: {
     position: "absolute",
