@@ -1,6 +1,8 @@
 import React from "react";
-import { View } from "react-native";
+import { View, Image } from "react-native";
 import { Avatar } from "react-native-elements";
+
+import Text from "../components/Text";
 
 export default class AllergenIcon extends React.Component {
   getImage(name) {
@@ -32,8 +34,48 @@ export default class AllergenIcon extends React.Component {
 
   render() {
     return (
-      <View style={{ margin: 5 }}>
-        <Avatar size="medium" rounded source={this.getImage(this.props.Name)} />
+      <View style={{ padding: 10, ...this.props.style }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          {this.props.enabled ? (
+            <Image
+              source={this.getImage(this.props.name)}
+              style={{
+                width: 50,
+                height: 50,
+                resizeMode: "contain"
+              }}
+            />
+          ) : (
+            <View>
+              <Image
+                source={this.getImage(this.props.name)}
+                style={{
+                  width: 50,
+                  height: 50,
+                  resizeMode: "contain",
+                  tintColor: "gray"
+                }}
+              />
+              <Image
+                source={this.getImage(this.props.name)}
+                style={{
+                  opacity: 0.3,
+                  position: "absolute",
+                  width: 50,
+                  height: 50,
+                  resizeMode: "contain"
+                }}
+              />
+            </View>
+          )}
+          {this.props.enabled ? (
+            <Text>{this.props.name}</Text>
+          ) : (
+            <Text style={{ color: "gray" }}>{this.props.name}</Text>
+          )}
+        </View>
       </View>
     );
   }

@@ -260,20 +260,17 @@ export default class App extends React.Component {
       });
     }
 
-    console.log(this.state.user);
-
     if (
       this.state.user != undefined &&
       this.state.user.userHandle != undefined &&
       action
     ) {
       await this.updateProfile(() => console.log("profile loaded"));
-      await this.updateFriends();
-      await this.updateGroups();
+      await this.updateFriends(() => console.log("friends loaded"));
+      await this.updateGroups(() => console.log("groups loaded"));
 
       //console.log(this.state.user);
       await this._storeData(`user`, JSON.stringify(this.state.user));
-      console.log("finished");
     } else {
       await this._storeData("user", "");
     }
@@ -567,6 +564,9 @@ export default class App extends React.Component {
   };
 
   render() {
+
+    console.log(this.state.user);
+    
     if (
       this.state.mealsLoaded &&
       this.state.fontLoaded &&

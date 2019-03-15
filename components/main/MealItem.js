@@ -72,13 +72,13 @@ export default class MealItem extends React.Component {
     if (this.state.selectedIndex == 0) {
       return (
         <View>
-          <Card header="Allergens">
+          <Card header="Dietary Restrictions">
             {this.state.allergens.length != 0 ? (
               <View style={styles.allergens}>
                 {this.state.allergens
                   .filter(allergen => allergen.Value)
                   .map((allergen, index) => {
-                    return <AllergenIcon key={index} {...allergen} />;
+                    return <AllergenIcon key={index} name={allergen.Name} enabled={false}/>;
                   })}
               </View>
             ) : (
@@ -177,7 +177,7 @@ export default class MealItem extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  allergens: { flex: 1, padding: 10, flexDirection: "row", flexWrap: "wrap" },
+  allergens: { flex: 1, padding: 8, flexDirection: "row", flexWrap: "wrap", justifyContent: "flex-start"},
   ingredients: { padding: 10 },
   header: {
     backgroundColor: "#E86515",

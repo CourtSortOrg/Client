@@ -7,60 +7,51 @@ import Screen from "../Nav/Screen";
 import Text from "../components/Text";
 import { ListItem } from "react-native-elements";
 
+import AllergenIcon from "../main/AllergenIcon";
+
 const restrictions = [
   {
     name: "Eggs",
-    image: require("../../assets/images/Eggs.png"),
     enabled: false
   },
   {
     name: "Fish",
-    image: require("../../assets/images/Fish.png"),
     enabled: false
   },
   {
     name: "Gluten",
-    image: require("../../assets/images/Gluten.png"),
     enabled: false
   },
   {
     name: "Milk",
-    image: require("../../assets/images/Milk.png"),
     enabled: false
   },
   {
     name: "Peanuts",
-    image: require("../../assets/images/Peanuts.png"),
     enabled: false
   },
   {
     name: "Shellfish",
-    image: require("../../assets/images/Shellfish.png"),
     enabled: false
   },
   {
     name: "Soy",
-    image: require("../../assets/images/Soy.png"),
     enabled: false
   },
   {
     name: "Tree Nuts",
-    image: require("../../assets/images/TreeNuts.png"),
     enabled: false
   },
   {
     name: "Wheat",
-    image: require("../../assets/images/Wheat.png"),
     enabled: false
   },
   {
     name: "Vegan",
-    image: require("../../assets/images/Vegan.png"),
     enabled: false
   },
   {
     name: "Vegetarian",
-    image: require("../../assets/images/Vegetarian.png"),
     enabled: false
   }
 ];
@@ -83,43 +74,7 @@ export default class EditProfile extends React.Component {
           this.setState({ restrictions: this.state.restrictions });
         }}
       >
-        {data.enabled ? (
-          <Image
-            source={data.image}
-            style={{
-              width: 50,
-              height: 50,
-              resizeMode: "contain"
-            }}
-          />
-        ) : (
-          <View>
-            <Image
-              source={data.image}
-              style={{
-                width: 50,
-                height: 50,
-                resizeMode: "contain",
-                tintColor: "gray"
-              }}
-            />
-            <Image
-              source={data.image}
-              style={{
-                opacity: 0.3,
-                position: "absolute",
-                width: 50,
-                height: 50,
-                resizeMode: "contain"
-              }}
-            />
-          </View>
-        )}
-        {data.enabled ? (
-          <Text>{data.name}</Text>
-        ) : (
-          <Text style={{ color: "gray" }}>{data.name}</Text>
-        )}
+        <AllergenIcon name={data.name} enabled={data.enabled} />
       </TouchableOpacity>
     );
   };
