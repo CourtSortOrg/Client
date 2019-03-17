@@ -6,6 +6,7 @@ import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import Text from "../components/Text";
 import { ListItem } from "react-native-elements";
+import VariableGrid from "../components/VariableGrid";
 
 const restrictions = [
   {
@@ -84,7 +85,6 @@ export default class EditProfile extends React.Component {
         restrictions[i].enabled = false;
       }
     }
-  
   }
 
   renderRestriction = (data, index) => {
@@ -179,9 +179,9 @@ export default class EditProfile extends React.Component {
           />
         </Card>
         <Card header={"Dietary Restrictions"}>
-          <RestrictionGrid
+          <VariableGrid
             data={this.state.restrictions}
-            colPattern={[3, 3, 3, 2]}
+            colPattern={[3]}
             renderItem={this.renderRestriction}
           />
         </Card>

@@ -7,9 +7,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import Text from "../components/Text";
 import Card from "../components/Card";
+import VariableGrid from "../components/VariableGrid";
 import Screen from "../Nav/Screen";
 import ProfileList from "../components/ProfileList";
 import GroupList from "../components/GroupList";
+import AllergenIcon from "./AllergenIcon";
 
 export default class Profile extends React.Component {
   constructor(props) {
@@ -23,10 +25,11 @@ export default class Profile extends React.Component {
 
       userName: "",
       initials: "",
-      restrictions: "",
+      restrictions: ["Fish", "Tree Nuts", "Vegan", "Vegetarian"],
 
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
+    //this.props.screenProps.user.dietaryRestrictions
   }
 
   componentDidMount() {
@@ -52,7 +55,7 @@ export default class Profile extends React.Component {
     return expr ? comp1 : comp2;
   };
 
-  sendFriendRequest = (text) => {
+  sendFriendRequest = text => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
       {
@@ -93,7 +96,7 @@ export default class Profile extends React.Component {
           );
       })
       .catch(error => console.error(`sendFriendRequest: ${error}`));
-  }
+  };
 
   render() {
     // Create an array of named buttons
@@ -134,7 +137,6 @@ export default class Profile extends React.Component {
           <MaterialIcons
             color="gray"
             name="settings"
-            // TODO: Navigate to settings
             onPress={() => {
               this.props.navigation.navigate("Settings");
               // this.setState({ isEditing: true });
@@ -145,6 +147,23 @@ export default class Profile extends React.Component {
         </Card>
 
         {/* TODO: Add user dietary restrictions */}
+        <Card style={{ paddingVertical: 5 }}>
+          <Text type="sectionName" style={{ textAlign: "center" }}>
+            Dietary Restrictions
+          </Text>
+          <VariableGrid
+            data={this.state.restrictions}
+            colPattern={[4]}
+            renderItem={(data, index) => {
+              return (
+                <View style={{ alignItems: "center" }}>
+                  <AllergenIcon Name={data} />
+                  <Text>{data}</Text>
+                </View>
+              );
+            }}
+          />
+        </Card>
 
         {/* Card to show user ratings, friends, and groups */}
 
@@ -190,55 +209,6 @@ export default class Profile extends React.Component {
             null
           )}
         </Card>
-
-        {/* TODO: Phase this out into Settings screen */}
-        <Overlay
-          borderRadius={4}
-          height="90%"
-          isVisible={this.state.isEditing}
-          overlayBackgroundColor="white"
-          width="90%"
-          windowBackgroundColor="rgba(0, 0, 0, .5)"
-        >
-          <View
-            style={{
-              flex: 1,
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: 15
-            }}
-          >
-            <MaterialIcons
-              color="gray"
-              name="close"
-              onPress={() => {
-                this.setState({ isEditing: false });
-              }}
-              size={24}
-              style={styles.settingsIcon}
-            />
-            <Text>Edit Profile</Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between"
-              }}
-            >
-              <Button
-                title="Sign Out"
-                onPress={this.signOut}
-                containerStyle={{ flex: 1, marginHorizontal: 5 }}
-              />
-              <Button
-                title="Delete Account"
-                onPress={this.deleteAccount}
-                containerStyle={{ flex: 1, marginHorizontal: 5 }}
-              />
-            </View>
-          </View>
-        </Overlay>
       </Screen>
     );
   }
