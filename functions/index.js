@@ -1667,3 +1667,101 @@ exports.getAggregateDiningCourtRatings = functions.https.onRequest((request, res
     throw new Error(error);
   });
 });
+
+//add a busyness report to a dining court
+//PARAMETERS: busyness, diningCourt
+exports.reportBusyness = functions.https.onRequest((request, response) => {
+  var busyness = request.body.busyness;
+  var diningCourt = request.body.diningCourt;
+  console.log(busyness);
+  console.log(diningCourt);
+  if(busyness == null || diningCourt == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var dRef = db.collection("DiningCourt").doc(diningCourt);
+  dRef.get().then(doc => {
+    if(!doc.exists) {
+      throw new Error("doc does not exist");
+    }
+    else {
+          var n = doc.data().numBusyReps;
+          var aggregateRating = doc.data().busyness;
+          var report = {rating: busyness, time: (new Date()).getTime()};
+
+          //update the aggregateRating
+          aggregateRating += busyness;
+          n++;
+
+          //update the dining court rating
+          dRef.update({
+            "numBusyReps":n,
+            "busyness":aggregateRating,
+            busyReps: admin.firestore.FieldValue.arrayUnion(report)
+          })
+          .then(function() {
+            response.send({
+                "success":true
+            });
+          })
+          .catch(function(error) {
+            throw new Error(error);
+          });
+    }
+  });
+});
+
+//gets the busyness reports and removes outdated ones
+//PARAMETERS: diningCourt
+exports.getBusyness = functions.https.onRequest(async (request, response) => {
+  var diningCourt = request.body.diningCourt;
+  console.log(diningCourt);
+  if(diningCourt == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var dRef = db.collection("DiningCourt").doc(diningCourt);
+  dRef.get().then(doc => {
+    if(!doc.exists) {
+      throw new Error("doc does not exist");
+    }
+    else {
+          var n = doc.data().numBusyReps;
+          var aggregateRating = doc.data().busyness;
+          var reports = doc.data().busyReps;
+          var curDate = (new Date()) - 15 * 60 * 1000;
+          //var curDate = new Date(+(new Date()) - 15 * 60 * 1000);
+
+          for(var i = 0; i < reports.length; i++){
+            var date = reports[i].time;
+            /*var difference = curDate - date;
+            console.log(difference);
+            if(Math.floor(difference / 15000) >= 1){*/
+            console.log(date);
+            console.log(curDate);
+
+            if(date < curDate){
+              console.log("Removed busy rating");
+              aggregateRating -= reports[i].rating;
+              n--;
+              dRef.update({
+                busyReps: admin.firestore.FieldValue.arrayRemove(reports[i]),
+                "numBusyReps":n,
+                "busyness":aggregateRating
+              });
+            }
+            else{
+              //return the busyness rating
+                var num = Math.floor(aggregateRating/n);
+                response.send(num.toString());
+                break;
+            }
+          }
+          if(n == 0){
+            response.send("No ratings");
+          }
+    }
+  });
+});
