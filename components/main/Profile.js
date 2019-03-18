@@ -1,5 +1,11 @@
 import React from "react";
-import { Alert, FlatList, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  FlatList,
+  StyleSheet,
+  View
+} from "react-native";
 
 import { ListItem, Rating, Button } from "react-native-elements";
 import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
@@ -167,49 +173,50 @@ export default class Profile extends React.Component {
         </Card>
 
         {/* Card to show user ratings, friends, and groups */}
+        <KeyboardAvoidingView behavior="position" enabled>
+          <Card>
+            {/* ButtonGroup to choose tab */}
+            <ButtonGroup
+              buttons={buttons}
+              onPress={this.updateIndex}
+              selectedIndex={selectedIndex}
+            />
 
-        <Card>
-          {/* ButtonGroup to choose tab */}
-          <ButtonGroup
-            buttons={buttons}
-            onPress={this.updateIndex}
-            selectedIndex={selectedIndex}
-          />
+            {/* Render the ratings list if on the ratings tab */}
+            {this.shouldRender(
+              selectedIndex == 0,
+              <RatingsList
+                id={this.props.screenProps.user.id}
+                ratings={this.props.screenProps.user.ratings}
+              />,
+              null
+            )}
 
-          {/* Render the ratings list if on the ratings tab */}
-          {this.shouldRender(
-            selectedIndex == 0,
-            <RatingsList
-              id={this.props.screenProps.user.id}
-              ratings={this.props.screenProps.user.ratings}
-            />,
-            null
-          )}
+            {/* Render the friends list if on the friends tab */}
+            {this.shouldRender(
+              selectedIndex == 1,
+              <ProfileList
+                navigation={this.props.navigation}
+                extendedSearch={this.sendFriendRequest}
+                list={this.props.screenProps.user.friends}
+              />,
+              null
+            )}
 
-          {/* Render the friends list if on the friends tab */}
-          {this.shouldRender(
-            selectedIndex == 1,
-            <ProfileList
-              navigation={this.props.navigation}
-              extendedSearch={this.sendFriendRequest}
-              list={this.props.screenProps.user.friends}
-            />,
-            null
-          )}
-
-          {/* Render the groups list if on the groups tab */}
-          {this.shouldRender(
-            selectedIndex == 2,
-            <GroupList
-              navigation={this.props.navigation}
-              extendedSearch={text =>
-                this.props.navigation.navigate("GroupSettings")
-              }
-              list={this.props.screenProps.user.groups}
-            />,
-            null
-          )}
-        </Card>
+            {/* Render the groups list if on the groups tab */}
+            {this.shouldRender(
+              selectedIndex == 2,
+              <GroupList
+                navigation={this.props.navigation}
+                extendedSearch={text =>
+                  this.props.navigation.navigate("GroupSettings")
+                }
+                list={this.props.screenProps.user.groups}
+              />,
+              null
+            )}
+          </Card>
+        </KeyboardAvoidingView>
       </Screen>
     );
   }
