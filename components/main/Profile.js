@@ -197,7 +197,7 @@ export default class Profile extends React.Component {
           // Icon that displays the user's status
           <Icon
             reverse
-            color = {stateColors[this.state.status]}
+            color = {statusColor[this.state.status]}
             size = "15"
             onPress={() => {
               console.log("Press status button")
@@ -468,14 +468,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     right: 8
-  },
-  statusIndicator: {
-    borderWidth: 1,
-    borderColor: "#000000",
-    width: 25,
-    height: 25,
-    backgroundColor: "#FF0000",
-    borderRadius: 10
   },
   profileInformation: {
     alignItems: "center",
