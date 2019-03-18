@@ -219,7 +219,7 @@ export default class App extends React.Component {
   };
 
   getUserHandle = async (uid, errorHandler) => {
-    fetch(
+    return await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserHandle",
       {
         method: "POST",
@@ -231,34 +231,37 @@ export default class App extends React.Component {
           uid
         })
       }
-    )
-      .then(data => {
-        try {
-          this.setState({
-            user: {
-              ...this.state.user,
-              userHandle: JSON.parse(data._bodyText).userHandle
-            }
-          });
-        } catch (error) {
-          if (errorHandler) errorHandler();
-          console.error(`getUserHandle: ${error}: ${data}`);
-        }
-      })
-      .catch(error => {
-        if (errorHandler) errorHandler();
-        else console.error(`getUserHandle: ${error}`);
-      });
+    );
   };
 
   updateUser = async (action, user, callback, errorHandler) => {
     console.log("Before:");
     console.log(this.state.user);
     console.log(":Before");
+    let errorGetUserHandle = false;
     if (user != undefined) {
-      if (user.userHandle == undefined)
-        await this.getUserHandle(user.uid, errorHandler);
-      else {
+      if (user.userHandle == undefined) {
+        await this.getUserHandle(user.uid, errorHandler)
+          .then(async data => {
+            try {
+              await this.setState({
+                user: {
+                  ...this.state.user,
+                  userHandle: JSON.parse(data._bodyText).userHandle
+                }
+              });
+            } catch (error) {
+              if (errorHandler) errorHandler();
+              else console.error(`getUserHandle: ${error} -- ${data}`);
+              errorGetUserHandle = true;
+            }
+          })
+          .catch(error => {
+            if (errorHandler) errorHandler();
+            else console.error(`getUserHandle: ${error}`);
+            errorGetUserHandle = true;
+          });
+      } else {
         await this.setState({
           user: {
             userHandle: user.userHandle
@@ -266,16 +269,18 @@ export default class App extends React.Component {
         });
       }
 
-      await this.setState({
-        user: {
-          id: this.state.user.userHandle,
-          userHandle: this.state.user.userHandle,
-          uid: user.uid
-        }
-      });
+      if (!errorGetUserHandle)
+        await this.setState({
+          user: {
+            id: this.state.user.userHandle,
+            userHandle: this.state.user.userHandle,
+            uid: user.uid
+          }
+        });
     }
 
     if (
+      !errorGetUserHandle &&
       this.state.user != undefined &&
       this.state.user.userHandle != undefined &&
       action
