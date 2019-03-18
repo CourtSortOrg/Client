@@ -31,7 +31,7 @@ export default class Notifications extends React.Component {
     this.date.getDate() < 10 ? `0${this.date.getDate()}` : this.date.getDate()
   }`;
 
-  getNotifications = async () => {
+  getNotifications = () => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getNotifications",
       {
@@ -45,12 +45,12 @@ export default class Notifications extends React.Component {
         })
       }
     )
-      .then(async data => {
-        await JSON.parse(data._bodyText).forEach(e =>
-          this.parseNotifications(e.type, e.id)
-        );
+      .then(data => {
+        let items = JSON.parse(data._bodyText);
+        console.log(items);
+        items.forEach(e => this.parseNotifications(e.type, e.id));
 
-        await this.setState(
+        this.setState(
           {
             loadingNotifications: false
           },
@@ -111,12 +111,16 @@ export default class Notifications extends React.Component {
 
     list.items.push(item);
 
-    this.setState({
-      notifications: arr
-    });
+    this.setState(
+      {
+        notifications: arr
+      },
+      () => console.log(this.state.notifications)
+    );
   };
 
   removeNotification = id => {
+    console.log(id);
     let n = this.state.notifications.slice();
     for (let i = 0; i < n.length; i++) {
       if (n[i].date == id.date) {
@@ -124,13 +128,16 @@ export default class Notifications extends React.Component {
       }
     }
 
-    this.setState({
-      notifications: n
-    });
+    this.setState(
+      {
+        notifications: n
+      },
+      () => console.log(this.state.notifications)
+    );
   };
 
   dismissNotification = id => {
-    Alert.alert(`Dismiss notification?`, [
+    Alert.alert(`Dismiss notification?`, undefined, [
       {
         text: "Cancel"
       },
@@ -145,84 +152,93 @@ export default class Notifications extends React.Component {
   };
 
   newFriendRequestNotification = id => {
-    return {
+    id = {
       Name: `${id.friendName}  @${
         id.friendHandle
       }  would like to become friends`,
       id: id.friendHandle,
       date: this.dateStr,
-      ...id,
-      onPress: () => this.friendAlert(id)
+      ...id
     };
+
+    let obj = { ...id, onPress: () => this.friendAlert(id) };
+    return obj;
   };
 
   newFriendNotification = id => {
     this.props.screenProps.functions.updateFriend(id.friendHandle, true);
 
-    return {
+    id = {
       Name: `${id.friendName} @${
         id.friendHandle
       } accepted your friend request.`,
       date: this.dateStr,
-      ...id,
-      onPress: () => this.dismissNotification(id)
+      ...id
     };
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
   };
 
   newUnfriendNotification = id => {
     this.props.screenProps.functions.updateFriend(id.friendHandle, false);
 
-    return {
+    id = {
       Name: `${id.friendName} @${id.friendHandle} unfriended you.`,
       date: this.dateStr,
-      ...id,
-      onPress: () => this.dismissNotification(id)
+      ...id
     };
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
   };
 
   newBlockedNotification = id => {
     this.props.screenProps.functions.updateFriend(id.friendHandle, false);
 
-    return {
+    id = {
       Name: `${id.userName} @${id.userHandle} blocked you.`,
       date: this.dateStr,
-      ...id,
-      onPress: () => this.dismissNotification(id)
+      ...id
     };
+
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
   };
 
   newGroupJoinNotification = id => {
     this.props.screenProps.functions.updateGroup(id.groupID, true);
 
-    return {
+    id = {
       Name: `@${
         id.userHandle
       } accepted your group invitation to join the group: ${id.groupName}.`,
       date: this.dateStr,
-      ...id,
-      onPress: () => this.dismissNotification(id)
+      ...id
     };
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
   };
 
   newGroupLeaveNotification = id => {
     this.props.screenProps.functions.updateGroup(id.groupID, true);
 
-    return {
+    id = {
       Name: `@${id.userHandle} has left the group: ${id.groupName}.`,
       date: this.dateStr,
-      ...id,
-      onPress: () => this.dismissNotification(id)
+      ...id
     };
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
   };
 
   newGroupInvitationNotification = id => {
-    return {
+    id = {
       Name: `@${id.friendHandle} invited you to join ${id.groupName}`,
       id: this.groupID,
       date: this.dateStr,
-      ...id,
-      onPress: () => this.groupAlert(id)
+      ...id
     };
+    let obj = { ...id, onPress: () => this.groupAlert(id) };
+    return obj;
   };
 
   /*
@@ -435,7 +451,7 @@ export default class Notifications extends React.Component {
           this.removeNotification(id);
           this.props.screenProps.functions.updateFriend(id.friendHandle, true);
         } catch (error) {
-          console.error(`acceptFriendRequest: ${error}: ${data._bodyText}`);
+          console.error(`acceptFriendRequest: ${error} -- ${data._bodyText}`);
         }
       })
       .catch(error => console.error(`acceptFriendRequest: ${error}`));
