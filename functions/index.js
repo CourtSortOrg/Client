@@ -520,7 +520,8 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
       outgoingFriendReq: [],
       incomingFriendReq: [],
       incomingGroupInvites: [],
-      ratings: []
+      ratings: [],
+      notifications: []
     }
     db.collection("User").doc(userHandle).set(updatedUser).then(function() {
       console.log("User successfully added!");
@@ -531,6 +532,25 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
     });
   }
 });
+
+//gets the public profile of a user
+//PARAMETERS: userHandle
+exports.getPublicProfile = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  if(userHandle == null){
+    response.send("Must pass userHandle in request");
+    return;
+  }
+
+  db.collection("User").doc(userHandle).get().then(doc => {
+    var qualities = doc.data();
+    var profile = {userName: qualities.userName, userHandle: userHandle, ratings: qualities.ratings, image: qualities.image};
+    response.send(profile);
+  }).catch(function(){
+    response.send("error");
+  });
+})
 
 //get friends of a user
 //PARAMETERS: userHandle
@@ -579,6 +599,7 @@ exports.removeFriend = functions.https.onRequest(async (request, response) => {
 
     var userObj = {friendHandle: userHandle, friendName: userName};
     var friendObj = {friendHandle: friendHandle, friendName: friendName};
+    var notification = {type: "unfriended", id: userObj}
 
     userDoc.update({
       friends: admin.firestore.FieldValue.arrayRemove(friendObj)
@@ -587,15 +608,15 @@ exports.removeFriend = functions.https.onRequest(async (request, response) => {
       throw new Error(error);
     });
 
-    friendDoc.update({
-      friends: admin.firestore.FieldValue.arrayRemove(userObj)
-    }).then(function(){
-      response.send("success");
-    }).catch(function(error){
-      console.error("Error removing user from friend")
-      throw new Error(error);
-    });
-  }
+  friendDoc.update({
+    friends: admin.firestore.FieldValue.arrayRemove(userObj),
+    notifications: admin.firestore.FieldValue.arrayUnion(notification)
+  }).then(function(){
+    response.send("success");
+  }).catch(function(error){
+    console.error("Error removing user from friend");
+    throw new Error(error);
+  });
 });
 
 //remove a user from all Friends
@@ -616,19 +637,24 @@ exports.removeFromAllFriends = functions.https.onRequest(async (request, respons
       var userObj = {friendHandle: userHandle, friendName: userName};
       var friends = doc.data().friends;
 
-      for(var i = 0; i < friends.length; i++){
-        await db.collection("User").doc(friends[i].friendHandle).update({
-          friends: admin.firestore.FieldValue.arrayRemove(userObj)
-        });
-        /*if(i == friends.length - 1){
-          response.send("success");
-        }*/
-      }
-    }).catch(function(error){
-      throw new Error(error);
-    });
-    response.send("success");
-  }
+    console.log(userObj);
+
+    var notification = {type: "unfriended", id: userObj};
+
+    for(var i = 0; i < friends.length; i++){
+      await db.collection("User").doc(friends[i].friendHandle).update({
+        friends: admin.firestore.FieldValue.arrayRemove(userObj),
+        notifications: admin.firestore.FieldValue.arrayUnion(notification)
+      });
+      /*if(i == friends.length - 1){
+        response.send("success");
+      }*/
+    }
+  }).catch(function(error){
+    console.error(error.message);
+    throw new Error(error);
+  });
+  response.send("success");
 });
 
 //remove user from database
@@ -761,10 +787,13 @@ exports.blockUser = functions.https.onRequest(async (request, response) => {
         throw new Error("Error removing friend from user");
       });
 
+      var notification = {type: "blocked", id: userObject};
+
       db.collection("User").doc(blockedHandle).update({
         friends: admin.firestore.FieldValue.arrayRemove(userFriend),
         outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userFriend),
-        incomingFriendReq: admin.firestore.FieldValue.arrayRemove(userFriend)
+        incomingFriendReq: admin.firestore.FieldValue.arrayRemove(userFriend),
+        notifications: admin.firestore.FieldValue.arrayUnion(notification)
       }).then(function(){
         response.send("success");
       }).catch(function(error){
@@ -934,8 +963,10 @@ exports.sendFriendRequest = functions.https.onRequest(async (request, response) 
         }).catch(function(error){
           throw new Error(error);
         });
+        var notification = {type: "new friend request", id: {userObj}};
         friendDoc.update({
-          incomingFriendReq: admin.firestore.FieldValue.arrayUnion(userObj)
+          incomingFriendReq: admin.firestore.FieldValue.arrayUnion(userObj),
+          notifications: admin.firestore.FieldValue.arrayUnion(notification)
         }).then(function() {
           response.send("success");
         }).catch(function(error) {
@@ -986,11 +1017,13 @@ exports.acceptFriendRequest = functions.https.onRequest(async (request, response
 
   //remove the user from the friend's blockUser list
   var blockObj = {blockedHandle: userHandle, blockedName: userName};
+  var notification = {type: "new friend", id: {userObj}}
 
   friendDoc.update({
     outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userObj),
     friends: admin.firestore.FieldValue.arrayUnion(userObj),
-    blockedUsers: admin.firestore.FieldValue.arrayRemove(blockObj)
+    blockedUsers: admin.firestore.FieldValue.arrayRemove(blockObj),
+    notifications: admin.firestore.FieldValue.arrayUnion(notification)
   }).then(function(){
     response.send("success");
   }).catch(function(error){
@@ -1162,15 +1195,17 @@ exports.getUsersInGroup = functions.https.onRequest((request, response) => {
   });
 });
 
-//PARAMETERS: userHandle, friendHandle, groupID
+//PARAMETERS: userHandle, friendHandle, groupID, groupName
 exports.inviteToGroup = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var groupID = request.body.groupID;
+  var groupName = request.body.groupName;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(groupID);
+  console.log(groupName);
   if (userHandle == null) {
     throw new Error("Must pass userHandle in body of request");
   }
@@ -1179,6 +1214,9 @@ exports.inviteToGroup = functions.https.onRequest(async (request, response) => {
   }
   if (groupID == null) {
     throw new Error("Must pass groupID in body of request");
+  }
+  if(groupName == null){
+    response.send("Must pass groupName in body of request");
   }
 
   var friendDoc = db.collection("User").doc(friendHandle);
@@ -1207,8 +1245,10 @@ exports.inviteToGroup = functions.https.onRequest(async (request, response) => {
         }
         else{
           //update friend's incoming group invites list
+          var notification = {type: "invited to group", id: {friendHandle: userHandle, groupName: groupName, groupID: groupID}}
           friendDoc.update({
-            incomingGroupInvites: admin.firestore.FieldValue.arrayUnion({friendHandle: userHandle, groupID: groupID})
+            incomingGroupInvites: admin.firestore.FieldValue.arrayUnion({friendHandle: userHandle, groupID: groupID, groupName: groupName}),
+            notifications: admin.firestore.FieldValue.arrayUnion(notification)
           }).then(function() {
             response.send("success");
           }).catch(function(error) {
@@ -1220,15 +1260,18 @@ exports.inviteToGroup = functions.https.onRequest(async (request, response) => {
   });
 });
 
-//PARAMETERS: userHandle, groupID, friendHandle
+//PARAMETERS: userHandle, groupID, friendHandle, groupName
 exports.acceptGroupInvitation = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var groupID = request.body.groupID;
+  var groupName = request.body.groupName;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(groupID);
+  console.log(groupName);
+
   if (userHandle == null) {
     throw new Error("Must pass userHandle in body of request");
   }
@@ -1238,16 +1281,34 @@ exports.acceptGroupInvitation = functions.https.onRequest((request, response) =>
   if (groupID == null) {
     throw new Error("Must pass groupID in body of request");
   }
+  if (groupName == null) {
+    response.send("Must pass groupName in body of request");
+  }
 
   //add the user to the group
   var userDoc = db.collection("User").doc(userHandle);
   //update user's incomingGroupInvites list and groups list
   userDoc.update({
-    incomingGroupInvites: admin.firestore.FieldValue.arrayRemove({friendHandle: friendHandle, groupID: groupID}),
+    incomingGroupInvites: admin.firestore.FieldValue.arrayRemove({friendHandle: friendHandle, groupID: groupID, groupName: groupName}),
     groups: admin.firestore.FieldValue.arrayUnion(groupID)
   }).then(function() {
+
     //add the user to the group's user list
     userDoc.get().then(doc => {
+      var notification = {type: "user joined group", id: {userHandle: userHandle, groupName: groupName, groupID: groupID}};
+
+      var userCol = db.collection("User");
+
+      //notify all group members
+      db.collection("Group").doc(groupID).get().then(gDoc => {
+        var members = gDoc.data().memberHandles;
+        for(var i = 0; i < members.length; i++){
+          userCol.doc(members[i]).update({
+            notifications: admin.firestore.FieldValue.arrayUnion(notification)
+          });
+        }
+      });
+
       db.collection("Group").doc(groupID).update({
         memberHandles: admin.firestore.FieldValue.arrayUnion(userHandle),
         memberObjects: admin.firestore.FieldValue.arrayUnion({userHandle: userHandle, userName: doc.data().userName})
@@ -1264,15 +1325,18 @@ exports.acceptGroupInvitation = functions.https.onRequest((request, response) =>
   });
 });
 
-//PARAMETERS: userHandle, friendHandle, groupID
+//PARAMETERS: userHandle, friendHandle, groupID, groupName
 exports.denyGroupInvitation = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var groupID = request.body.groupID;
+  var groupName = request.body.groupName;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(groupID);
+  console.log(groupName);
+
   if (userHandle == null) {
     throw new Error("Must pass userHandle in body of request");
   }
@@ -1282,10 +1346,13 @@ exports.denyGroupInvitation = functions.https.onRequest((request, response) => {
   if (groupID == null) {
     throw new Error("Must pass groupID in body of request");
   }
+  if (groupName == null){
+    response.send("Must pass groupName in body of request");
+  }
 
   //remove the group from the user's incomingGroupInvites list
   db.collection("User").doc(userHandle).update({
-    incomingGroupInvites: admin.firestore.FieldValue.arrayRemove({friendHandle: friendHandle, groupID: groupID})
+    incomingGroupInvites: admin.firestore.FieldValue.arrayRemove({friendHandle: friendHandle, groupID: groupID, groupName: groupName})
   }).then(function() {
     response.send("success");
   }).catch(function(error){
@@ -1294,10 +1361,11 @@ exports.denyGroupInvitation = functions.https.onRequest((request, response) => {
 });
 
 //removes the user from the group and the group from the user
-//PARAMETERS: userHandle, groupID
+//PARAMETERS: userHandle, groupID, groupName
 exports.leaveGroup = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var groupID = request.body.groupID;
+  var groupName = request.body.groupName;
 
   console.log(userHandle);
   console.log(groupID);
@@ -1306,6 +1374,9 @@ exports.leaveGroup = functions.https.onRequest(async (request, response) => {
   }
   if (groupID == null) {
     throw new Error("Must pass groupID in body of request");
+  }
+  if (groupName == null) {
+    response.send("Must pass groupName in body of request");
   }
 
   //assume the user is in the group
@@ -1331,6 +1402,21 @@ exports.leaveGroup = functions.https.onRequest(async (request, response) => {
         memberObjects: admin.firestore.FieldValue.arrayRemove({userHandle: userHandle, userName: userName})
       }).catch(function(error){
         throw new Error(error);
+      }).then(function(){
+        var notification = {type: "user left group", id: {userHandle: userHandle, groupName: groupName, groupID: groupID}};
+        //send a notification to all members in the group
+        var userCol = db.collection("User");
+        var members = doc.data().memberHandles;
+
+        for(var i = 0; i < members.length; i++){
+          userCol.doc(members[i]).update({
+            notifications: admin.firestore.FieldValue.arrayUnion(notification)
+          }).catch(function(error){
+            console.log(error.message);
+            throw new Error(error);
+            return;
+          });
+        }
       });
     }
   });
@@ -1427,6 +1513,31 @@ exports.deleteGroup = functions.https.onRequest(async (request, response) => {
     })
   }).catch(function(error){
     throw new Error(error);
+  });
+});
+
+//gets the notifications of a user and clears them
+//PARAMETERS: userHandle
+exports.getNotifications = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  console.log(userHandle);
+  if(userHandle == null){
+    response.send("Must pass userHandle in body of request");
+  }
+
+  userDoc = db.collection("User").doc(userHandle);
+
+  userDoc.get().then(doc => {
+    var notifications = doc.data().notifications;
+    var updates = {notifications: []};
+    userDoc.update(updates).then(function(){
+      response.send(notifications);
+    }).catch(function(error){
+      response.send("error");
+    });
+  }).catch(function(error){
+    response.send("error");
+    return;
   });
 });
 
@@ -1636,5 +1747,103 @@ exports.getAggregateDiningCourtRatings = functions.https.onRequest((request, res
   })
   .catch(function(error) {
     throw new Error(error);
+  });
+});
+
+//add a busyness report to a dining court
+//PARAMETERS: busyness, diningCourt
+exports.reportBusyness = functions.https.onRequest((request, response) => {
+  var busyness = request.body.busyness;
+  var diningCourt = request.body.diningCourt;
+  console.log(busyness);
+  console.log(diningCourt);
+  if(busyness == null || diningCourt == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var dRef = db.collection("DiningCourt").doc(diningCourt);
+  dRef.get().then(doc => {
+    if(!doc.exists) {
+      throw new Error("doc does not exist");
+    }
+    else {
+          var n = doc.data().numBusyReps;
+          var aggregateRating = doc.data().busyness;
+          var report = {rating: busyness, time: (new Date()).getTime()};
+
+          //update the aggregateRating
+          aggregateRating += busyness;
+          n++;
+
+          //update the dining court rating
+          dRef.update({
+            "numBusyReps":n,
+            "busyness":aggregateRating,
+            busyReps: admin.firestore.FieldValue.arrayUnion(report)
+          })
+          .then(function() {
+            response.send({
+                "success":true
+            });
+          })
+          .catch(function(error) {
+            throw new Error(error);
+          });
+    }
+  });
+});
+
+//gets the busyness reports and removes outdated ones
+//PARAMETERS: diningCourt
+exports.getBusyness = functions.https.onRequest(async (request, response) => {
+  var diningCourt = request.body.diningCourt;
+  console.log(diningCourt);
+  if(diningCourt == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var dRef = db.collection("DiningCourt").doc(diningCourt);
+  dRef.get().then(doc => {
+    if(!doc.exists) {
+      throw new Error("doc does not exist");
+    }
+    else {
+          var n = doc.data().numBusyReps;
+          var aggregateRating = doc.data().busyness;
+          var reports = doc.data().busyReps;
+          var curDate = (new Date()) - 15 * 60 * 1000;
+          //var curDate = new Date(+(new Date()) - 15 * 60 * 1000);
+
+          for(var i = 0; i < reports.length; i++){
+            var date = reports[i].time;
+            /*var difference = curDate - date;
+            console.log(difference);
+            if(Math.floor(difference / 15000) >= 1){*/
+            console.log(date);
+            console.log(curDate);
+
+            if(date < curDate){
+              console.log("Removed busy rating");
+              aggregateRating -= reports[i].rating;
+              n--;
+              dRef.update({
+                busyReps: admin.firestore.FieldValue.arrayRemove(reports[i]),
+                "numBusyReps":n,
+                "busyness":aggregateRating
+              });
+            }
+            else{
+              //return the busyness rating
+                var num = Math.floor(aggregateRating/n);
+                response.send(num.toString());
+                break;
+            }
+          }
+          if(n == 0){
+            response.send("No ratings");
+          }
+    }
   });
 });

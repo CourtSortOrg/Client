@@ -168,7 +168,7 @@ export default class Settings extends React.Component {
         <ListItem
           title="Clear Ratings"
           subtitle="Delete your account's ratings"
-          leftIcon={<Icon name="clear-all" type="material" />}
+          leftIcon={<Icon name="food-off" type="material-community" />}
           onPress={() => {
             Alert.alert("Need to implement this!");
           }}

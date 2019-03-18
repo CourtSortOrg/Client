@@ -6,6 +6,7 @@ import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import Text from "../components/Text";
 import { ListItem } from "react-native-elements";
+import VariableGrid from "../components/VariableGrid";
 
 import AllergenIcon from "../main/AllergenIcon";
 
@@ -59,7 +60,22 @@ const restrictions = [
 export default class EditProfile extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { restrictions: restrictions, showNameDialog: false };
+    this.state = {
+      restrictions: restrictions,
+      showNameDialog: false,
+      userRestrictions: ["Wheat", "Tree Nuts", "Shellfish"]
+    };
+    //this.props.screenProps.user.dietaryRestrictions
+
+    for (let i = 0; i < restrictions.length; i++) {
+      if (this.state.userRestrictions.includes(restrictions[i].name)) {
+        console.log(`${restrictions[i].name} is restricted`);
+        restrictions[i].enabled = true;
+      } else {
+        console.log(`${restrictions[i].name} not restricted`);
+        restrictions[i].enabled = false;
+      }
+    }
   }
 
   renderRestriction = (data, index) => {
@@ -118,9 +134,9 @@ export default class EditProfile extends React.Component {
           />
         </Card>
         <Card header={"Dietary Restrictions"}>
-          <RestrictionGrid
+          <VariableGrid
             data={this.state.restrictions}
-            colPattern={[3, 3, 3, 2]}
+            colPattern={[3]}
             renderItem={this.renderRestriction}
           />
         </Card>
