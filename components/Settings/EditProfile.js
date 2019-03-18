@@ -112,10 +112,11 @@ export default class EditProfile extends React.Component {
     return (
       <Screen
         title="Edit Profile"
+        showNavigation={false}
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >
-        <Card header={"User Information"}>
+        <Card header={"Your Information"}>
           <ListItem
             title={`Profile Name: ${this.props.screenProps.user.userName}`}
             onPress={() => {
@@ -133,7 +134,7 @@ export default class EditProfile extends React.Component {
             chevron
           />
         </Card>
-        <Card header={"Dietary Restrictions"}>
+        <Card header={"Your Dietary Restrictions"}>
           <VariableGrid
             data={this.state.restrictions}
             colPattern={[3]}
