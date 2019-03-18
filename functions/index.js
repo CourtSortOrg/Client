@@ -388,6 +388,30 @@ exports.addDietaryRestriction = functions.https.onRequest((request, response) =>
   }
 });
 
+//set dietary restrictions to a user
+//Parameters: userHandle, dietaryRestrictionArray
+exports.setDietaryRestrictions = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var dietaryRestrictionArray = request.body.dietaryRestrictionArray;
+
+  if (userHandle == null || dietaryRestrictionArray == null) {
+    throw new Error("need to pass 'userHandle' and 'dietaryRestrictionArray' in body");
+  }
+  else {
+    db.collection("User").doc(userHandle).update({
+      dietaryRestrictions: dietaryRestrictionArray
+    })
+    .then(function() {
+      response.send({
+        "success":true
+      });
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
 //get dietary restrictions of a user
 //Parameters: userHandle
 exports.getDietaryRestrictions = functions.https.onRequest((request, response) => {
@@ -608,15 +632,16 @@ exports.removeFriend = functions.https.onRequest(async (request, response) => {
       throw new Error(error);
     });
 
-  friendDoc.update({
-    friends: admin.firestore.FieldValue.arrayRemove(userObj),
-    notifications: admin.firestore.FieldValue.arrayUnion(notification)
-  }).then(function(){
-    response.send("success");
-  }).catch(function(error){
-    console.error("Error removing user from friend");
-    throw new Error(error);
-  });
+    friendDoc.update({
+      friends: admin.firestore.FieldValue.arrayRemove(userObj),
+      notifications: admin.firestore.FieldValue.arrayUnion(notification)
+    }).then(function(){
+      response.send("success");
+    }).catch(function(error){
+      console.error("Error removing user from friend");
+      throw new Error(error);
+    });
+  }
 });
 
 //remove a user from all Friends
@@ -629,32 +654,33 @@ exports.removeFromAllFriends = functions.https.onRequest(async (request, respons
     throw new Error("Must pass userHandle in request");
   }
   else {
-    var userDoc = db.collection("User").doc(userHandle);
+      var userDoc = db.collection("User").doc(userHandle);
 
-    //get the user's name
-    await userDoc.get().then(async doc => {
-      var userName = await doc.data().userName;
-      var userObj = {friendHandle: userHandle, friendName: userName};
-      var friends = doc.data().friends;
+      //get the user's name
+      await userDoc.get().then(async doc => {
+        var userName = await doc.data().userName;
+        var userObj = {friendHandle: userHandle, friendName: userName};
+        var friends = doc.data().friends;
 
-    console.log(userObj);
+      console.log(userObj);
 
-    var notification = {type: "unfriended", id: userObj};
+      var notification = {type: "unfriended", id: userObj};
 
-    for(var i = 0; i < friends.length; i++){
-      await db.collection("User").doc(friends[i].friendHandle).update({
-        friends: admin.firestore.FieldValue.arrayRemove(userObj),
-        notifications: admin.firestore.FieldValue.arrayUnion(notification)
-      });
-      /*if(i == friends.length - 1){
-        response.send("success");
-      }*/
-    }
-  }).catch(function(error){
-    console.error(error.message);
-    throw new Error(error);
-  });
-  response.send("success");
+      for(var i = 0; i < friends.length; i++){
+        await db.collection("User").doc(friends[i].friendHandle).update({
+          friends: admin.firestore.FieldValue.arrayRemove(userObj),
+          notifications: admin.firestore.FieldValue.arrayUnion(notification)
+        });
+        /*if(i == friends.length - 1){
+          response.send("success");
+        }*/
+      }
+    }).catch(function(error){
+      console.error(error.message);
+      throw new Error(error);
+    });
+    response.send("success");
+  }
 });
 
 //remove user from database
