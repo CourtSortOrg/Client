@@ -1034,7 +1034,7 @@ exports.sendFriendRequest = functions.https.onRequest(async (request, response) 
         }).catch(function(error){
           throw new Error(error);
         });
-        var notification = {type: "new friend request", id: {userObj}};
+        var notification = {type: "new friend request", id: userObj};
         friendDoc.update({
           incomingFriendReq: admin.firestore.FieldValue.arrayUnion(userObj),
           notifications: admin.firestore.FieldValue.arrayUnion(notification)
@@ -1088,7 +1088,7 @@ exports.acceptFriendRequest = functions.https.onRequest(async (request, response
 
   //remove the user from the friend's blockUser list
   var blockObj = {blockedHandle: userHandle, blockedName: userName};
-  var notification = {type: "new friend", id: {userObj}}
+  var notification = {type: "new friend", id: userObj}
 
   friendDoc.update({
     outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userObj),
