@@ -7,11 +7,56 @@ admin.initializeApp(functions.config().firebase);
 
 var db = admin.firestore();
 
+var ratings = require('./ratings');
+
 //this function is for testing
 //PARAMETERS: none
 exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
+
+// need name of dish, rating and userHandle
+exports.addRating = functions.https.onRequest(async (request, response) => {
+  var dish = request.body.dish;
+  var rating = request.body.rating;
+  var userHandle = request.body.userHandle;
+
+  var error = "Input data not provided correctly!";
+  if(dish == null || rating == null || userHandle ==  null)
+    throw new Error(error);
+
+  await ratings.setRating(dish, rating, userHandle);
+  response.send("Set rating for: " + dish);
+})
+
+// needs name of dish
+exports.getRating = functions.https.onRequest(async (request, resopnse) => {
+  var dish = request.body.dish;
+
+  var error = "Input data not provided correctly!";
+  if(dish == null)
+    throw new Error(error);
+
+  var itemRef = db.collection('Dish').doc(dish);
+
+  var getItem = await itemRef.get().then(async doc => {
+      if (!doc.exists) {
+          console.log("No such dish exists mate!");
+      } else {
+          console.log("Getting rating of: " + dish);
+          var itemJSON = await doc.data();
+          var totalScore = itemJSON['totalScore'];
+          var totalVotes = itemJSON['totalVotes'];
+          console.log("Total score, Total votes: "+totalScore+", "+totalVotes);
+          var itemRating = Number(Number(totalScore) / Number(totalVotes));
+          console.log("Thus avg score is: "+itemRating);
+          resopnse.send({rating: itemRating});
+      }
+  }).catch(err => {
+      throw new Error(err);
+  });
+
+})
 
 // this function fetches the timings for dining courts on a particular day
 // PARAMETERS: date (as a string "YYYY-MM-DD")
@@ -353,7 +398,7 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
       allCourts['Courts'].push({Name: menuJSON['Location'], Meals: meals});
     }
     console.log(date);
-    db.collection("DateDishes").doc(date).set(allCourts);
+    await db.collection("DateDishes").doc(date).set(allCourts);
   }
 
   var data = []
