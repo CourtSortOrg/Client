@@ -54,9 +54,10 @@ export default class Notifications extends React.Component {
           {
             loadingNotifications: false
           },
-          this.props.screenProps.functions.updateNotifications(
-            this.state.notifications
-          )
+          () =>
+            this.props.screenProps.functions.updateNotifications(
+              this.state.notifications
+            )
         );
         /*} catch (error) {
           console.error(
@@ -132,7 +133,10 @@ export default class Notifications extends React.Component {
       {
         notifications: n
       },
-      () => console.log(this.state.notifications)
+      () =>
+        this.props.screenProps.functions.updateNotifications(
+          this.state.notifications
+        )
     );
   };
 
