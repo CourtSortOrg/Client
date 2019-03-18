@@ -146,7 +146,7 @@ export default class Friend extends React.Component {
         //  </Text>
           <Icon
             reverse
-            color = {stateColors[this.state.otherUser.status]}
+            color = {statusColor[this.state.otherUser.status]}
             size = "5"
           />
           <Separator />
