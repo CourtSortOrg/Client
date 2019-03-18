@@ -71,7 +71,7 @@ export default class Profile extends React.Component {
       }
     )
       .then(data => {
-        console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+        //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
         if (data._bodyText == "success")
           Alert.alert(
             "Friend Request",
@@ -133,6 +133,7 @@ export default class Profile extends React.Component {
           <Text style={styles.profileName}>
             {this.props.screenProps.user.userName}
           </Text>
+          <Text>@{this.props.screenProps.user.userHandle}</Text>
           {/* Icon to navigate to Settings */}
           <MaterialIcons
             color="gray"
