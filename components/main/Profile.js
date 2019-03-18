@@ -31,11 +31,10 @@ export default class Profile extends React.Component {
 
       userName: "",
       initials: "",
-      restrictions: ["Fish", "Tree Nuts", "Vegan", "Vegetarian"],
+      restrictions: this.props.screenProps.user.dietaryRestrictions,
 
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
-    //this.props.screenProps.user.dietaryRestrictions
   }
 
   componentDidMount() {
@@ -154,23 +153,25 @@ export default class Profile extends React.Component {
         </Card>
 
         {/* TODO: Add user dietary restrictions */}
-        <Card style={{ paddingVertical: 5 }}>
-          <Text type="sectionName" style={{ textAlign: "center" }}>
-            Dietary Restrictions
-          </Text>
-          <VariableGrid
-            data={this.state.restrictions}
-            colPattern={[4]}
-            renderItem={(data, index) => {
-              return (
-                <View style={{ alignItems: "center" }}>
-                  <AllergenIcon name={data} />
-                  <Text>{data}</Text>
-                </View>
-              );
-            }}
-          />
-        </Card>
+        {this.props.screenProps.user.dietaryRestrictions.length > 0 ? (
+          <Card>
+            <Text type="sectionName" style={{ textAlign: "center" }}>
+              Dietary Restrictions
+            </Text>
+            <VariableGrid
+              data={this.state.restrictions}
+              colPattern={[4]}
+              renderItem={(data, index) => {
+                return (
+                  <View style={{ alignItems: "center" }}>
+                    <AllergenIcon name={data} />
+                    <Text>{data}</Text>
+                  </View>
+                );
+              }}
+            />
+          </Card>
+        ) : null}
 
         {/* Card to show user ratings, friends, and groups */}
         <KeyboardAvoidingView behavior="position" enabled>
