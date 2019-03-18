@@ -1,41 +1,77 @@
 import React from "react";
-import { Button, StyleSheet, TextInput, View } from "react-native";
+import {
+  Button,
+  Keyboard,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity
+} from "react-native";
+
+import * as firebase from "firebase";
+
 import Text from "../components/Text";
 
 export default class CreateAccount extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { handle: "" };
+  }
+
+  // Method that creates a third party account based on the handle
   createAccount = () => {
-    console.log("CREATE ACCOunt");
+    Keyboard.dismiss();
+    console.log(firebase.auth().currentUser.uid);
+    console.log(firebase.auth().currentUser.displayName);
+    console.log(`Third Party Handle: ${this.state.handle}`);
+    this.props.screenProps.functions.addUserToDatabase(
+      {
+        uid: firebase.auth().currentUser.uid,
+        userName: firebase.auth().currentUser.displayName,
+        userHandle: this.state.handle
+      },
+      () => this.props.navigation.navigate("Home")
+    );
   };
 
   render() {
     return (
-      <View>
-        <Text>Almost there!</Text>
-        <Text>Please provide a handle so friends can easily add you</Text>
+      <TouchableOpacity
+        style={styles.container}
+        activeOpacity={1}
+        onPress={Keyboard.dismiss}
+      >
+        {/* Text to inform the user to add a user handle */}
+        <Text type="sectionName">Almost there!</Text>
+        <Text>Please provide a handle</Text>
+        {/* TextInput to let the user input a handle */}
         <TextInput
           style={styles.input}
           autoCapitalize="none"
           blurOnSubmit={false}
-          onSubmitEditing={() => {
-            this.password.focus();
-          }}
-          placeholder="Email"
+          onSubmitEditing={this.createAccount}
+          placeholder="Handle"
           placeholderTextColor="#999"
-          returnKeyType={"next"}
-          onChangeText={email => this.setState({ email: email })}
+          onChangeText={handle => this.setState({ handle: handle })}
           underlineColorAndroid="transparent"
         />
+        {/* Button that when clicked submits the user handle */}
         <Button
           color="#e9650d"
           onPress={this.createAccount}
           title="Create Account"
         />
-      </View>
+      </TouchableOpacity>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "center"
+  },
   input: {
     backgroundColor: "#eee",
     borderColor: "#e9650d",
