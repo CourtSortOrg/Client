@@ -29,6 +29,7 @@ import Meals from "./components/main/Meals";
 import Message from "./components/main/Message";
 import Messages from "./components/main/Messages";
 import Notifications from "./components/main/Notifications";
+import AddUser from "./components/main/AddUser";
 
 import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
@@ -91,6 +92,9 @@ const SettingsNavigation = createStackNavigator(
 
 const MainNavigation = createStackNavigator(
   {
+    AddUser: {
+      screen: AddUser
+    },
     Messages: {
       screen: Messages
     },
