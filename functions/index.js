@@ -1226,12 +1226,10 @@ exports.inviteToGroup = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var groupID = request.body.groupID;
-  var groupName = request.body.groupName;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(groupID);
-  console.log(groupName);
   if (userHandle == null) {
     throw new Error("Must pass userHandle in body of request");
   }
@@ -1241,12 +1239,14 @@ exports.inviteToGroup = functions.https.onRequest(async (request, response) => {
   if (groupID == null) {
     throw new Error("Must pass groupID in body of request");
   }
-  if(groupName == null){
-    response.send("Must pass groupName in body of request");
-  }
 
   var friendDoc = db.collection("User").doc(friendHandle);
   var userDoc = db.collection("User").doc(userHandle);
+
+  var groupName;
+  await db.collection("Group").doc(groupID).get().then(async doc => {
+    groupName = await doc.data().groupName;
+  });
 
   //check if friends with friendHandle
   userDoc.get().then(doc => {
@@ -1286,17 +1286,15 @@ exports.inviteToGroup = functions.https.onRequest(async (request, response) => {
   });
 });
 
-//PARAMETERS: userHandle, groupID, friendHandle, groupName
-exports.acceptGroupInvitation = functions.https.onRequest((request, response) => {
+//PARAMETERS: userHandle, groupID, friendHandle
+exports.acceptGroupInvitation = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var groupID = request.body.groupID;
-  var groupName = request.body.groupName;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(groupID);
-  console.log(groupName);
 
   if (userHandle == null) {
     throw new Error("Must pass userHandle in body of request");
@@ -1307,9 +1305,11 @@ exports.acceptGroupInvitation = functions.https.onRequest((request, response) =>
   if (groupID == null) {
     throw new Error("Must pass groupID in body of request");
   }
-  if (groupName == null) {
-    response.send("Must pass groupName in body of request");
-  }
+
+  var groupName;
+  await db.collection("Group").doc(groupID).get().then(async doc => {
+    groupName = await doc.data().groupName;
+  });
 
   //add the user to the group
   var userDoc = db.collection("User").doc(userHandle);
@@ -1351,17 +1351,15 @@ exports.acceptGroupInvitation = functions.https.onRequest((request, response) =>
   });
 });
 
-//PARAMETERS: userHandle, friendHandle, groupID, groupName
-exports.denyGroupInvitation = functions.https.onRequest((request, response) => {
+//PARAMETERS: userHandle, friendHandle, groupID
+exports.denyGroupInvitation = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var groupID = request.body.groupID;
-  var groupName = request.body.groupName;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(groupID);
-  console.log(groupName);
 
   if (userHandle == null) {
     throw new Error("Must pass userHandle in body of request");
@@ -1372,9 +1370,11 @@ exports.denyGroupInvitation = functions.https.onRequest((request, response) => {
   if (groupID == null) {
     throw new Error("Must pass groupID in body of request");
   }
-  if (groupName == null){
-    response.send("Must pass groupName in body of request");
-  }
+
+  var groupName;
+  await db.collection("Group").doc(groupID).get().then(async doc => {
+    groupName = await doc.data().groupName;
+  });
 
   //remove the group from the user's incomingGroupInvites list
   db.collection("User").doc(userHandle).update({
@@ -1387,11 +1387,10 @@ exports.denyGroupInvitation = functions.https.onRequest((request, response) => {
 });
 
 //removes the user from the group and the group from the user
-//PARAMETERS: userHandle, groupID, groupName
+//PARAMETERS: userHandle, groupID
 exports.leaveGroup = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var groupID = request.body.groupID;
-  var groupName = request.body.groupName;
 
   console.log(userHandle);
   console.log(groupID);
@@ -1400,9 +1399,6 @@ exports.leaveGroup = functions.https.onRequest(async (request, response) => {
   }
   if (groupID == null) {
     throw new Error("Must pass groupID in body of request");
-  }
-  if (groupName == null) {
-    response.send("Must pass groupName in body of request");
   }
 
   //assume the user is in the group
@@ -1428,7 +1424,8 @@ exports.leaveGroup = functions.https.onRequest(async (request, response) => {
         memberObjects: admin.firestore.FieldValue.arrayRemove({userHandle: userHandle, userName: userName})
       }).catch(function(error){
         throw new Error(error);
-      }).then(function(){
+      }).then(async function(){
+        var groupName = await doc.data().groupName;
         var notification = {type: "user left group", id: {userHandle: userHandle, groupName: groupName, groupID: groupID}};
         //send a notification to all members in the group
         var userCol = db.collection("User");
@@ -1565,6 +1562,27 @@ exports.getNotifications = functions.https.onRequest((request, response) => {
     response.send("error");
     return;
   });
+});
+
+//changes the name of a group
+//PARAMETERS: groupID, groupName
+exports.changeGroupName = functions.https.onRequest((request, response) => {
+  var groupID = request.body.groupID;
+  var groupName = request.body.groupName;
+
+  if(groupID == null || groupName == null){
+    throw new Error("incorrect parameters");
+  }
+  else{
+    var group = db.collection("Group").doc(groupID);
+    group.update({
+      "groupName":groupName
+    }).then(function(){
+      response.send("success");
+    }).catch(function(error){
+      throw new Error(error.message);
+    });
+  }
 });
 
 //rate a dining courts
