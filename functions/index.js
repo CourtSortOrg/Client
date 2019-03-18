@@ -21,6 +21,10 @@ exports.addRating = functions.https.onRequest(async (request, response) => {
   var rating = request.body.rating;
   var userHandle = request.body.userHandle;
 
+  var error = "Input data not provided correctly!";
+  if(dish == null || rating == null || userHandle ==  null)
+    throw new Error(error);
+
   await ratings.setRating(dish, rating, userHandle);
   response.send("Set rating for: " + dish);
 })
@@ -28,6 +32,11 @@ exports.addRating = functions.https.onRequest(async (request, response) => {
 // needs name of dish
 exports.getRating = functions.https.onRequest(async (request, resopnse) => {
   var dish = request.body.dish;
+
+  var error = "Input data not provided correctly!";
+  if(dish == null)
+    throw new Error(error);
+
   var itemRef = db.collection('Dish').doc(dish);
 
   var getItem = await itemRef.get().then(async doc => {
@@ -44,7 +53,7 @@ exports.getRating = functions.https.onRequest(async (request, resopnse) => {
           resopnse.send({rating: itemRating});
       }
   }).catch(err => {
-      console.log('Error getting document', err);
+      throw new Error(err);
   });
 
 })

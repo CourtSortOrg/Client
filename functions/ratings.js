@@ -39,7 +39,7 @@ module.exports = {
                 }
             }
         }).catch(err => {
-            console.log('Error getting document', err);
+            throw new Error(err);
         });
         
         await userRef.set({rating: rating});
