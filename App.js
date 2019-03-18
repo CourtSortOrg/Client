@@ -301,7 +301,7 @@ export default class App extends React.Component {
       await this._storeData("user", "");
       await this.setState({ firebaseLoaded: true }, () => {
         console.log("After::After");
-        if (callback) callback();
+        if (callback && !errorGetUserHandle) callback();
       });
     }
   };
