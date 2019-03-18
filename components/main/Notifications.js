@@ -11,6 +11,7 @@ export default class Notifications extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      loadingNotifications: true,
       loadingGroups: true,
       loadingFriends: true,
       loadingWarnings: true,
@@ -20,47 +21,113 @@ export default class Notifications extends React.Component {
     };
   }
 
-  getNotifications = () => {};
+  date = new Date();
+
+  dateStr = `${this.date.getFullYear()}-${
+    this.date.getMonth() + 1 < 10
+      ? `0${this.date.getMonth() + 1}`
+      : this.date.getMonth() + 1
+  }-${
+    this.date.getDate() < 10 ? `0${this.date.getDate()}` : this.date.getDate()
+  }`;
+
+  getNotifications = async () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getNotifications",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.userHandle
+        })
+      }
+    )
+      .then(async data => {
+        await JSON.parse(data._bodyText).forEach(e =>
+          this.parseNotifications(e.type, e.id)
+        );
+
+        await this.setState(
+          {
+            loadingNotifications: false
+          },
+          this.props.screenProps.functions.updateNotifications(
+            this.state.notifications
+          )
+        );
+        /*} catch (error) {
+          console.error(
+            `getIncomingFriendRequests: ${error}: ${data._bodyText}`
+          );
+        }*/
+      })
+      .catch(error => console.error(`getNotifications: ${error}`));
+  };
 
   parseNotifications = (type, id) => {
     switch (type) {
       case "new friend":
-        addNotification(newFriendNotification(id));
+        this.addNotification(this.newFriendNotification(id));
         break;
       case "new friend request":
+        this.addNotification(this.newFriendRequestNotification(id));
         break;
       case "unfriended":
-        addNotification(newUnfriendNotification(id));
+        this.addNotification(this.newUnfriendNotification(id));
         break;
       case "blocked":
-        addNotification(newBlockedNotification(id));
+        this.addNotification(this.newBlockedNotification(id));
+        break;
       case "invited to group":
+        this.addNotification(this.newGroupInvitationNotification(id));
         break;
       case "user joined group":
-        addNotification(newGroupJoinNotification(id));
+        this.addNotification(this.newGroupJoinNotification(id));
         break;
       case "user left group":
-        addNotification(newGroupLeaveNotification(id));
+        this.addNotification(this.newGroupLeaveNotification(id));
         break;
       default:
         console.error(`invalid notification type: ${type}\nid: ${id}`);
     }
   };
 
-  addNotification = item => {};
+  addNotification = item => {
+    let arr = this.state.notifications.slice();
+    let list = arr.find(l => l.id == item.dateStr);
+    if (list == undefined) {
+      list = {
+        date: this.dateStr,
+        Name: this.dateStr,
+        items: []
+      };
+      arr.push(list);
+    } else {
+      list.items = list.items.slice();
+    }
 
-  removeNotification = (list, id) => {
+    list.items.push(item);
+
+    this.setState({
+      notifications: arr
+    });
+  };
+
+  removeNotification = id => {
     let n = this.state.notifications.slice();
     for (let i = 0; i < n.length; i++) {
-      if (n[i].Name == list) {
-        n[i].items = n[i].items.filter(req => req.id != id);
+      if (n[i].date == id.date) {
+        n[i].items = n[i].items.filter(req => req.Name != id.Name);
       }
     }
 
     this.setState({
       notifications: n
     });
-  }
+  };
 
   dismissNotification = id => {
     Alert.alert(`Dismiss notification?`, [
@@ -72,7 +139,7 @@ export default class Notifications extends React.Component {
       },
       {
         text: "Yes",
-        onPress: () => this.removeNotification(list, id)
+        onPress: () => this.removeNotification(id)
       }
     ]);
   };
@@ -81,52 +148,68 @@ export default class Notifications extends React.Component {
     return {
       Name: `${id.friendName}  @${
         id.friendHandle
-      } would like to become friends`,
-      id: friendHandle,
-      ...item,
-      onPress: () => this.friendAlert(id.friendHandle)
+      }  would like to become friends`,
+      id: id.friendHandle,
+      date: this.dateStr,
+      ...id,
+      onPress: () => this.friendAlert(id)
     };
   };
 
   newFriendNotification = id => {
+    this.props.screenProps.functions.updateFriend(id.friendHandle, true);
+
     return {
       Name: `${id.friendName} @${
         id.friendHandle
       } accepted your friend request.`,
+      date: this.dateStr,
       ...id,
       onPress: () => this.dismissNotification(id)
     };
   };
 
   newUnfriendNotification = id => {
+    this.props.screenProps.functions.updateFriend(id.friendHandle, false);
+
     return {
       Name: `${id.friendName} @${id.friendHandle} unfriended you.`,
+      date: this.dateStr,
       ...id,
       onPress: () => this.dismissNotification(id)
     };
   };
 
   newBlockedNotification = id => {
+    this.props.screenProps.functions.updateFriend(id.friendHandle, false);
+
     return {
       Name: `${id.userName} @${id.userHandle} blocked you.`,
+      date: this.dateStr,
       ...id,
       onPress: () => this.dismissNotification(id)
     };
   };
 
   newGroupJoinNotification = id => {
+    this.props.screenProps.functions.updateGroup(id.groupID, true);
+
     return {
       Name: `@${
         id.userHandle
       } accepted your group invitation to join the group: ${id.groupName}.`,
+      date: this.dateStr,
       ...id,
       onPress: () => this.dismissNotification(id)
     };
   };
 
   newGroupLeaveNotification = id => {
+    this.props.screenProps.functions.updateGroup(id.groupID, true);
+
     return {
       Name: `@${id.userHandle} has left the group: ${id.groupName}.`,
+      date: this.dateStr,
       ...id,
       onPress: () => this.dismissNotification(id)
     };
@@ -135,12 +218,14 @@ export default class Notifications extends React.Component {
   newGroupInvitationNotification = id => {
     return {
       Name: `@${id.friendHandle} invited you to join ${id.groupName}`,
-      id: groupID,
+      id: this.groupID,
+      date: this.dateStr,
       ...id,
-      onPress: () => this.groupAlert(id.groupName, id.groupID, id.friendHandle)
+      onPress: () => this.groupAlert(id)
     };
   };
 
+  /*
   getIncomingFriendRequests = () => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getIncomingFriendRequests",
@@ -156,7 +241,6 @@ export default class Notifications extends React.Component {
       }
     )
       .then(data => {
-        //try {
         const arr = this.state.notifications.slice();
         let items = JSON.parse(data._bodyText);
         items = items.map(item => newFriendRequestNotification(item));
@@ -173,11 +257,6 @@ export default class Notifications extends React.Component {
         this.setState({
           loadingFriends: false
         });
-        /*} catch (error) {
-          console.error(
-            `getIncomingFriendRequests: ${error}: ${data._bodyText}`
-          );
-        }*/
       })
       .catch(error => console.error(`getIncomingFriendRequests: ${error}`));
   };
@@ -272,7 +351,6 @@ export default class Notifications extends React.Component {
       .catch(error => console.error(`getDiningCourtNotifications: ${error}`));
   };
 
-/*
   removeNotificationFriend = id => {
     let n = this.state.notifications.slice();
     for (let i = 0; i < n.length; i++) {
@@ -301,7 +379,7 @@ export default class Notifications extends React.Component {
 */
 
   friendAlert = id => {
-    Alert.alert("Friend Request", `Accept request from @${id}?`, [
+    Alert.alert("Friend Request", `Accept request from @${id.friendHandle}?`, [
       {
         text: "Cancel"
       },
@@ -316,21 +394,21 @@ export default class Notifications extends React.Component {
     ]);
   };
 
-  groupAlert = (groupName, groupID, friendHandle) => {
+  groupAlert = id => {
     Alert.alert(
       "Group Invite",
-      `Join group ${groupName} made by @${friendHandle}?`,
+      `Join group ${id.groupName} made by @${id.friendHandle}?`,
       [
         {
           text: "Cancel"
         },
         {
           text: "Deny",
-          onPress: () => this.denyGroupInvitation(groupID, friendHandle)
+          onPress: () => this.denyGroupInvitation(id)
         },
         {
           text: "Accept",
-          onPress: () => this.acceptGroupInvitation(groupID, friendHandle)
+          onPress: () => this.acceptGroupInvitation(id)
         }
       ]
     );
@@ -347,15 +425,15 @@ export default class Notifications extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.id,
-          friendHandle: id
+          friendHandle: id.friendHandle
         })
       }
     )
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification("Friend Requests", id);
-          this.props.screenProps.functions.updateFriend(id, true);
+          this.removeNotification(id);
+          this.props.screenProps.functions.updateFriend(id.friendHandle, true);
         } catch (error) {
           console.error(`acceptFriendRequest: ${error}: ${data._bodyText}`);
         }
@@ -374,14 +452,14 @@ export default class Notifications extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.id,
-          friendHandle: id
+          friendHandle: id.friendHandle
         })
       }
     )
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification("Friend Requests", id);
+          this.removeNotification(id);
         } catch (error) {
           console.error(`denyFriendRequest: ${error}: ${data._bodyText}`);
         }
@@ -389,7 +467,7 @@ export default class Notifications extends React.Component {
       .catch(error => console.error(`denyFriendRequest: ${error}`));
   };
 
-  acceptGroupInvitation = (groupID, friendHandle) => {
+  acceptGroupInvitation = id => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptGroupInvitation",
       {
@@ -400,16 +478,16 @@ export default class Notifications extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.id,
-          friendHandle: friendHandle,
-          groupID: groupID
+          friendHandle: id.friendHandle,
+          groupID: id.groupID
         })
       }
     )
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification("Group Invites", id);
-          this.props.screenProps.functions.updateGroup(groupID, true);
+          this.removeNotification(id);
+          this.props.screenProps.functions.updateGroup(id.groupID, true);
         } catch (error) {
           console.error(`acceptGroupInvitation: ${error}- ${data._bodyText}`);
         }
@@ -417,7 +495,7 @@ export default class Notifications extends React.Component {
       .catch(error => console.error(`acceptGroupInvitation: ${error}`));
   };
 
-  denyGroupInvitation = (groupID, friendHandle) => {
+  denyGroupInvitation = id => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/denyGroupInvitation",
       {
@@ -428,15 +506,15 @@ export default class Notifications extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.id,
-          friendHandle: friendHandle,
-          groupID: groupID
+          friendHandle: id.friendHandle,
+          groupID: id.groupID
         })
       }
     )
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification("Group Invites", id);
+          this.removeNotification(id);
         } catch (error) {
           console.error(`denyGroupInvitation: ${error}- ${data._bodyText}`);
         }
@@ -445,8 +523,9 @@ export default class Notifications extends React.Component {
   };
 
   componentDidMount() {
-    this.getIncomingFriendRequests();
-    this.getGroupInvites();
+    this.getNotifications();
+    //this.getIncomingFriendRequests();
+    //this.getGroupInvites();
     //this.getGroupEvents();
     //this.getDiningCourtNotifications();
   }
@@ -458,7 +537,7 @@ export default class Notifications extends React.Component {
         navigation={{ ...this.props.navigation }}
         backButton={false}
       >
-        {this.state.loadingGroups || this.state.loadingFriends ? (
+        {this.state.loadingNotifications ? (
           <ActivityIndicator size="large" color="#e9650d" />
         ) : this.state.notifications.length > 0 ? (
           <List

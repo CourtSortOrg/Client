@@ -649,6 +649,15 @@ export default class App extends React.Component {
       .catch(error => console.error(`getDiningCourtRatings: ${error}`));
   };
 
+  updateNotifications = notifications => {
+    this.setState({
+      user: {
+        ...this.state.user,
+        notifications
+      }
+    });
+  };
+
   rateDiningCourt = (diningCourt, rating) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/rateDiningCourt",
@@ -734,7 +743,8 @@ export default class App extends React.Component {
               updateGroup: this.updateGroup,
               changeStatus: this.changeStatus,
               checkIn: this.checkIn,
-              checkOut: this.checkOut
+              checkOut: this.checkOut,
+              updateNotifications: this.updateNotifications,
             },
             user: this.state.user,
             meals: this.state.meals
