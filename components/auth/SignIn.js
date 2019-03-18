@@ -44,7 +44,7 @@ export default class SignIn extends React.Component {
   };
 
   handleNoUserHandle = () => {
-    console.error("NO USER HANDLE");
+    this.props.navigation.navigate("CreateThirdParty");
   };
 
   signInNative = () => {

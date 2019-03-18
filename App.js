@@ -18,6 +18,7 @@ import Splash from "./components/auth/Splash";
 import LoginSplash from "./components/auth/LoginSplash";
 import SignIn from "./components/auth/SignIn";
 import CreateAccount from "./components/auth/CreateAccount";
+import CreateThirdParty from "./components/auth/CreateThirdParty";
 import ResetPassword from "./components/auth/ResetPassword";
 import DiningCourt from "./components/main/DiningCourt";
 import Friend from "./components/main/Friend";
@@ -59,6 +60,12 @@ const AuthNavigation = createStackNavigator({
   },
   CreateAccount: {
     screen: CreateAccount,
+    navigationOptions: {
+      header: null //this will hide the header
+    }
+  },
+  CreateThirdParty: {
+    screen: CreateThirdParty,
     navigationOptions: {
       header: null //this will hide the header
     }
@@ -289,7 +296,7 @@ export default class App extends React.Component {
       await this._storeData("user", "");
       await this.setState({ firebaseLoaded: true }, () => {
         console.log("After::After");
-        if(callback) callback();
+        if (callback) callback();
       });
     }
   };
@@ -306,21 +313,28 @@ export default class App extends React.Component {
       });
     });
 
-    await this.fetchDiningCourtRating(this.state.user.userHandle, async data => {
-      await this.setState({
-        user: {
-          ...this.state.user,
-          diningCourtRatings: data
-        }
-      });
-    });
+    await this.fetchDiningCourtRating(
+      this.state.user.userHandle,
+      async data => {
+        await this.setState({
+          user: {
+            ...this.state.user,
+            diningCourtRatings: data
+          }
+        });
+      }
+    );
 
     if (callback) callback();
   };
 
   updateFriends = async callback => {
-    await this.fetchFriends(this.state.user.userHandle, async data =>
-      await data.forEach(async friend => await this.updateFriend(friend.friendHandle, true))
+    await this.fetchFriends(
+      this.state.user.userHandle,
+      async data =>
+        await data.forEach(
+          async friend => await this.updateFriend(friend.friendHandle, true)
+        )
     );
 
     if (callback) callback();
@@ -328,7 +342,9 @@ export default class App extends React.Component {
 
   updateGroups = async callback => {
     await this.fetchGroups(this.state.user.userHandle, async data => {
-      await data.forEach(async groupID => await this.updateGroup(groupID, true));
+      await data.forEach(
+        async groupID => await this.updateGroup(groupID, true)
+      );
     });
 
     if (callback) callback();
@@ -537,16 +553,19 @@ export default class App extends React.Component {
   };
 
   fetchFriends = async (id, callback) => {
-    await fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        userHandle: id
-      })
-    })
+    await fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: id
+        })
+      }
+    )
       .then(data => this.handleData(`fetchFriends`, data, callback))
       .catch(error => console.error(`fetchFriends: ${error}`));
   };
@@ -571,32 +590,38 @@ export default class App extends React.Component {
   };
 
   fetchGroups = async (id, callback) => {
-    await fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        userHandle: id
-      })
-    })
+    await fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getGroups",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: id
+        })
+      }
+    )
       .then(data => this.handleData(`fetchGroups`, data, callback))
       .catch(error => console.error(`fetchFriends: ${error}`));
   };
 
   fetchGroup = async (id, callback) => {
-    await fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        groupID: id,
-        userHandle: this.state.user.userHandle
-      })
-    })
+    await fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getGroup",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          groupID: id,
+          userHandle: this.state.user.userHandle
+        })
+      }
+    )
       .then(data => this.handleData(`getGroup`, data, callback))
       .catch(error => console.error(`getGroup: ${error}`));
   };
