@@ -115,6 +115,11 @@ export default class EditProfile extends React.Component {
         showNavigation={false}
         navigation={{ ...this.props.navigation }}
         backButton={true}
+        backButtonCallback={() => {
+          console.log("BACK");
+          //TODO: Add saving state of restrictions
+          //this.props.navigation.goBack();
+        }}
       >
         <Card header={"Your Information"}>
           <ListItem
