@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, Image } from "react-native";
+import { View, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { Button, Avatar } from "react-native-elements";
 
 import Text from "../components/Text";
@@ -27,19 +27,21 @@ export default class Header extends React.Component {
           }}
         >
           <View style={{ flex: 1, flexDirection: "row" }}>
-            <Avatar
-              small
-              rounded
-              title="IN"
-              onPress={() => this.props.navigation.navigate("Profile")}
-            />
+            {this.props.showNavigation != false && (
+              <Avatar
+                small
+                rounded
+                title="IN"
+                onPress={() => this.props.navigation.navigate("Profile")}
+              />
+            )}
             {this.props.backButton && (
               <TouchableOpacity
-                style={this.props.styles.button}
+                style={styles.button}
                 onPress={() => this.props.navigation.goBack()}
               >
                 <Image
-                  style={this.props.styles.icon}
+                  style={styles.icon}
                   source={require("../../assets/icons/baseline_arrow_back_ios_black_18dp.png")}
                 />
               </TouchableOpacity>
@@ -62,28 +64,55 @@ export default class Header extends React.Component {
             style={{
               flex: 1,
               flexDirection: "row",
-              justifyContent: "flex-end"
+              justifyContent: "flex-end",
+              paddingTop: 10
             }}
           >
-            <TouchableOpacity
-              style={{paddingTop: 10}}
-              onPress={() => this.props.navigation.navigate("Notifications")}
-            >
-              {this.props.active == "Notifications" ? (
+            {this.props.map == true && (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => this.props.navigation.navigate("Map", {
+                  ID: "Hillenbrand"
+                })}
+              >
                 <Image
-                  style={{ ...this.props.styles.icon, height: "100%" }}
-                  source={require("../../assets/icons/baseline-notifications-24px.png")}
+                  style={styles.icon}
+                  source={require("../../assets/icons/baseline-map-24px.png")}
                 />
-              ) : (
-                <Image
-                  style={{ ...this.props.styles.icon, height: "100%" }}
-                  source={require("../../assets/icons/outline-notifications-24px.png")}
-                />
-              )}
-            </TouchableOpacity>
+              </TouchableOpacity>
+            )}
+            {this.props.showNavigation != false && (
+              <TouchableOpacity
+                onPress={() => this.props.navigation.navigate("Notifications")}
+              >
+                {this.props.active == "Notifications" ? (
+                  <Image
+                    style={styles.icon}
+                    source={require("../../assets/icons/baseline-notifications-24px.png")}
+                  />
+                ) : (
+                  <Image
+                    style={styles.icon}
+                    source={require("../../assets/icons/outline-notifications-24px.png")}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  button: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  icon: {
+    aspectRatio: 1,
+    height: 25
+  }
+});

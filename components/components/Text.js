@@ -8,7 +8,7 @@ export default class Text extends React.Component {
     if (this.props.type) {
       style = { ...styles[this.props.type], ...style };
     }
-    return <NativeText style={{...styles.default, ...style}}>{this.props.children}</NativeText>;
+    return <NativeText {...this.props} style={{...styles.default, ...style}}>{this.props.children}</NativeText>;
   }
 }
 

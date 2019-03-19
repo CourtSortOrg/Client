@@ -1,6 +1,7 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Button, ButtonGroup, ListItem } from "react-native-elements";
+import { Rating } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import AllergenIcon from "./AllergenIcon";
@@ -9,6 +10,7 @@ import List from "../components/List";
 import Text from "../components/Text";
 import Card from "../components/Card";
 import ListElement from "../components/ListElement";
+import Separator from "../components/Separator";
 
 export default class MealItem extends React.Component {
   constructor(props) {
@@ -21,6 +23,7 @@ export default class MealItem extends React.Component {
       ingredients: "",
       id: "",
       isVeg: false,
+      warning: false,
       allergens: [],
       offered: [
         {
@@ -30,7 +33,9 @@ export default class MealItem extends React.Component {
           id: "",
           location: ""
         }
-      ]
+      ],
+      rating: 0,
+      userRating: 0
     };
   }
 
@@ -51,28 +56,82 @@ export default class MealItem extends React.Component {
           name: this.state.name
         })
       }
-    ).then(data =>
-      this.setState({
-        ...JSON.parse(data._bodyText)
+    )
+      .then(data => {
+        try {
+          this.setState(
+            {
+              ...JSON.parse(data._bodyText)
+            } /*,
+            () => {
+              this.setState(
+                {
+                  allergens: this.state.allergens.filter(a => a.Value == true)
+                },
+                () => {
+                  this.setState({
+                    allergens: this.state.allergens.map(a => ({
+                      ...a,
+                      enabled:
+                        this.props.screenProps.user.dietaryRestrictions.filter(
+                          b => {
+                            if (b.Name == a.Name) {
+                              this.setState({
+                                warning: true
+                              });
+                              return true;
+                            }
+                            return false;
+                          }
+                        ).length != 0
+                    }))
+                  });
+                }
+              );
+            }*/
+          );
+        } catch (error) {
+          console.error(`fetchAllOffered: ${error}: ${data._bodyText}`);
+        }
       })
-    );
+      .catch(error => console.error(`fetchAllOffered: ${error}`));
+    //TODO: Call getRating on this item
+    //TODO: Call getRating for user?
   }
 
   renderElement(item) {
-    return <NutritionFact {...item} />;
+    return <NutritionFact {...item.props} />;
   }
 
   renderNutrition() {
+    console.log(this.state.allergens);
     if (this.state.selectedIndex == 0) {
       return (
         <View>
-          <Card header="Allergens">
+          <Card header="Dietary Restrictions">
+            {this.state.warning == true && (
+              <View>
+                <ListElement type="expandable" Name="Important!" />
+                <ListElement
+                  type="element"
+                  Name="This dish matches a dietary restriction!"
+                  rank={1}
+                />
+                <Separator/>
+              </View>
+            )}
             {this.state.allergens.length != 0 ? (
               <View style={styles.allergens}>
                 {this.state.allergens
                   .filter(allergen => allergen.Value)
                   .map((allergen, index) => {
-                    return <AllergenIcon key={index} {...allergen} />;
+                    return (
+                      <AllergenIcon
+                        key={index}
+                        name={allergen.Name}
+                        enabled={allergen.enabled}
+                      />
+                    );
                   })}
               </View>
             ) : (
@@ -132,10 +191,12 @@ export default class MealItem extends React.Component {
                 //   source: { uri: item.image },
                 //   containerStyle: styles.friendPicture
                 // }}
-                subtitle={item.date + " " + item.meal}
-                title={item.location}
+                subtitle={item.props.date + " " + item.props.meal}
+                title={item.props.location}
                 onPress={() =>
-                  this.props.navigation.navigate("Map", { ID: item.location })
+                  this.props.navigation.navigate("Map", {
+                    ID: item.props.location
+                  })
                 }
                 topDivider
               />
@@ -146,7 +207,86 @@ export default class MealItem extends React.Component {
     }
   }
 
-  renderRatings() {}
+  renderRatings() {
+    if (this.state.selectedIndex == 2) {
+      return (
+        <View>
+          <Card header={"Overall Rating"}>
+            <View style={{ alignItems: "center" }}>
+              <Text type="sectionName">
+                {`${this.state.rating}`} out of 5 stars
+              </Text>
+              <Rating
+                style={{ margin: 10 }}
+                imageSize={45}
+                readonly
+                startingValue={this.state.rating}
+              />
+            </View>
+          </Card>
+          {this.props.screenProps.user ? (
+            <Card header={`Your Rating`}>
+              <View>
+                <View style={{ alignItems: "center" }}>
+                  <Text type="sectionName">
+                    {`${this.state.userRating}`} out of 5 stars
+                  </Text>
+                  <Rating
+                    style={{ marginTop: 10 }}
+                    fractions={1}
+                    imageSize={45}
+                    startingValue={this.state.userRating}
+                    onFinishRating={userRating => {
+                      this.setState({ userRating: userRating });
+                    }}
+                  />
+                  <Text style={{ color: "gray", marginBottom: 10 }}>
+                    Press and drag to edit rating
+                  </Text>
+                </View>
+
+                <Button
+                  title="Submit Rating"
+                  buttonStyle={{ backgroundColor: "#e9650d" }}
+                  titleStyle={{ color: "black", fontFamily: "Quicksand-Bold" }}
+                  onPress={() => {
+                    Alert.alert(
+                      "Update meal rating?",
+                      `By clicking confirm you will update your rating for ${
+                        this.state.name
+                      }`,
+                      [
+                        {
+                          text: "Cancel",
+                          onPress: () => console.log("Cancel Pressed"),
+                          style: "cancel"
+                        },
+                        {
+                          text: "Confirm",
+                          onPress: () => console.log("Confirm Pressed")
+                        }
+                      ]
+                    );
+                  }}
+                />
+              </View>
+            </Card>
+          ) : (
+            <TouchableOpacity
+              style={{ alignItems: "center" }}
+              onPress={() => {
+                this.props.navigation.navigate("Auth");
+              }}
+            >
+              <Text style={{ textDecorationLine: "underline" }}>
+                Sign to rate dishes
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      );
+    }
+  }
 
   render() {
     const buttons = ["Nutrition", "Serving", "Ratings"];
@@ -171,7 +311,13 @@ export default class MealItem extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  allergens: { flex: 1, padding: 10, flexDirection: "row", flexWrap: "wrap" },
+  allergens: {
+    flex: 1,
+    padding: 8,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start"
+  },
   ingredients: { padding: 10 },
   header: {
     backgroundColor: "#E86515",

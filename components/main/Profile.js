@@ -1,6 +1,11 @@
 import React from "react";
-import * as firebase from "firebase";
-import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  FlatList,
+  StyleSheet,
+  View
+} from "react-native";
 
 import { ListItem, Rating, Button } from "react-native-elements";
 import { Avatar, ButtonGroup, Icon, Overlay } from "react-native-elements";
@@ -8,33 +13,40 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import Text from "../components/Text";
 import Card from "../components/Card";
+import VariableGrid from "../components/VariableGrid";
 import Screen from "../Nav/Screen";
-import SearchList from "../components/SearchList";
+import ProfileList from "../components/ProfileList";
+import GroupList from "../components/GroupList";
+import AllergenIcon from "./AllergenIcon";
 
 export default class Profile extends React.Component {
   constructor(props) {
     super(props);
 
     // Dummy data used for now, should not be hardcoded
-    //var ratingData = require("../../testData/ratingData.json");
-    //var groupData = require("../../testData/groupData.json");
 
     this.state = {
       selectedIndex: 0,
       isEditing: false,
       changeStatus: false,
 
-      name: "",
+      userName: "",
       initials: "",
-      restrictions: "",
       status: 0,
-
+      
+      restrictions: this.props.screenProps.user.dietaryRestrictions,
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
   }
 
   componentDidMount() {
     // If the user is a guest, send them to the sign in screen
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+    }
+  }
+
+  componentDidUpdate(prevProps) {
     if (this.props.screenProps.user == undefined) {
       this.props.navigation.navigate("Auth");
     }
@@ -56,28 +68,10 @@ export default class Profile extends React.Component {
     return expr ? comp1 : comp2;
   };
 
-  getUserStatus = () => {
+  sendFriendRequest = text => {
     fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserStatus",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: this.state.name
-        })
-      }
-    ).then(data => {
-      // Update the user's current stauts
-    })
-    .catch(error => `getUserStatus: ${error}`);
-  };
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
 
-  setUserStatus = () => {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/setUserStatus",
       {
         method: "POST",
         headers: {
@@ -85,72 +79,37 @@ export default class Profile extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state.name,
-          status: this.state.status
+          userHandle: this.props.screenProps.user.userHandle,
+          friendHandle: text
         })
       }
     )
-    /*
-    .then(data => {
-      // Update the user's current stauts
-    })
-    .catch(error => `setUserStatus: ${error}`);
-    */
-  };
-
-  deleteAccount = () => {
-    //TODO: Delete user's ratings
-    //TODO: Remove user from all groups
-
-    user = firebase.auth().currentUser;
-    //get list of friends
-    //get list of individual ratings
-    user
-      .delete()
-      .then(() => {
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeFromAllFriends",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.props.screenProps.user.id
-            })
-          }
-        )
-          .then(data => console.log(data._bodyText))
-          .catch(error =>
-            console.log(`deleteAccount: removeFromAllFriends: ${error}`)
+      .then(data => {
+        //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+        if (data._bodyText == "success")
+          Alert.alert(
+            "Friend Request",
+            `You sent a friend request to ${text}.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
           );
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: this.props.screenProps.user.id
-            })
-          }
-        )
-          .then(data => console.log(data._bodyText))
-          .catch(error =>
-            console.log(`deleteAccount: removeUserFromDatabase: ${error}`)
+        else
+          Alert.alert(
+            "Friend Request",
+            `Friend request to ${text} could not be sent.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
           );
-        //navigate to SignIn Screen
-        this.props.screenProps.functions.updateUser();
-        this.props.navigation.navigate("Auth");
-        this.setState({ isEditing: false });
       })
-      .catch(function(error) {
-        alert("ERROR: " + error.message);
-        this.props.screenProps.functions.updateUser();
-      });
+      .catch(error => console.error(`sendFriendRequest: ${error}`));
   };
 
   render() {
@@ -161,6 +120,15 @@ export default class Profile extends React.Component {
     const statusButtons = ["Available", "Eating", "Busy"];
     // Retrieve user data from state
     const { friends, groups, ratings, selectedIndex, status } = this.state;
+
+    if (this.props.screenProps.user == undefined) {
+      this.props.navigation.navigate("Auth");
+      return (
+        <View>
+          <Text>Navigation</Text>
+        </View>
+      );
+    }
 
     return (
       <Screen
@@ -180,13 +148,13 @@ export default class Profile extends React.Component {
           />
           {/* Test to show profile name */}
           <Text style={styles.profileName}>
-            {this.props.screenProps.user.displayName}
+            {this.props.screenProps.user.userName}
           </Text>
+          <Text>@{this.props.screenProps.user.userHandle}</Text>
           {/* Icon to navigate to Settings */}
           <MaterialIcons
             color="gray"
             name="settings"
-            // TODO: Navigate to settings
             onPress={() => {
               this.props.navigation.navigate("Settings");
               // this.setState({ isEditing: true });
@@ -207,58 +175,64 @@ export default class Profile extends React.Component {
         </Card>
 
         {/* TODO: Add user dietary restrictions */}
+        {this.props.screenProps.user.dietaryRestrictions.length > 0 ? (
+          <Card>
+            <Text type="sectionName" style={{ textAlign: "center" }}>
+              Dietary Restrictions
+            </Text>
+            <VariableGrid
+              data={this.state.restrictions}
+              colPattern={[4]}
+              renderItem={(data, index) => {
+                return (
+                  <View style={{ alignItems: "center" }}>
+                    <AllergenIcon name={data} />
+                    <Text>{data}</Text>
+                  </View>
+                );
+              }}
+            />
+          </Card>
+        ) : null}
 
         {/* Card to show user ratings, friends, and groups */}
+        <KeyboardAvoidingView behavior="position" enabled>
+          <Card>
+            {/* ButtonGroup to choose tab */}
+            <ButtonGroup
+              buttons={buttons}
+              onPress={this.updateIndex}
+              selectedIndex={selectedIndex}
+            />
 
-        <Card>
-          {/* ButtonGroup to choose tab */}
-          <ButtonGroup
-            buttons={buttons}
-            onPress={this.updateIndex}
-            selectedIndex={selectedIndex}
-          />
+            {/* Render the ratings list if on the ratings tab */}
+            {this.shouldRender(
+              selectedIndex == 0,
+              <RatingsList
+                id={this.props.screenProps.user.id}
+                ratings={this.props.screenProps.user.ratings}
+              />,
+              null
+            )}
 
-          {/* Render the ratings list if on the ratings tab */}
-          {this.shouldRender(
-            selectedIndex == 0,
-            <RatingsList
-              id={this.props.screenProps.user.id}
-              ratings={this.props.screenProps.user.ratings}
-            />,
-            null
-          )}
+            {/* Render the friends list if on the friends tab */}
+            {this.shouldRender(
+              selectedIndex == 1,
+              <ProfileList
+                navigation={this.props.navigation}
+                extendedSearch={this.sendFriendRequest}
+                list={this.props.screenProps.user.friends}
+              />,
+              null
+            )}
 
-          {/* Render the friends list if on the friends tab */}
-          {this.shouldRender(
-            selectedIndex == 1,
-            <FriendsList
-              id={this.props.screenProps.user.id}
-              navigation={this.props.navigation}
-              friends={this.props.screenProps.user.friends}
-            />,
-            null
-          )}
 
-          {/* Render the groups list if on the groups tab */}
-          {this.shouldRender(
-            selectedIndex == 2,
-            <GroupsList
-              id={this.props.screenProps.user.id}
-              groups={this.props.screenProps.user.groups}
-              navigation={this.props.navigation}
-            />,
-            null
-          )}
-        </Card>
-
-        {/* TODO: Phase this out into Settings screen */}
-
-        // Overlay to let the user change their status
-        <Overlay
-          isVisible={this.state.changeStatus}
-          height="30%"
-          width="90%"
-        >
+         {/* Overlay to let the user change their status */}
+          <Overlay
+            isVisible={this.state.changeStatus}
+            height="30%"
+            width="90%"
+          >
           <Text style={styles.changeStatusText}>Change your status</Text>
           <ButtonGroup
             onPress={this.updateStatus}
@@ -266,55 +240,22 @@ export default class Profile extends React.Component {
             buttons={statusButtons}
             containerStyle={{height: 60}}
           />
-        </Overlay>
+          </Overlay>
 
-        <Overlay
-          borderRadius={4}
-          height="90%"
-          isVisible={this.state.isEditing}
-          overlayBackgroundColor="white"
-          width="90%"
-          windowBackgroundColor="rgba(0, 0, 0, .5)"
-        >
-          <View
-            style={{
-              flex: 1,
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: 15
-            }}
-          >
-            <MaterialIcons
-              color="gray"
-              name="close"
-              onPress={() => {
-                this.setState({ isEditing: false });
-              }}
-              size={24}
-              style={styles.settingsIcon}
-            />
-            <Text>Edit Profile</Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between"
-              }}
-            >
-              <Button
-                title="Sign Out"
-                onPress={this.signOut}
-                containerStyle={{ flex: 1, marginHorizontal: 5 }}
-              />
-              <Button
-                title="Delete Account"
-                onPress={this.deleteAccount}
-                containerStyle={{ flex: 1, marginHorizontal: 5 }}
-              />
-            </View>
-          </View>
-        </Overlay>
+            {/* Render the groups list if on the groups tab */}
+            {this.shouldRender(
+              selectedIndex == 2,
+              <GroupList
+                navigation={this.props.navigation}
+                extendedSearch={text =>
+                  this.props.navigation.navigate("GroupSettings")
+                }
+                list={this.props.screenProps.user.groups}
+              />,
+              null
+            )}
+          </Card>
+        </KeyboardAvoidingView>
       </Screen>
     );
   }
@@ -342,118 +283,6 @@ function RatingsList(props) {
       )}
     />
   );
-}
-
-class FriendsList extends React.Component {
-  sendFriendRequest(text) {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: this.props.id,
-          friendName: text
-        })
-      }
-    )
-      .then(data => {
-        console.log(data);
-        if (data._bodyText == "success")
-          Alert.alert(
-            "Friend Request",
-            `You sent a friend request to ${text}.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-        else
-          Alert.alert(
-            "Friend Request",
-            `Friend request to ${text} could not be sent.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-      })
-      .catch(error => console.log(`sendFriendRequest: ${error}`));
-  }
-
-  filterProfile(list, text) {
-    return list.filter(item => item.Name.includes(text));
-  }
-
-  render() {
-    return (
-      <SearchList
-        navigation={this.props.navigation}
-        filterFunction={this.filterProfile}
-        extendedSearch={text => this.sendFriendRequest(text)}
-        list={{
-          list: this.props.friends.map(friend => ({ Name: friend })),
-          type: "element",
-          subList: false,
-          rank: 1,
-          renderElement: item => {
-            return (
-              <ListItem
-                chevron
-                bottomDivider
-                // leftAvatar={{
-                //   source: { uri: item.image },
-                //   containerStyle: styles.friendPicture
-                // }}
-                // subtitle={`@${item.username}`}
-                title={item.Name}
-                onPress={() =>
-                  this.props.navigation.navigate("Friend", { ID: item.Name })
-                }
-                topDivider
-              />
-            );
-          },
-          viewMore: {
-            page: "Message",
-            item: "ID"
-          }
-        }}
-      />
-    );
-  }
-}
-
-class GroupsList extends React.Component {
-  filterGroup(list, text) {
-    return list.filter(item => item.Name.includes(text));
-  }
-
-  render() {
-    return (
-      <SearchList
-        navigation={this.props.navigation}
-        filterFunction={this.filterGroup}
-        list={{
-          list: this.props.groups,
-          type: "element",
-          subList: false,
-          rank: 1,
-          viewMore: {
-            page: "Message",
-            item: "ID"
-          }
-        }}
-      />
-    );
-  }
 }
 
 const styles = StyleSheet.create({

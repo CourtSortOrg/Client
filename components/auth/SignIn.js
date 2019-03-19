@@ -26,13 +26,26 @@ export default class SignIn extends React.Component {
       password: ""
     };
 
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        console.log("Logged In");
-        this.props.navigation.navigate("Home");
-      }
-    });
+    /*firebase.auth().onAuthStateChanged(user => {
+      this.props.screenProps.functions.updateUser(user, () =>
+        this.props.navigation.navigate("Home")
+      );
+    });*/
   }
+
+  handleAuthenticationUpdate = async signInNative => {
+    const user = firebase.auth().currentUser;
+    this.props.screenProps.functions.updateUser(
+      true,
+      firebase.auth().currentUser,
+      () => this.props.navigation.navigate("Home"),
+      this.handleNoUserHandle
+    );
+  };
+
+  handleNoUserHandle = () => {
+    this.props.navigation.navigate("CreateThirdParty");
+  };
 
   signInNative = () => {
     //Dismiss the keyboard
@@ -43,8 +56,7 @@ export default class SignIn extends React.Component {
       .auth()
       .signInWithEmailAndPassword(this.state.email, this.state.password)
       .then(() => {
-        //If they successfully signed in, navigate to the home screen
-        this.props.navigation.navigate("Home");
+        this.handleAuthenticationUpdate(true);
       })
       .catch(function(error) {
         alert(error.message);
@@ -84,6 +96,9 @@ export default class SignIn extends React.Component {
               result.accessToken
             )
           )
+          .then(() => {
+            this.handleAuthenticationUpdate(false);
+          })
           .catch(function(error) {
             alert("Error", error.message);
           });
@@ -115,7 +130,10 @@ export default class SignIn extends React.Component {
           .auth()
           .signInAndRetrieveDataWithCredential(
             firebase.auth.FacebookAuthProvider.credential(token)
-          );
+          )
+          .then(() => {
+            this.handleAuthenticationUpdate(false);
+          });
       }
     } catch ({ message }) {
       alert(`Facebook Login Error: ${message}`);

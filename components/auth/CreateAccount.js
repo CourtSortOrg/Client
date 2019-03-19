@@ -3,21 +3,18 @@ import * as firebase from "firebase";
 import {
   Alert,
   Button,
-  FlatList,
   Image,
   Keyboard,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
-  TouchableHighlight,
   TouchableOpacity,
   Switch,
   View
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
-
 
 export default class CreateAccount extends React.Component {
   constructor(props) {
@@ -26,7 +23,8 @@ export default class CreateAccount extends React.Component {
   }
 
   state = {
-    name: "",
+    userName: "",
+    userHandle: "",
     email: "",
     password: "",
     isVegan: false,
@@ -36,46 +34,38 @@ export default class CreateAccount extends React.Component {
   createAccount = () => {
     Alert.alert(
       "Name: " +
-        this.state.name +
+        this.state.userName +
         "\nEmail: " +
         this.state.email +
         "\nPassword: " +
         this.state.password
     );
     Keyboard.dismiss();
-    var email = this.state.email;
-    var password = this.state.password;
+    let email = this.state.email;
+    let password = this.state.password;
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
       .then(user => {
-        var user = firebase.auth().currentUser;
-        fetch(
-          "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
-          {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              uid: user.uid,
-              name: this.state.name
-            })
-          }
-        );
-
+        /*user = firebase.auth().currentUser;
         user
           .updateProfile({
-            displayName: this.state.name
-          })
-          .then(function() {
-            alert(user.displayName);
+            displayName: this.state.userName,
+            userName: this.state.userName,
+            userHandle: this.state.userHandle
           })
           .catch(function(error) {
-            alert(error.message);
+            console.error(`createAccount: updateProfile: ${error.message}`);
           });
-        this.props.navigation.navigate("Home");
+          */
+        this.props.screenProps.functions.addUserToDatabase(
+          {
+            uid: firebase.auth().currentUser.uid,
+            userName: this.state.userName,
+            userHandle: this.state.userHandle
+          },
+          () => this.props.navigation.navigate("Home")
+        );
       })
       .catch(function(error) {
         var errorCode = error.code;
@@ -83,6 +73,7 @@ export default class CreateAccount extends React.Component {
         if (errorCode == "auth/weak-password") {
           Alert.alert("the password is too weak");
         } else {
+          //console.error(`createAccount: createUserWithEmailAndPassword: ${error.message}`);
           Alert.alert("Error", error.message);
         }
       });
@@ -126,15 +117,31 @@ export default class CreateAccount extends React.Component {
             autoCapitalize="none"
             blurOnSubmit={false}
             onSubmitEditing={() => {
-              this.email.focus();
+              this.userHandle.focus();
             }}
             placeholder="Name"
             placeholderTextColor="#999"
-            onChangeText={text => this.setState({ name: text })}
+            onChangeText={text => this.setState({ userName: text })}
             returnKeyType={"next"}
             underlineColorAndroid="transparent"
           />
 
+          <TextInput
+            style={styles.input}
+            autoCapitalize="none"
+            blurOnSubmit={false}
+            onSubmitEditing={() => {
+              this.email.focus();
+            }}
+            ref={input => {
+              this.userHandle = input;
+            }}
+            placeholder="Handle"
+            placeholderTextColor="#999"
+            onChangeText={text => this.setState({ userHandle: text })}
+            returnKeyType={"next"}
+            underlineColorAndroid="transparent"
+          />
           {/* TextInput for the email */}
           <TextInput
             style={styles.input}
@@ -157,12 +164,13 @@ export default class CreateAccount extends React.Component {
           <TextInput
             style={styles.input}
             autoCapitalize="none"
-            blurOnSubmit={false}
+            blurfOnSubmit={false}
             placeholder="Password"
             placeholderTextColor="#999"
             ref={input => {
               this.password = input;
             }}
+            onSubmitEditing={() => Keyboard.dismiss()}
             onChangeText={text => this.setState({ password: text })}
             secureTextEntry={true}
             underlineColorAndroid="transparent"
