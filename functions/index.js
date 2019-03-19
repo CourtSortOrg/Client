@@ -15,6 +15,53 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
+// adds current location
+// requires userHandle and Location
+exports.checkInLocation = functions.https.onRequest(async (request, resopnse) => {
+  var user = request.body.userHandle;
+  var location = request.body.location;
+
+  if(userHandle == null || location == null)
+    throw new Error("Input data not valid!");
+  
+  var userRef = db.collection("User").doc(userHandle).get().then(async doc =>{
+    if(!doc.exists)
+      throw new Error("no such user");
+    await userRef.update({location: location});
+  });
+  response.send({success: true});
+})
+
+// removes location
+exports.removeLocation = functions.https.onRequest(async (request, resopnse) => {
+  var user = request.body.userHandle;
+
+  if(userHandle == null)
+    throw new Error("Input data not valid!");
+  
+  var userRef = db.collection("User").doc(userHandle).get().then(async doc =>{
+    if(!doc.exists)
+      throw new Error("no such user");
+    await userRef.update({location: null});
+  });
+  response.send({success: true});
+})
+
+// gets location
+exports.getLocation = functions.https.onRequest(async (request, resopnse) => {
+  var user = request.body.userHandle;
+
+  if(userHandle == null)
+    throw new Error("Input data not valid!");
+  
+  var userRef = db.collection("User").doc(userHandle).get().then(doc =>{
+    if(!doc.exists)
+      throw new Error("no such user");
+    var userJSON = doc.data();
+    resopnse.send({location: userJSON['location']});
+  });
+})
+
 // need name of dish, rating and userHandle
 exports.addRating = functions.https.onRequest(async (request, response) => {
   var dish = request.body.dish;
