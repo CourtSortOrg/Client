@@ -1858,18 +1858,22 @@ exports.reportBusyness = functions.https.onRequest((request, response) => {
     }
     else {
           var n = doc.data().numBusyReps;
+          var newBusyReps = doc.data().newBusyReps;
           var aggregateRating = doc.data().busyness;
-          var report = {rating: busyness, time: (new Date()).getTime()};
+          var newBusyTotal = doc.data().newBusyTotal;
 
           //update the aggregateRating
-          aggregateRating += busyness;
+          aggregateRating = aggregateRating + busyness;
+          newBusyTotal = newBusyTotal + busyness;
           n++;
+          newBusyReps++;
 
           //update the dining court rating
           dRef.update({
             "numBusyReps":n,
+            "newBusyReps":newBusyReps,
             "busyness":aggregateRating,
-            busyReps: admin.firestore.FieldValue.arrayUnion(report)
+            "newBusyTotal":newBusyTotal
           })
           .then(function() {
             response.send({
@@ -1901,38 +1905,121 @@ exports.getBusyness = functions.https.onRequest(async (request, response) => {
     else {
           var n = doc.data().numBusyReps;
           var aggregateRating = doc.data().busyness;
-          var reports = doc.data().busyReps;
-          var curDate = (new Date()) - 15 * 60 * 1000;
-          //var curDate = new Date(+(new Date()) - 15 * 60 * 1000);
 
-          for(var i = 0; i < reports.length; i++){
-            var date = reports[i].time;
-            /*var difference = curDate - date;
-            console.log(difference);
-            if(Math.floor(difference / 15000) >= 1){*/
-            console.log(date);
-            console.log(curDate);
-
-            if(date < curDate){
-              console.log("Removed busy rating");
-              aggregateRating -= reports[i].rating;
-              n--;
-              dRef.update({
-                busyReps: admin.firestore.FieldValue.arrayRemove(reports[i]),
-                "numBusyReps":n,
-                "busyness":aggregateRating
-              });
-            }
-            else{
-              //return the busyness rating
-                var num = Math.floor(aggregateRating/n);
-                response.send(num.toString());
-                break;
-            }
-          }
           if(n == 0){
             response.send("No ratings");
           }
+          else{
+            //return the busyness rating
+            var num = Math.floor(aggregateRating/n);
+            response.send(num.toString());
+          }
     }
+  });
+});
+
+exports.clearBusyness = functions.https.onRequest((request, response) => {
+  var courtCol = db.collection("DiningCourt");
+
+  //Earhart
+  console.log("Earhart");
+  var earhart = courtCol.doc("Earhart");
+  earhart.get().then(doc => {
+    var len = doc.data().newBusyReps;
+    var newBusyTotal = doc.data().newBusyTotal;
+    earhart.update({
+      "busyness": newBusyTotal,
+      "newBusyTotal": 0,
+      "numBusyReps": len,
+      "newBusyReps": 0
+    }).then(function(){
+      //Ford
+      console.log("Ford");
+      var ford = courtCol.doc("Ford");
+      ford.get().then(doc => {
+        len = doc.data().newBusyReps;
+        newBusyTotal = doc.data().newBusyTotal;
+        ford.update({
+          "busyness": newBusyTotal,
+          "newBusyTotal": 0,
+          "numBusyReps": len,
+          "newBusyReps": 0
+        }).then(function(){
+          //Hillenbrand
+          console.log("Hillenbrand");
+          var hillenbrand = courtCol.doc("Hillenbrand");
+          hillenbrand.get().then(doc => {
+            len = doc.data().newBusyReps;
+            newBusyTotal = doc.data().newBusyTotal;
+            hillenbrand.update({
+              "busyness": newBusyTotal,
+              "newBusyTotal": 0,
+              "numBusyReps": len,
+              "newBusyReps": 0
+            }).then(function(){
+              //Wiley
+              console.log("Wiley");
+              var wiley = courtCol.doc("Wiley");
+              wiley.get().then(doc => {
+                len = doc.data().newBusyReps;
+                newBusyTotal = doc.data().newBusyTotal;
+                wiley.update({
+                  "busyness": newBusyTotal,
+                  "newBusyTotal": 0,
+                  "numBusyReps": len,
+                  "newBusyReps": 0
+                }).then(function(){
+                  //Windsor
+                  console.log("Windsor");
+                  var windsor = courtCol.doc("Windsor");
+                  windsor.get().then(doc => {
+                    len = doc.data().newBusyReps;
+                    newBusyTotal = doc.data().newBusyTotal;
+                    windsor.update({
+                      "busyness": newBusyTotal,
+                      "newBusyTotal": 0,
+                      "numBusyReps": len,
+                      "newBusyReps": 0
+                    }).then(function(){
+                      response.send("success");
+                    }).catch(function(error){
+                      console.error(error.message);
+                      response.send("error");
+                    });
+                  }).catch(function(error){
+                    console.error(error.message);
+                    response.send("error");
+                  });
+                }).catch(function(error){
+                  console.error(error.message);
+                  response.send("error");
+                });
+              }).catch(function(error){
+                console.error(error.message);
+                response.send("error");
+              });
+            }).catch(function(error){
+              console.error(error.message);
+              response.send("error");
+            });
+          }).catch(function(error){
+            console.error(error.message);
+            response.send("error");
+          });
+        }).catch(function(error){
+          console.error(error.message);
+          response.send("error");
+        });
+      }).catch(function(error){
+        console.error(error.message);
+        response.send("error");
+      });
+    }).catch(function(error){
+      console.error(error.message);
+      response.send("error");
+    });
+  }).catch(function(error){
+    console.error(error.message);
+    response.send("error");
   });
 });
