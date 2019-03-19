@@ -13,10 +13,12 @@ export default class Home extends React.Component {
         navigation={this.props.navigation}
         backButton={false}
       >
-        <CheckInCard
-          navigation={this.props.navigation}
-          screenProps={this.props.screenProps}
-        />
+        {this.props.screenProps.user.checkInLocation != undefined && (
+          <CheckInCard
+            navigation={this.props.navigation}
+            screenProps={this.props.screenProps}
+          />
+        )}
       </Screen>
     );
   }

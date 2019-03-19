@@ -171,6 +171,14 @@ export default class App extends React.Component {
     };
   }
 
+  busynessMessage = [
+    "No one else is here!",
+    "Still easy to find a table.",
+    "It's crowded.",
+    "The line is out the door.",
+    "We can't stuff any more people in!",
+  ];
+
   _storeData = async (key, value) => {
     try {
       if (value != "") {
@@ -457,8 +465,7 @@ export default class App extends React.Component {
   };
 
   changeStatus = callback => {
-    let courtId = "set to user court id!";
-    console.log(courtId);
+    let courtId = this.state.user.checkInLocation;
 
     Alert.alert("Change Status", `What status would you like to have?`, [
       {
@@ -495,22 +502,63 @@ export default class App extends React.Component {
   };
 
   checkIntoDiningCourt = (courtId, callback) => {
-    console.log(`checked into ${courtId}`);
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/checkInLocation",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          location: courtId
+        })
+      }
+    ).catch(error => console.error(`checkInLocation: ${error}`));
+
+    this.setState({
+      user: {
+        ...this.state.user,
+        checkInLocation: courtId
+      }
+    });
+
     if (callback) callback();
   };
 
   checkOutOfDiningCourt = callback => {
-    console.log(`checked out`);
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/removeLocation",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle
+        })
+      }
+    ).catch(error => console.error(`removeLocation: ${error}`));
+
+    this.setState({
+      user: {
+        ...this.state.user,
+        checkInLocation: undefined
+      }
+    });
+
     if (callback) callback();
   };
 
   reportAlert = () => {
-    let diningCourt = "Hillenbrand";
+    let diningCourt = this.state.user.checkInLocation;
 
     const iceCream = "Ice cream machine is nonfunctional.";
     const menu = "Menu is inaccurate.";
 
-    Alert.alert("Report", `What would you like to report at ${diningCourt} // needs to be set to checkin.?`, [
+    Alert.alert("Report", `What would you like to report at ${diningCourt}?`, [
       {
         text: iceCream,
         onPress: () => this.reportMalfunction(diningCourt, iceCream)
@@ -524,24 +572,24 @@ export default class App extends React.Component {
         onPress: () =>
           Alert.alert("Busyness", `How busy is ${diningCourt}?`, [
             {
-              text: "We can't stuff any more people in!",
-              onPress: () => this.reportBusyness(diningCourt, 5)
-            },
-            {
-              text: "The line is out the door.",
+              text: this.busynessMessage[4],
               onPress: () => this.reportBusyness(diningCourt, 4)
             },
             {
-              text: "It's crowded.",
+              text: this.busynessMessage[3],
               onPress: () => this.reportBusyness(diningCourt, 3)
             },
             {
-              text: "Still easy to find a table.",
+              text: this.busynessMessage[2],
               onPress: () => this.reportBusyness(diningCourt, 2)
             },
             {
-              text: "No one else is here!",
+              text: this.busynessMessage[1],
               onPress: () => this.reportBusyness(diningCourt, 1)
+            },
+            {
+              text: this.busynessMessage[0],
+              onPress: () => this.reportBusyness(diningCourt, 0)
             }
           ])
       }
@@ -560,11 +608,11 @@ export default class App extends React.Component {
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
           diningCourt,
-          busyness,
+          busyness
         })
       }
     ).catch(error => console.error(`reportBusyness: ${error}`));
-  }
+  };
 
   reportMalfunction = (diningCourt, malfunction) => {
     fetch(
@@ -825,10 +873,11 @@ export default class App extends React.Component {
               checkIn: this.checkIn,
               checkOut: this.checkOut,
               updateNotifications: this.updateNotifications,
-              reportAlert: this.reportAlert,
+              reportAlert: this.reportAlert
             },
             user: this.state.user,
-            meals: this.state.meals
+            meals: this.state.meals,
+            busynessMessage: this.busynessMessage,
           }}
         />
       );

@@ -1,5 +1,11 @@
 import React from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, View, ScrollView } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  StyleSheet,
+  View,
+  ScrollView
+} from "react-native";
 import Carousel from "react-native-snap-carousel";
 
 import { MapView } from "expo";
@@ -122,7 +128,13 @@ export default class Map extends React.Component {
         }
       )
         .then(data => {
-          locations[index].busyness = data._bodyText;
+          if (data._bodyText != "No ratings") {
+            locations[index].busyness = this.props.screenProps.busynessMessage[
+              data._bodyText
+            ];
+          } else {
+            locations[index].busyness = "No ratings";
+          }
 
           this.setState({
             diningLocations: {
@@ -136,7 +148,6 @@ export default class Map extends React.Component {
   };
 
   renderDiningCard = ({ item }) => {
-    console.log(item);
     return (
       <Card
         header={item.name}
@@ -150,32 +161,32 @@ export default class Map extends React.Component {
           }
         ]}
       >
-        <ScrollView style={{height: 100}}>
-        <View style={{padding: 16, paddingBottom: 8}}>
-          <Text type="bold">
-            {"Busyness:  "}
-            <Text>{item.busyness}</Text>
-          </Text>
-        </View>
-        <Separator/>
-        <List
-          list={item.meals.map((meal, index) => {
-            if (meal.hours) {
-              return {
-                Name: `${meal.name}: ${convertToTwelveHour(
-                  meal.hours.StartTime
-                )}-${convertToTwelveHour(meal.hours.EndTime)}`
-              };
-            } else {
-              return {
-                Name: `${meal.name}: Not serving`
-              };
-            }
-          })}
-          type="element"
-          subList={false}
-          rank={1}
-        />
+        <ScrollView style={{ height: 100 }}>
+          <View style={{ padding: 16, paddingBottom: 8 }}>
+            <Text type="bold">
+              {"Busyness:  "}
+              <Text>{item.busyness}</Text>
+            </Text>
+          </View>
+          <Separator />
+          <List
+            list={item.meals.map((meal, index) => {
+              if (meal.hours) {
+                return {
+                  Name: `${meal.name}: ${convertToTwelveHour(
+                    meal.hours.StartTime
+                  )}-${convertToTwelveHour(meal.hours.EndTime)}`
+                };
+              } else {
+                return {
+                  Name: `${meal.name}: Not serving`
+                };
+              }
+            })}
+            type="element"
+            subList={false}
+            rank={1}
+          />
         </ScrollView>
       </Card>
     );
