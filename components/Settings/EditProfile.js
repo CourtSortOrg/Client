@@ -63,7 +63,7 @@ export default class EditProfile extends React.Component {
     this.state = {
       restrictions: restrictions,
       showNameDialog: false,
-      userRestrictions: ["Wheat", "Tree Nuts", "Shellfish"]
+      userRestrictions: this.props.screenProps.user.dietaryRestrictions
     };
     //this.props.screenProps.user.dietaryRestrictions
 
@@ -118,7 +118,14 @@ export default class EditProfile extends React.Component {
         backButtonCallback={() => {
           console.log("BACK");
           //TODO: Add saving state of restrictions
-          //this.props.navigation.goBack();
+          var newRestrictions = [];
+          for(let i = 0; i < restrictions.length; i++) {
+              if(restrictions[i].enabled) {
+                newRestrictions.push(restrictions[i].name);
+              }
+          }
+          this.props.screenProps.functions.updateDietaryRestrictions(newRestrictions);
+          this.props.navigation.goBack();
         }}
       >
         <Card header={"Your Information"}>

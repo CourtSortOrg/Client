@@ -427,6 +427,17 @@ export default class App extends React.Component {
     ]);
   };
 
+  updateDietaryRestrictions = async restrictions => {
+    await this.setState({
+      user: {
+        ...this.state.user,
+        dietaryRestrictions: restrictions
+      }
+    });
+    //TODO: Make call to server with update user info
+    console.log(restrictions);
+  };
+
   checkIn = (courtId, callback) => {
     Alert.alert(
       "Check In",
@@ -738,7 +749,8 @@ export default class App extends React.Component {
               updateGroup: this.updateGroup,
               changeStatus: this.changeStatus,
               checkIn: this.checkIn,
-              checkOut: this.checkOut
+              checkOut: this.checkOut,
+              updateDietaryRestrictions: this.updateDietaryRestrictions
             },
             user: this.state.user,
             meals: this.state.meals
