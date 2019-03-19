@@ -60,47 +60,48 @@ export default class Profile extends React.Component {
     return expr ? comp1 : comp2;
   };
 
-  sendFriendRequest = text => {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userHandle: this.props.screenProps.user.userHandle,
-          friendHandle: text
-        })
-      }
-    )
-      .then(data => {
-        //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
-        if (data._bodyText == "success")
-          Alert.alert(
-            "Friend Request",
-            `You sent a friend request to ${text}.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-        else
-          Alert.alert(
-            "Friend Request",
-            `Friend request to ${text} could not be sent.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-      })
-      .catch(error => console.error(`sendFriendRequest: ${error}`));
+  sendFriendRequest = () => {
+    this.props.navigation.navigate("AddUser");
+    // fetch(
+    //   "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
+    //   {
+    //     method: "POST",
+    //     headers: {
+    //       Accept: "application/json",
+    //       "Content-Type": "application/json"
+    //     },
+    //     body: JSON.stringify({
+    //       userHandle: this.props.screenProps.user.userHandle,
+    //       friendHandle: text
+    //     })
+    //   }
+    // )
+    //   .then(data => {
+    //     //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+    //     if (data._bodyText == "success")
+    //       Alert.alert(
+    //         "Friend Request",
+    //         `You sent a friend request to ${text}.`,
+    //         [
+    //           {
+    //             text: "Ok"
+    //           }
+    //         ],
+    //         { cancelable: false }
+    //       );
+    //     else
+    //       Alert.alert(
+    //         "Friend Request",
+    //         `Friend request to ${text} could not be sent.`,
+    //         [
+    //           {
+    //             text: "Ok"
+    //           }
+    //         ],
+    //         { cancelable: false }
+    //       );
+    //   })
+    //   .catch(error => console.error(`sendFriendRequest: ${error}`));
   };
 
   render() {
@@ -164,7 +165,7 @@ export default class Profile extends React.Component {
               renderItem={(data, index) => {
                 return (
                   <View style={{ alignItems: "center" }}>
-                    <AllergenIcon name={data} />
+                    <AllergenIcon enabled name={data} />
                     <Text>{data}</Text>
                   </View>
                 );

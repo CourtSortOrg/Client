@@ -29,6 +29,7 @@ import Meals from "./components/main/Meals";
 import Message from "./components/main/Message";
 import Messages from "./components/main/Messages";
 import Notifications from "./components/main/Notifications";
+import AddUser from "./components/main/AddUser";
 
 import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
@@ -91,6 +92,9 @@ const SettingsNavigation = createStackNavigator(
 
 const MainNavigation = createStackNavigator(
   {
+    AddUser: {
+      screen: AddUser
+    },
     Messages: {
       screen: Messages
     },
@@ -429,6 +433,38 @@ export default class App extends React.Component {
           )
       }
     ]);
+  };
+
+  updateDietaryRestrictions = async restrictions => {
+    await this.setState({
+      user: {
+        ...this.state.user,
+        dietaryRestrictions: restrictions
+      }
+    });
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/setDietaryRestrictions",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          dietaryRestrictionArray: restrictions
+        })
+      }
+    )
+      .then(data => {
+        // try {
+        //   this.updateUser(true, user, callback);
+        // } catch (error) {
+        //   console.error(`setDietaryRestrictions : ${error}--${data._bodyText}`);
+        // }
+      })
+      .catch(error => console.error(`setDietaryRestrictions : ${error}`));
   };
 
   checkIn = (courtId, callback) => {
@@ -872,6 +908,7 @@ export default class App extends React.Component {
               changeStatus: this.changeStatus,
               checkIn: this.checkIn,
               checkOut: this.checkOut,
+              updateDietaryRestrictions: this.updateDietaryRestrictions,
               updateNotifications: this.updateNotifications,
               reportAlert: this.reportAlert
             },

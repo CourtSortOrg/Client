@@ -63,7 +63,7 @@ export default class EditProfile extends React.Component {
     this.state = {
       restrictions: restrictions,
       showNameDialog: false,
-      userRestrictions: ["Wheat", "Tree Nuts", "Shellfish"]
+      userRestrictions: this.props.screenProps.user.dietaryRestrictions
     };
     //this.props.screenProps.user.dietaryRestrictions
 
@@ -112,10 +112,23 @@ export default class EditProfile extends React.Component {
     return (
       <Screen
         title="Edit Profile"
+        showNavigation={false}
         navigation={{ ...this.props.navigation }}
         backButton={true}
+        backButtonCallback={() => {
+          console.log("BACK");
+          //TODO: Add saving state of restrictions
+          var newRestrictions = [];
+          for(let i = 0; i < restrictions.length; i++) {
+              if(restrictions[i].enabled) {
+                newRestrictions.push(restrictions[i].name);
+              }
+          }
+          this.props.screenProps.functions.updateDietaryRestrictions(newRestrictions);
+          this.props.navigation.goBack();
+        }}
       >
-        <Card header={"User Information"}>
+        <Card header={"Your Information"}>
           <ListItem
             title={`Profile Name: ${this.props.screenProps.user.userName}`}
             onPress={() => {
@@ -133,7 +146,7 @@ export default class EditProfile extends React.Component {
             chevron
           />
         </Card>
-        <Card header={"Dietary Restrictions"}>
+        <Card header={"Your Dietary Restrictions"}>
           <VariableGrid
             data={this.state.restrictions}
             colPattern={[3]}

@@ -19,6 +19,7 @@ export default class Screen extends React.Component {
           navigation={{ ...this.props.navigation }}
           title={this.props.title}
           backButton={this.props.backButton}
+          backButtonCallback={this.props.backButtonCallback}
           map={this.props.map}
           active={this.props.title}
           {...this.props.header}
