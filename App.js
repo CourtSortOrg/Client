@@ -434,8 +434,29 @@ export default class App extends React.Component {
         dietaryRestrictions: restrictions
       }
     });
-    //TODO: Make call to server with update user info
-    console.log(restrictions);
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/setDietaryRestrictions",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: user.userHandle,
+          dietaryRestrictionArray: restrictions
+        })
+      }
+    )
+      .then(data => {
+        // try {
+        //   this.updateUser(true, user, callback);
+        // } catch (error) {
+        //   console.error(`setDietaryRestrictions : ${error}--${data._bodyText}`);
+        // }
+      })
+      .catch(error => console.error(`setDietaryRestrictions : ${error}`));
   };
 
   checkIn = (courtId, callback) => {
