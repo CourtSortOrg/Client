@@ -444,7 +444,7 @@ export default class App extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          userHandle: user.userHandle,
+          userHandle: this.state.user.userHandle,
           dietaryRestrictionArray: restrictions
         })
       }
