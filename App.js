@@ -504,6 +504,86 @@ export default class App extends React.Component {
     if (callback) callback();
   };
 
+  reportAlert = () => {
+    let diningCourt = "Hillenbrand";
+
+    const iceCream = "Ice cream machine is nonfunctional.";
+    const menu = "Menu is inaccurate.";
+
+    Alert.alert("Report", `What would you like to report at ${diningCourt}?`, [
+      {
+        text: iceCream,
+        onPress: () => this.reportMalfunction(diningCourt, iceCream)
+      },
+      {
+        text: menu,
+        onPress: () => this.reportMalfunction(diningCourt, menu)
+      },
+      {
+        text: "Busyness",
+        onPress: () =>
+          Alert.alert("Busyness", `How busy is ${diningCourt}?`, [
+            {
+              text: "We can't stuff any more people in!",
+              onPress: () => this.reportBusyness(diningCourt, 5)
+            },
+            {
+              text: "The line is out the door.",
+              onPress: () => this.reportBusyness(diningCourt, 4)
+            },
+            {
+              text: "It's crowded.",
+              onPress: () => this.reportBusyness(diningCourt, 3)
+            },
+            {
+              text: "Still easy to find a table.",
+              onPress: () => this.reportBusyness(diningCourt, 2)
+            },
+            {
+              text: "No one else is here!",
+              onPress: () => this.reportBusyness(diningCourt, 1)
+            }
+          ])
+      }
+    ]);
+  };
+
+  reportBusyness = (diningCourt, busyness) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/reportBusyness",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          diningCourt,
+          busyness,
+        })
+      }
+    ).catch(error => console.error(`reportBusyness: ${error}`));
+  }
+
+  reportMalfunction = (diningCourt, malfunction) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/reportMalfunction",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          diningCourt,
+          malfunction
+        })
+      }
+    ).catch(error => console.error(`reportMalfunction: ${error}`));
+  };
+
   addUserToDatabase = (user, callback) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/addUserToDatabase",
@@ -745,6 +825,7 @@ export default class App extends React.Component {
               checkIn: this.checkIn,
               checkOut: this.checkOut,
               updateNotifications: this.updateNotifications,
+              reportAlert: this.reportAlert,
             },
             user: this.state.user,
             meals: this.state.meals

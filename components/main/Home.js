@@ -4,7 +4,6 @@ import { Button } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import CheckInCard from "./CheckInCard";
-import RatingsCard from "./RatingsCard";
 
 export default class Home extends React.Component {
   render() {
@@ -15,10 +14,6 @@ export default class Home extends React.Component {
         backButton={false}
       >
         <CheckInCard
-          navigation={this.props.navigation}
-          screenProps={this.props.screenProps}
-        />
-        <RatingsCard
           navigation={this.props.navigation}
           screenProps={this.props.screenProps}
         />

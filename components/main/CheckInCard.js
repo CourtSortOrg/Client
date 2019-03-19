@@ -34,6 +34,14 @@ export default class CheckIn extends React.Component {
             <Text type="sectionName">{"Status: "}</Text>
             <Text>{"profile status"}</Text>
           </View>
+          <Card
+            footer={[
+              {
+                text: "Submit Report",
+                onPress: () => this.props.screenProps.functions.reportAlert()
+              }
+            ]}
+          />
           <ProfileList
             navigation={this.props.navigation}
             list={this.props.screenProps.user.friends}
