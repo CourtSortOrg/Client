@@ -10,7 +10,7 @@ export default class CheckIn extends React.Component {
   render() {
     return (
       <Card
-        header="Checked into Dining Court"
+        header={`Checked into ${this.props.screenProps.user.checkInLocation}`}
         footer={[
           {
             text: "Change Status",
@@ -34,6 +34,14 @@ export default class CheckIn extends React.Component {
             <Text type="sectionName">{"Status: "}</Text>
             <Text>{"profile status"}</Text>
           </View>
+          <Card
+            footer={[
+              {
+                text: "Submit Report",
+                onPress: () => this.props.screenProps.functions.reportAlert()
+              }
+            ]}
+          />
           <ProfileList
             navigation={this.props.navigation}
             list={this.props.screenProps.user.friends}
