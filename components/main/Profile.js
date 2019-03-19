@@ -165,7 +165,7 @@ export default class Profile extends React.Component {
               renderItem={(data, index) => {
                 return (
                   <View style={{ alignItems: "center" }}>
-                    <AllergenIcon name={data} />
+                    <AllergenIcon enabled name={data} />
                     <Text>{data}</Text>
                   </View>
                 );
