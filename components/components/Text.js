@@ -27,5 +27,8 @@ const styles = StyleSheet.create({
   },
   sectionName: {
     fontFamily: "Quicksand-Bold",
+  },
+  bold: {
+    fontFamily: "Quicksand-Bold",
   }
 });

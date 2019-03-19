@@ -510,7 +510,7 @@ export default class App extends React.Component {
     const iceCream = "Ice cream machine is nonfunctional.";
     const menu = "Menu is inaccurate.";
 
-    Alert.alert("Report", `What would you like to report at ${diningCourt}?`, [
+    Alert.alert("Report", `What would you like to report at ${diningCourt} // needs to be set to checkin.?`, [
       {
         text: iceCream,
         onPress: () => this.reportMalfunction(diningCourt, iceCream)
