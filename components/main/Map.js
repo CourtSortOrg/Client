@@ -102,7 +102,10 @@ export default class Map extends React.Component {
               diningLocations: parsedJSON,
               loading: false
             },
-            this.getBusyness
+            () => {
+              this.getBusyness();
+              this.getMalfunctions();
+            }
           );
         } catch (error) {
           console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
@@ -144,6 +147,39 @@ export default class Map extends React.Component {
           });
         })
         .catch(error => console.error(`getBusyness ${loc.name}: ${error}`));
+    });
+  };
+
+  getMalfunctions = () => {
+    let locations = this.state.diningLocations.locations.slice();
+    locations.forEach((loc, index) => {
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctions",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            diningCourt: loc.name
+          })
+        }
+      )
+        .then(data => {
+          console.log(data._bodyText);
+          locations[index].malfunctions = JSON.parse(data._bodyText);
+
+          this.setState({
+            diningLocations: {
+              ...this.state.diningLocations,
+              locations
+            }
+          });
+        })
+        .catch(error =>
+          console.error(`getMalfunctions: ${loc.name}: ${error}`)
+        );
     });
   };
 
