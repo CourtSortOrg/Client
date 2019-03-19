@@ -7,11 +7,56 @@ admin.initializeApp(functions.config().firebase);
 
 var db = admin.firestore();
 
+var ratings = require('./ratings');
+
 //this function is for testing
 //PARAMETERS: none
 exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
+
+// need name of dish, rating and userHandle
+exports.addRating = functions.https.onRequest(async (request, response) => {
+  var dish = request.body.dish;
+  var rating = request.body.rating;
+  var userHandle = request.body.userHandle;
+
+  var error = "Input data not provided correctly!";
+  if(dish == null || rating == null || userHandle ==  null)
+    throw new Error(error);
+
+  await ratings.setRating(dish, rating, userHandle);
+  response.send("Set rating for: " + dish);
+})
+
+// needs name of dish
+exports.getRating = functions.https.onRequest(async (request, resopnse) => {
+  var dish = request.body.dish;
+
+  var error = "Input data not provided correctly!";
+  if(dish == null)
+    throw new Error(error);
+
+  var itemRef = db.collection('Dish').doc(dish);
+
+  var getItem = await itemRef.get().then(async doc => {
+      if (!doc.exists) {
+          console.log("No such dish exists mate!");
+      } else {
+          console.log("Getting rating of: " + dish);
+          var itemJSON = await doc.data();
+          var totalScore = itemJSON['totalScore'];
+          var totalVotes = itemJSON['totalVotes'];
+          console.log("Total score, Total votes: "+totalScore+", "+totalVotes);
+          var itemRating = Number(Number(totalScore) / Number(totalVotes));
+          console.log("Thus avg score is: "+itemRating);
+          resopnse.send({rating: itemRating});
+      }
+  }).catch(err => {
+      throw new Error(err);
+  });
+
+})
 
 // this function fetches the timings for dining courts on a particular day
 // PARAMETERS: date (as a string "YYYY-MM-DD")
@@ -353,7 +398,7 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
       allCourts['Courts'].push({Name: menuJSON['Location'], Meals: meals});
     }
     console.log(date);
-    db.collection("DateDishes").doc(date).set(allCourts);
+    await db.collection("DateDishes").doc(date).set(allCourts);
   }
 
   var data = []
@@ -989,7 +1034,7 @@ exports.sendFriendRequest = functions.https.onRequest(async (request, response) 
         }).catch(function(error){
           throw new Error(error);
         });
-        var notification = {type: "new friend request", id: {userObj}};
+        var notification = {type: "new friend request", id: userObj};
         friendDoc.update({
           incomingFriendReq: admin.firestore.FieldValue.arrayUnion(userObj),
           notifications: admin.firestore.FieldValue.arrayUnion(notification)
@@ -1043,7 +1088,7 @@ exports.acceptFriendRequest = functions.https.onRequest(async (request, response
 
   //remove the user from the friend's blockUser list
   var blockObj = {blockedHandle: userHandle, blockedName: userName};
-  var notification = {type: "new friend", id: {userObj}}
+  var notification = {type: "new friend", id: userObj}
 
   friendDoc.update({
     outgoingFriendReq: admin.firestore.FieldValue.arrayRemove(userObj),
@@ -1813,18 +1858,22 @@ exports.reportBusyness = functions.https.onRequest((request, response) => {
     }
     else {
           var n = doc.data().numBusyReps;
+          var newBusyReps = doc.data().newBusyReps;
           var aggregateRating = doc.data().busyness;
-          var report = {rating: busyness, time: (new Date()).getTime()};
+          var newBusyTotal = doc.data().newBusyTotal;
 
           //update the aggregateRating
-          aggregateRating += busyness;
+          aggregateRating = aggregateRating + busyness;
+          newBusyTotal = newBusyTotal + busyness;
           n++;
+          newBusyReps++;
 
           //update the dining court rating
           dRef.update({
             "numBusyReps":n,
+            "newBusyReps":newBusyReps,
             "busyness":aggregateRating,
-            busyReps: admin.firestore.FieldValue.arrayUnion(report)
+            "newBusyTotal":newBusyTotal
           })
           .then(function() {
             response.send({
@@ -1856,38 +1905,121 @@ exports.getBusyness = functions.https.onRequest(async (request, response) => {
     else {
           var n = doc.data().numBusyReps;
           var aggregateRating = doc.data().busyness;
-          var reports = doc.data().busyReps;
-          var curDate = (new Date()) - 15 * 60 * 1000;
-          //var curDate = new Date(+(new Date()) - 15 * 60 * 1000);
 
-          for(var i = 0; i < reports.length; i++){
-            var date = reports[i].time;
-            /*var difference = curDate - date;
-            console.log(difference);
-            if(Math.floor(difference / 15000) >= 1){*/
-            console.log(date);
-            console.log(curDate);
-
-            if(date < curDate){
-              console.log("Removed busy rating");
-              aggregateRating -= reports[i].rating;
-              n--;
-              dRef.update({
-                busyReps: admin.firestore.FieldValue.arrayRemove(reports[i]),
-                "numBusyReps":n,
-                "busyness":aggregateRating
-              });
-            }
-            else{
-              //return the busyness rating
-                var num = Math.floor(aggregateRating/n);
-                response.send(num.toString());
-                break;
-            }
-          }
           if(n == 0){
             response.send("No ratings");
           }
+          else{
+            //return the busyness rating
+            var num = Math.floor(aggregateRating/n);
+            response.send(num.toString());
+          }
     }
+  });
+});
+
+exports.clearBusyness = functions.https.onRequest((request, response) => {
+  var courtCol = db.collection("DiningCourt");
+
+  //Earhart
+  console.log("Earhart");
+  var earhart = courtCol.doc("Earhart");
+  earhart.get().then(doc => {
+    var len = doc.data().newBusyReps;
+    var newBusyTotal = doc.data().newBusyTotal;
+    earhart.update({
+      "busyness": newBusyTotal,
+      "newBusyTotal": 0,
+      "numBusyReps": len,
+      "newBusyReps": 0
+    }).then(function(){
+      //Ford
+      console.log("Ford");
+      var ford = courtCol.doc("Ford");
+      ford.get().then(doc => {
+        len = doc.data().newBusyReps;
+        newBusyTotal = doc.data().newBusyTotal;
+        ford.update({
+          "busyness": newBusyTotal,
+          "newBusyTotal": 0,
+          "numBusyReps": len,
+          "newBusyReps": 0
+        }).then(function(){
+          //Hillenbrand
+          console.log("Hillenbrand");
+          var hillenbrand = courtCol.doc("Hillenbrand");
+          hillenbrand.get().then(doc => {
+            len = doc.data().newBusyReps;
+            newBusyTotal = doc.data().newBusyTotal;
+            hillenbrand.update({
+              "busyness": newBusyTotal,
+              "newBusyTotal": 0,
+              "numBusyReps": len,
+              "newBusyReps": 0
+            }).then(function(){
+              //Wiley
+              console.log("Wiley");
+              var wiley = courtCol.doc("Wiley");
+              wiley.get().then(doc => {
+                len = doc.data().newBusyReps;
+                newBusyTotal = doc.data().newBusyTotal;
+                wiley.update({
+                  "busyness": newBusyTotal,
+                  "newBusyTotal": 0,
+                  "numBusyReps": len,
+                  "newBusyReps": 0
+                }).then(function(){
+                  //Windsor
+                  console.log("Windsor");
+                  var windsor = courtCol.doc("Windsor");
+                  windsor.get().then(doc => {
+                    len = doc.data().newBusyReps;
+                    newBusyTotal = doc.data().newBusyTotal;
+                    windsor.update({
+                      "busyness": newBusyTotal,
+                      "newBusyTotal": 0,
+                      "numBusyReps": len,
+                      "newBusyReps": 0
+                    }).then(function(){
+                      response.send("success");
+                    }).catch(function(error){
+                      console.error(error.message);
+                      response.send("error");
+                    });
+                  }).catch(function(error){
+                    console.error(error.message);
+                    response.send("error");
+                  });
+                }).catch(function(error){
+                  console.error(error.message);
+                  response.send("error");
+                });
+              }).catch(function(error){
+                console.error(error.message);
+                response.send("error");
+              });
+            }).catch(function(error){
+              console.error(error.message);
+              response.send("error");
+            });
+          }).catch(function(error){
+            console.error(error.message);
+            response.send("error");
+          });
+        }).catch(function(error){
+          console.error(error.message);
+          response.send("error");
+        });
+      }).catch(function(error){
+        console.error(error.message);
+        response.send("error");
+      });
+    }).catch(function(error){
+      console.error(error.message);
+      response.send("error");
+    });
+  }).catch(function(error){
+    console.error(error.message);
+    response.send("error");
   });
 });

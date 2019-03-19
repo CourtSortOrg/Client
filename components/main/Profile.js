@@ -1,5 +1,11 @@
 import React from "react";
-import { Alert, FlatList, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  FlatList,
+  StyleSheet,
+  View
+} from "react-native";
 
 import { ListItem, Rating, Button } from "react-native-elements";
 import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
@@ -25,11 +31,10 @@ export default class Profile extends React.Component {
 
       userName: "",
       initials: "",
-      restrictions: ["Fish", "Tree Nuts", "Vegan", "Vegetarian"],
+      restrictions: this.props.screenProps.user.dietaryRestrictions,
 
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
-    //this.props.screenProps.user.dietaryRestrictions
   }
 
   componentDidMount() {
@@ -71,7 +76,7 @@ export default class Profile extends React.Component {
       }
     )
       .then(data => {
-        console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+        //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
         if (data._bodyText == "success")
           Alert.alert(
             "Friend Request",
@@ -133,6 +138,7 @@ export default class Profile extends React.Component {
           <Text style={styles.profileName}>
             {this.props.screenProps.user.userName}
           </Text>
+          <Text>@{this.props.screenProps.user.userHandle}</Text>
           {/* Icon to navigate to Settings */}
           <MaterialIcons
             color="gray"
@@ -147,68 +153,71 @@ export default class Profile extends React.Component {
         </Card>
 
         {/* TODO: Add user dietary restrictions */}
-        <Card style={{ paddingVertical: 5 }}>
-          <Text type="sectionName" style={{ textAlign: "center" }}>
-            Dietary Restrictions
-          </Text>
-          <VariableGrid
-            data={this.state.restrictions}
-            colPattern={[4]}
-            renderItem={(data, index) => {
-              return (
-                <View style={{ alignItems: "center" }}>
-                  <AllergenIcon name={data} />
-                  <Text>{data}</Text>
-                </View>
-              );
-            }}
-          />
-        </Card>
+        {this.props.screenProps.user.dietaryRestrictions.length > 0 ? (
+          <Card>
+            <Text type="sectionName" style={{ textAlign: "center" }}>
+              Dietary Restrictions
+            </Text>
+            <VariableGrid
+              data={this.state.restrictions}
+              colPattern={[4]}
+              renderItem={(data, index) => {
+                return (
+                  <View style={{ alignItems: "center" }}>
+                    <AllergenIcon name={data} />
+                    <Text>{data}</Text>
+                  </View>
+                );
+              }}
+            />
+          </Card>
+        ) : null}
 
         {/* Card to show user ratings, friends, and groups */}
+        <KeyboardAvoidingView behavior="position" enabled>
+          <Card>
+            {/* ButtonGroup to choose tab */}
+            <ButtonGroup
+              buttons={buttons}
+              onPress={this.updateIndex}
+              selectedIndex={selectedIndex}
+            />
 
-        <Card>
-          {/* ButtonGroup to choose tab */}
-          <ButtonGroup
-            buttons={buttons}
-            onPress={this.updateIndex}
-            selectedIndex={selectedIndex}
-          />
+            {/* Render the ratings list if on the ratings tab */}
+            {this.shouldRender(
+              selectedIndex == 0,
+              <RatingsList
+                id={this.props.screenProps.user.id}
+                ratings={this.props.screenProps.user.ratings}
+              />,
+              null
+            )}
 
-          {/* Render the ratings list if on the ratings tab */}
-          {this.shouldRender(
-            selectedIndex == 0,
-            <RatingsList
-              id={this.props.screenProps.user.id}
-              ratings={this.props.screenProps.user.ratings}
-            />,
-            null
-          )}
+            {/* Render the friends list if on the friends tab */}
+            {this.shouldRender(
+              selectedIndex == 1,
+              <ProfileList
+                navigation={this.props.navigation}
+                extendedSearch={this.sendFriendRequest}
+                list={this.props.screenProps.user.friends}
+              />,
+              null
+            )}
 
-          {/* Render the friends list if on the friends tab */}
-          {this.shouldRender(
-            selectedIndex == 1,
-            <ProfileList
-              navigation={this.props.navigation}
-              extendedSearch={this.sendFriendRequest}
-              list={this.props.screenProps.user.friends}
-            />,
-            null
-          )}
-
-          {/* Render the groups list if on the groups tab */}
-          {this.shouldRender(
-            selectedIndex == 2,
-            <GroupList
-              navigation={this.props.navigation}
-              extendedSearch={text =>
-                this.props.navigation.navigate("GroupSettings")
-              }
-              list={this.props.screenProps.user.groups}
-            />,
-            null
-          )}
-        </Card>
+            {/* Render the groups list if on the groups tab */}
+            {this.shouldRender(
+              selectedIndex == 2,
+              <GroupList
+                navigation={this.props.navigation}
+                extendedSearch={text =>
+                  this.props.navigation.navigate("GroupSettings")
+                }
+                list={this.props.screenProps.user.groups}
+              />,
+              null
+            )}
+          </Card>
+        </KeyboardAvoidingView>
       </Screen>
     );
   }
