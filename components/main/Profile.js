@@ -4,7 +4,8 @@ import {
   KeyboardAvoidingView,
   FlatList,
   StyleSheet,
-  View
+  View,
+  TouchableOpacity
 } from "react-native";
 
 import { ListItem, Rating, Button } from "react-native-elements";
@@ -169,15 +170,26 @@ export default class Profile extends React.Component {
             style={styles.settingsIcon}
           />
           {/* Icon that displays the user's status*/}
-          <Icon
-            reverse
-            color={statusColor[this.props.screenProps.user.status]}
-            size="15"
+          <TouchableOpacity
             onPress={() => {
               console.log("Press status button");
               this.setState({ changeStatus: true });
             }}
-          />
+            style={{
+              backgroundColor: statusColor[this.props.screenProps.user.status],
+              padding: 8,
+              borderRadius: 8
+            }}
+          >
+            <Text>
+              Status:{" "}
+              {
+                this.props.screenProps.globals.statusMessage[
+                  this.props.screenProps.user.status
+                ]
+              }
+            </Text>
+          </TouchableOpacity>
         </Card>
 
         {/* TODO: Add user dietary restrictions */}
