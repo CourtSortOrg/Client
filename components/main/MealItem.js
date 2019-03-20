@@ -37,10 +37,47 @@ export default class MealItem extends React.Component {
       rating: 0,
       userRating: 0
     };
+    this.getRating(this.state.name);
   }
 
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
+  };
+
+  submitRating = async (dishName, rating, userHandle) => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/addRating", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        dish: dishName,
+        rating: rating,
+        userHandle: userHandle
+      })
+    });
+  };
+
+  getRating = async dishName => {
+    console.log(dishName);
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getRating", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        dish: dishName
+      })
+    }).then(data => {
+      let parsedData = JSON.parse(data._bodyText);
+      parsedData = parsedData.rating ? parsedData.rating : 0;
+      if (parsedData > 0) {
+        parsedData = Math.round(parsedData * 100) / 100;
+      }
+      this.setState({ rating: parsedData });
+    });
   };
 
   componentDidMount() {
@@ -69,7 +106,6 @@ export default class MealItem extends React.Component {
                   allergens: this.state.allergens.filter(a => a.Value == true)
                 },
                 () => {
-                  console.log(this.props.screenProps.user.dietaryRestrictions);
                   allergens = this.state.allergens.map(a => ({
                     ...a,
                     enabled:
@@ -106,7 +142,6 @@ export default class MealItem extends React.Component {
   }
 
   renderNutrition() {
-    console.log(this.state.allergens);
     if (this.state.selectedIndex == 0) {
       return (
         <View>
@@ -265,7 +300,13 @@ export default class MealItem extends React.Component {
                         },
                         {
                           text: "Confirm",
-                          onPress: () => console.log("Confirm Pressed")
+                          onPress: () => {
+                            this.submitRating(
+                              this.state.name,
+                              this.state.userRating,
+                              this.props.screenProps.user.userHandle
+                            );
+                          }
                         }
                       ]
                     );
