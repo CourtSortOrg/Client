@@ -13,6 +13,7 @@ import Text from "../components/Text";
 import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
+import ListElement from "../components/ListElement";
 
 export default class GroupList extends React.Component {
   filter(list, text) {
@@ -92,6 +93,12 @@ export default class GroupList extends React.Component {
         filterFunction={this.filter}
         extendedSearch={this.props.extendedSearch}
         updateSelectedList={this.props.updateSelectedList}
+        noElementFound={
+          <ListElement
+            type={"expandable"}
+            Name="No groups found"
+          />
+        }
         list={{
           list: this.props.list,
           type: "element",

@@ -207,10 +207,7 @@ export default class Profile extends React.Component {
 
         {/* TODO: Add user dietary restrictions */}
         {this.props.screenProps.user.dietaryRestrictions.length > 0 ? (
-          <Card>
-            <Text type="sectionName" style={{ textAlign: "center" }}>
-              Your Dietary Restrictions
-            </Text>
+          <Card header="Your Dietary Restrictions">
             <VariableGrid
               data={this.state.restrictions}
               colPattern={[3]}

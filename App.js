@@ -444,7 +444,7 @@ export default class App extends React.Component {
       {
         text: "Yes",
         onPress: () =>
-          this.checkOutOfDiningCourt(() => this.setStatus(2, callback))
+          this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
       }
     ]);
   };
@@ -481,9 +481,7 @@ export default class App extends React.Component {
         {
           text: this.statusMessage[0],
           onPress: () =>
-            this.checkIntoDiningCourt(courtId, () =>
-              this.setStatus(0, callback)
-            )
+            this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
         },
         {
           text: this.statusMessage[1],
@@ -495,7 +493,9 @@ export default class App extends React.Component {
         {
           text: this.statusMessage[2],
           onPress: () =>
-            this.checkOutOfDiningCourt(() => this.setStatus(2, callback))
+            this.checkIntoDiningCourt(courtId, () =>
+              this.setStatus(2, callback)
+            )
         }
       ]
     );
@@ -508,7 +508,7 @@ export default class App extends React.Component {
       {
         text: this.statusMessage[0],
         onPress: () =>
-          this.checkIntoDiningCourt(courtId, () => this.setStatus(0, callback))
+          this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
       },
       {
         text: this.statusMessage[1],
@@ -518,7 +518,7 @@ export default class App extends React.Component {
       {
         text: this.statusMessage[2],
         onPress: () =>
-          this.checkOutOfDiningCourt(() => this.setStatus(2, callback))
+          this.checkIntoDiningCourt(courtId, () => this.setStatus(2, callback))
       }
     ]);
   };
