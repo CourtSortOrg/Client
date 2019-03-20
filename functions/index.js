@@ -23,7 +23,7 @@ exports.checkInLocation = functions.https.onRequest(async (request, response) =>
 
   if(userHandle == null || location == null)
     throw new Error("Input data not valid!");
-  
+
   var userRef = await db.collection("User").doc(userHandle).get().then(async doc =>{
     if(!doc.exists)
       throw new Error("no such user");
@@ -38,7 +38,7 @@ exports.removeLocation = functions.https.onRequest(async (request, response) => 
 
   if(userHandle == null)
     throw new Error("Input data not valid!");
-  
+
   var userRef = await db.collection("User").doc(userHandle).get().then(async doc =>{
     if(!doc.exists)
       throw new Error("no such user");
@@ -53,7 +53,7 @@ exports.getLocation = functions.https.onRequest(async (request, response) => {
 
   if(userHandle == null)
     throw new Error("Input data not valid!");
-  
+
   var userRef = await db.collection("User").doc(userHandle).get().then(doc =>{
     if(!doc.exists)
       throw new Error("no such user");
@@ -182,10 +182,10 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
     var yyyy = today.getFullYear();
     if (dd < 10) {
       dd = '0' + dd;
-    } 
+    }
     if (mm < 10) {
       mm = '0' + mm;
-    } 
+    }
     date = yyyy+"-"+mm+"-"+dd;
   }
 
@@ -306,10 +306,10 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
     var yyyy = today.getFullYear();
     if (dd < 10) {
       dd = '0' + dd;
-    } 
+    }
     if (mm < 10) {
       mm = '0' + mm;
-    } 
+    }
     date = yyyy+"-"+mm+"-"+dd;
   }
 
@@ -444,10 +444,10 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
     var yyyy = today.getFullYear();
     if (dd < 10) {
       dd = '0' + dd;
-    } 
+    }
     if (mm < 10) {
       mm = '0' + mm;
-    } 
+    }
     date = yyyy+"-"+mm+"-"+dd;
   }
 
@@ -1508,10 +1508,10 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
 //  0 - Available
 //  1 - Eating
 //  2 - Busy
-//PARAMETERS: name, status
-/*exports.setUserStatus = functions.http.onRequest((request, reponse) =>{
-  var name = request.body.name;
-  var status = request.body.name;
+//PARAMETERS: userHandle, status
+exports.setUserStatus = functions.https.onRequest((request, reponse) =>{
+  var name = request.body.userHandle;
+  var status = request.body.status;
 
   console.log(name);
   console.log(status);
@@ -1526,9 +1526,9 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
 });
 
 //Retrieves the user's current status
-//PARAMETERS: name
-exports.getUserStatus = functions.http.onRequest((request, response) => {
-  var name = request.body.name;
+//PARAMETERS: userHandle
+exports.getUserStatus = functions.https.onRequest((request, response) => {
+  var name = request.body.userHandle;
 
   console.log(name);
 
