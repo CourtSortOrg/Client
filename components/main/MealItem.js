@@ -62,33 +62,35 @@ export default class MealItem extends React.Component {
           this.setState(
             {
               ...JSON.parse(data._bodyText)
-            } /*,
+            },
             () => {
               this.setState(
                 {
                   allergens: this.state.allergens.filter(a => a.Value == true)
                 },
                 () => {
-                  this.setState({
-                    allergens: this.state.allergens.map(a => ({
-                      ...a,
-                      enabled:
-                        this.props.screenProps.user.dietaryRestrictions.filter(
-                          b => {
-                            if (b.Name == a.Name) {
-                              this.setState({
-                                warning: true
-                              });
-                              return true;
-                            }
-                            return false;
+                  console.log(this.props.screenProps.user.dietaryRestrictions);
+                  allergens = this.state.allergens.map(a => ({
+                    ...a,
+                    enabled:
+                      this.props.screenProps.user.dietaryRestrictions.find(
+                        b => {
+                          if (b == a.Name) {
+                            this.setState({
+                              warning: true
+                            });
+                            return true;
                           }
-                        ).length != 0
-                    }))
+                          return false;
+                        }
+                      ) != undefined
+                  }));
+                  this.setState({
+                    allergens
                   });
                 }
               );
-            }*/
+            }
           );
         } catch (error) {
           console.error(`fetchAllOffered: ${error}: ${data._bodyText}`);
@@ -117,7 +119,7 @@ export default class MealItem extends React.Component {
                   Name="This dish matches a dietary restriction!"
                   rank={1}
                 />
-                <Separator/>
+                <Separator />
               </View>
             )}
             {this.state.allergens.length != 0 ? (
