@@ -71,7 +71,7 @@ export default class Map extends React.Component {
       diningLocations: { locations: [] },
       initialIndex: locations[initialCourt].index,
       region: {
-        latitude: locations[initialCourt].latitude,
+        latitude: locations[initialCourt].latitude - 0.001,
         longitude: locations[initialCourt].longitude,
         latitudeDelta: 0.004,
         longitudeDelta: 0.003
@@ -129,7 +129,9 @@ export default class Map extends React.Component {
       )
         .then(data => {
           if (data._bodyText != "No ratings") {
-            locations[index].busyness = this.props.screenProps.globals.busynessMessage[
+            locations[
+              index
+            ].busyness = this.props.screenProps.globals.busynessMessage[
               data._bodyText
             ];
           } else {
@@ -168,8 +170,7 @@ export default class Map extends React.Component {
         .then(async data => {
           let mal = await JSON.parse(data._bodyText);
 
-          if(mal.length != 0)
-            locations[index].malfunctions = mal;
+          if (mal.length != 0) locations[index].malfunctions = mal;
 
           this.setState({
             diningLocations: {
@@ -211,7 +212,9 @@ export default class Map extends React.Component {
               <List
                 list={item.malfunctions.map(item => {
                   return {
-                    Name: `${item.malfunction} with ${item.numOfReports} reports`
+                    Name: `${item.malfunction} with ${
+                      item.numOfReports
+                    } reports`
                   };
                 })}
                 type="element"
@@ -266,7 +269,7 @@ export default class Map extends React.Component {
               <Marker
                 key={index}
                 coordinate={{
-                  latitude: locations[key].latitude + 0.001,
+                  latitude: locations[key].latitude,
                   longitude: locations[key].longitude
                 }}
                 title={key}
@@ -293,7 +296,7 @@ export default class Map extends React.Component {
                     locations[this.state.diningLocations.locations[index].name];
                   this.mapView.animateToRegion(
                     {
-                      latitude: latlng.latitude,
+                      latitude: latlng.latitude - 0.001,
                       longitude: latlng.longitude,
                       latitudeDelta: 0.004,
                       longitudeDelta: 0.003
