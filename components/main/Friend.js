@@ -153,7 +153,7 @@ export default class Friend extends React.Component {
   }
 
   render() {
-    const statusColor = ['#0F0', '#FF0', '#F00']
+    const statusColor = ["#0F0", "#FF0", "#F00"];
     return (
       <Screen
         title="Friend"
@@ -167,13 +167,13 @@ export default class Friend extends React.Component {
             { text: "Block", onPress: () => this.blockUser() }
           ]}
         >
-        //  <Text type="subHeader" style={{ padding: 8 }}>
-        //    Status: {this.state.otherUser.status}
-        //  </Text>
+          <Text type="subHeader" style={{ padding: 8 }}>
+            Status: {this.state.otherUser.status}
+          </Text>
           <Icon
             reverse
-            color = {statusColor[this.state.otherUser.status]}
-            size = "5"
+            color={statusColor[this.state.otherUser.status]}
+            size="5"
           />
           <Separator />
           <List

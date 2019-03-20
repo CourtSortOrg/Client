@@ -249,13 +249,15 @@ export default class Profile extends React.Component {
               height="30%"
               width="90%"
             >
-              <Text style={styles.changeStatusText}>Change your status</Text>
-              <ButtonGroup
-                onPress={this.updateStatus}
-                selectedIndex={this.props.screenProps.user.status}
-                buttons={this.props.screenProps.globals.statusMessage}
-                containerStyle={{ height: 60 }}
-              />
+              <View>
+                <Text style={styles.changeStatusText}>Change your status</Text>
+                <ButtonGroup
+                  onPress={this.updateStatus}
+                  selectedIndex={this.props.screenProps.user.status}
+                  buttons={this.props.screenProps.globals.statusMessage}
+                  containerStyle={{ height: 60 }}
+                />
+              </View>
             </Overlay>
 
             {/* Render the groups list if on the groups tab */}
