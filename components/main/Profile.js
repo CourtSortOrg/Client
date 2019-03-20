@@ -32,8 +32,8 @@ export default class Profile extends React.Component {
 
       userName: "",
       initials: "",
-      status: 0,
-      
+      status: 2,
+
       restrictions: this.props.screenProps.user.dietaryRestrictions,
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
@@ -60,8 +60,9 @@ export default class Profile extends React.Component {
   // Method to change the user's current status
   // TODO: Firebase call
   updateStatus = status => {
-    this.setState({status, changeStatus: false})
-  }
+    this.setState({ changeStatus: false });
+    this.props.screenProps.functions.setStatus(status);
+  };
 
   // Helper method to choose whether to render a component
   shouldRender = (expr, comp1, comp2) => {
@@ -116,10 +117,9 @@ export default class Profile extends React.Component {
     // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
     // Create an array of buttons for changing status
-    const statusColor = ['#0F0', '#FF0', '#F00']
-    const statusButtons = ["Available", "Eating", "Busy"];
+    const statusColor = ["#0F0", "#F00", "#FF0"];
     // Retrieve user data from state
-    const { friends, groups, ratings, selectedIndex, status } = this.state;
+    const { friends, groups, ratings, selectedIndex } = this.state;
 
     if (this.props.screenProps.user == undefined) {
       this.props.navigation.navigate("Auth");
@@ -162,13 +162,13 @@ export default class Profile extends React.Component {
             size={28}
             style={styles.settingsIcon}
           />
-          // Icon that displays the user's status
+          {/* Icon that displays the user's status*/}
           <Icon
             reverse
-            color = {statusColor[this.state.status]}
-            size = "15"
+            color={statusColor[this.props.screenProps.user.status]}
+            size="15"
             onPress={() => {
-              console.log("Press status button")
+              console.log("Press status button");
               this.setState({ changeStatus: true });
             }}
           />
@@ -226,21 +226,20 @@ export default class Profile extends React.Component {
               null
             )}
 
-
-         {/* Overlay to let the user change their status */}
-          <Overlay
-            isVisible={this.state.changeStatus}
-            height="30%"
-            width="90%"
-          >
-          <Text style={styles.changeStatusText}>Change your status</Text>
-          <ButtonGroup
-            onPress={this.updateStatus}
-            selectedIndex={this.state.status}
-            buttons={statusButtons}
-            containerStyle={{height: 60}}
-          />
-          </Overlay>
+            {/* Overlay to let the user change their status */}
+            <Overlay
+              isVisible={this.state.changeStatus}
+              height="30%"
+              width="90%"
+            >
+              <Text style={styles.changeStatusText}>Change your status</Text>
+              <ButtonGroup
+                onPress={this.updateStatus}
+                selectedIndex={this.props.screenProps.user.status}
+                buttons={this.props.screenProps.globals.statusMessage}
+                containerStyle={{ height: 60 }}
+              />
+            </Overlay>
 
             {/* Render the groups list if on the groups tab */}
             {this.shouldRender(

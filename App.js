@@ -202,6 +202,8 @@ export default class App extends React.Component {
     }
   };
 
+  statusMessage = ["Available", "Busy", "Not Eating"];
+
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
@@ -416,9 +418,7 @@ export default class App extends React.Component {
       {
         text: "Yes",
         onPress: () =>
-          this.checkOutOfDiningCourt(() =>
-            this.setStatus("not eating", callback)
-          )
+          this.checkOutOfDiningCourt(() => this.setStatus(2, callback))
       }
     ]);
   };
@@ -435,22 +435,20 @@ export default class App extends React.Component {
           text: "Come eat with me!",
           onPress: () =>
             this.checkIntoDiningCourt(courtId, () =>
-              this.setStatus("available", callback)
+              this.setStatus(0, callback)
             )
         },
         {
           text: "Sorry, I'm busy.",
           onPress: () =>
             this.checkIntoDiningCourt(courtId, () =>
-              this.setStatus("busy", callback)
+              this.setStatus(1, callback)
             )
         },
         {
           text: "I'm no longer eating",
           onPress: () =>
-            this.checkOutOfDiningCourt(() =>
-              this.setStatus("not eating", callback)
-            )
+            this.checkOutOfDiningCourt(() => this.setStatus(2, callback))
         }
       ]
     );
@@ -467,30 +465,28 @@ export default class App extends React.Component {
       {
         text: "Come eat with me!",
         onPress: () =>
-          this.checkIntoDiningCourt(courtId, () =>
-            this.setStatus("available", callback)
-          )
+          this.checkIntoDiningCourt(courtId, () => this.setStatus(0, callback))
       },
       {
         text: "Sorry, I'm busy.",
         onPress: () =>
-          this.checkIntoDiningCourt(courtId, () =>
-            this.setStatus("busy", callback)
-          )
+          this.checkIntoDiningCourt(courtId, () => this.setStatus(1, callback))
       },
       {
         text: "I'm no longer eating",
         onPress: () =>
-          this.checkOutOfDiningCourt(() =>
-            this.setStatus("not eating", callback)
-          )
+          this.checkOutOfDiningCourt(() => this.setStatus(2, callback))
       }
     ]);
   };
 
+  // status is an integer.
   setStatus = (status, callback) => {
-    // fetch.
-    console.log(`set status to be ${status}`);
+    console.log(`set status to be ${this.statusMessage[status]}`);
+    this.setState({ user: { ...this.state.user, status: status } });
+
+    // firebase function
+
     if (callback) callback();
   };
 
@@ -742,9 +738,13 @@ export default class App extends React.Component {
               updateFriend: this.updateFriend,
               updateGroup: this.updateGroup,
               changeStatus: this.changeStatus,
+              setStatus: this.setStatus,
               checkIn: this.checkIn,
               checkOut: this.checkOut,
-              updateNotifications: this.updateNotifications,
+              updateNotifications: this.updateNotifications
+            },
+            globals: {
+              statusMessage: this.statusMessage
             },
             user: this.state.user,
             meals: this.state.meals
