@@ -387,8 +387,7 @@ export default class App extends React.Component {
     // action == true, add friend.
     if (action) {
       await this.fetchUser(id, async data => {
-        const arr = this.state.user.friends.slice();
-        arr = arr.filter(f => f.userHandle != id);
+        const arr = this.state.user.friends.filter(f => f.userHandle != id);
         arr.push(data);
         await this.setState({
           user: {
@@ -413,8 +412,7 @@ export default class App extends React.Component {
     // action == true, add friend.
     if (action) {
       await this.fetchGroup(id, async data => {
-        const arr = this.state.user.groups.slice();
-        arr = arr.filter(g => g.groupID != id);
+        const arr = this.state.user.groups.filter(g => g.groupID != id);
         arr.push({ ...data, groupID: id });
         await this.setState({
           user: {
@@ -928,11 +926,11 @@ export default class App extends React.Component {
               reportAlert: this.reportAlert
             },
             globals: {
-              statusMessage: this.statusMessage
+              statusMessage: this.statusMessage,
+              busynessMessage: this.busynessMessage
             },
             user: this.state.user,
             meals: this.state.meals,
-            busynessMessage: this.busynessMessage
           }}
         />
       );

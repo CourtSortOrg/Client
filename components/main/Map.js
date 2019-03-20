@@ -129,7 +129,7 @@ export default class Map extends React.Component {
       )
         .then(data => {
           if (data._bodyText != "No ratings") {
-            locations[index].busyness = this.props.screenProps.busynessMessage[
+            locations[index].busyness = this.props.screenProps.globals.busynessMessage[
               data._bodyText
             ];
           } else {
