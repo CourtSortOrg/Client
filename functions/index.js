@@ -1537,7 +1537,7 @@ exports.getUserStatus = functions.https.onRequest((request, response) => {
   }).catch(function(error){
     console.error("Error getting user status: ", error);
   });
-});*/
+});
 
 //PARAMETERS: userHandle, groupName
 exports.createGroup = functions.https.onRequest((request, response) => {
