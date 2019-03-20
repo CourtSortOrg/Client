@@ -183,6 +183,8 @@ export default class App extends React.Component {
     "We can't stuff any more people in!"
   ];
 
+  statusMessage = ["Not Eating", "Available", "Busy"];
+
   _storeData = async (key, value) => {
     try {
       if (value != "") {
@@ -213,8 +215,6 @@ export default class App extends React.Component {
       });
     }
   };
-
-  statusMessage = ["Available", "Busy", "Not Eating"];
 
   componentDidMount = async () => {
     await this._retrieveData();
@@ -479,24 +479,21 @@ export default class App extends React.Component {
       `What status would you like to have while you eat at ${courtId}?`,
       [
         {
-          text: "Cancel"
-        },
-        {
-          text: "Come eat with me!",
+          text: this.statusMessage[0],
           onPress: () =>
             this.checkIntoDiningCourt(courtId, () =>
               this.setStatus(0, callback)
             )
         },
         {
-          text: "Sorry, I'm busy.",
+          text: this.statusMessage[1],
           onPress: () =>
             this.checkIntoDiningCourt(courtId, () =>
               this.setStatus(1, callback)
             )
         },
         {
-          text: "I'm no longer eating",
+          text: this.statusMessage[2],
           onPress: () =>
             this.checkOutOfDiningCourt(() => this.setStatus(2, callback))
         }
@@ -509,20 +506,17 @@ export default class App extends React.Component {
 
     Alert.alert("Change Status", `What status would you like to have?`, [
       {
-        text: "Cancel"
-      },
-      {
-        text: "Come eat with me!",
+        text: this.statusMessage[0],
         onPress: () =>
           this.checkIntoDiningCourt(courtId, () => this.setStatus(0, callback))
       },
       {
-        text: "Sorry, I'm busy.",
+        text: this.statusMessage[1],
         onPress: () =>
           this.checkIntoDiningCourt(courtId, () => this.setStatus(1, callback))
       },
       {
-        text: "I'm no longer eating",
+        text: this.statusMessage[2],
         onPress: () =>
           this.checkOutOfDiningCourt(() => this.setStatus(2, callback))
       }
@@ -930,7 +924,7 @@ export default class App extends React.Component {
               busynessMessage: this.busynessMessage
             },
             user: this.state.user,
-            meals: this.state.meals,
+            meals: this.state.meals
           }}
         />
       );

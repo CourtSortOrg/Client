@@ -168,19 +168,19 @@ export default class Friend extends React.Component {
           ]}
         >
           <Text type="subHeader" style={{ padding: 8 }}>
-            Status: {this.state.otherUser.status}
+            {"Status: "}
+            {
+              this.props.screenProps.globals.statusMessage[
+                this.props.screenProps.user.status
+              ]
+            }
           </Text>
           <Text type="subHeader" style={{ padding: 8 }}>
-            Location: 
+            Location:
             {this.state.otherUser.location
               ? this.state.otherUser.location
               : " Not Currently Eating"}
           </Text>
-          {/* <Icon
-            reverse
-            color={statusColor[this.state.otherUser.status]}
-            size="5"
-          /> */}
           <Separator />
           <List
             navigation={this.props.navigation}

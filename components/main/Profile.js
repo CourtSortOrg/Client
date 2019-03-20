@@ -124,7 +124,7 @@ export default class Profile extends React.Component {
     // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
     // Create an array of buttons for changing status
-    const statusColor = ["#0F0", "#F00", "#FF0"];
+    const statusColor = ["#F00", "#0F0", "#FF0"];
     // Retrieve user data from state
     const { friends, groups, ratings, selectedIndex } = this.state;
 
