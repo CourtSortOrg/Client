@@ -545,6 +545,7 @@ exports.reportMalfunction = functions.https.onRequest((request, response) => {
 });
 
 //remove all malfunction reports, used to reset everything each day
+//PARAMETERS: N/A
 exports.clearMalfunctionReports = functions.https.onRequest(async (request, response) => {
   var diningRef = db.collection("DiningCourt");
   await diningRef.get().then(async function(querySnapshot) {
@@ -596,6 +597,31 @@ exports.clearMalfunctionReports = functions.https.onRequest(async (request, resp
   response.send({
     "success":true
   });
+});
+
+//get all malfunctions from a diningCourt
+//PARAMETERS: diningCourt
+exports.getMalfunctionReports = functions.https.onRequest((request, response) => {
+  var diningCourt = request.body.diningCourt;
+
+  if (diningCourt == null) {
+    throw new Error("must pass 'diningCourt' in body of request");
+  }
+  else {
+    db.collection("DiningCourt").doc(diningCourt).collection("malfunctionReports").get().then(function(querySnapshot) {
+      var malfunctions = [];
+      querySnapshot.forEach(function(doc) {
+        malfunctions.push({
+          "malfunction":doc.data().malfunction,
+          "numOfReports":doc.data().numOfReports
+        });
+      });
+      response.send(malfunctions);
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
 });
 
 //add dietary restrictions to a user
