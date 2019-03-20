@@ -5,8 +5,49 @@ import Card from "../components/Card";
 import Separator from "../components/Separator";
 import Text from "../components/Text";
 import ProfileList from "../components/ProfileList";
+import List from "../components/List";
+import ListElement from "../components/ListElement";
 
 export default class CheckIn extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      reports: undefined
+    };
+  }
+
+  componentDidMount = () => {
+    this.getMalfunctions();
+    this.props.navigation.addListener("willFocus", payload => {
+      this.getMalfunctions();
+    });
+  };
+
+  getMalfunctions = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctionReports",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          diningCourt: this.props.screenProps.user.location
+        })
+      }
+    )
+      .then(async data => {
+        let mal = await JSON.parse(data._bodyText);
+
+        if (mal.length != 0)
+          this.setState({
+            reports: mal
+          });
+      })
+      .catch(error => console.error(`getMalfunctions: ${error}`));
+  };
+
   render() {
     return (
       <Card
@@ -35,13 +76,30 @@ export default class CheckIn extends React.Component {
             <Text>{"profile status"}</Text>
           </View>
           <Card
+            header="Reports"
             footer={[
               {
                 text: "Submit Report",
                 onPress: () => this.props.screenProps.functions.reportAlert()
               }
             ]}
-          />
+          >
+            {this.state.reports != undefined ? (
+              <List
+                list={this.state.reports.map(item => {
+                  return {
+                    Name: `${item.malfunction} with ${
+                      item.numOfReports
+                    } reports`
+                  };
+                })}
+                type="element"
+                rank={1}
+              />
+            ) : (
+              <ListElement Name="No Reports" rank={1} type="element" />
+            )}
+          </Card>
           <ProfileList
             navigation={this.props.navigation}
             list={this.props.screenProps.user.friends}
