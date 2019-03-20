@@ -8,7 +8,7 @@ import {
 } from "react-native";
 
 import { ListItem, Rating, Button } from "react-native-elements";
-import { Avatar, ButtonGroup, Overlay } from "react-native-elements";
+import { Avatar, ButtonGroup, Icon, Overlay } from "react-native-elements";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import Text from "../components/Text";
@@ -28,11 +28,13 @@ export default class Profile extends React.Component {
     this.state = {
       selectedIndex: 0,
       isEditing: false,
+      changeStatus: false,
 
       userName: "",
       initials: "",
-      restrictions: this.props.screenProps.user.dietaryRestrictions,
+      status: 2,
 
+      restrictions: this.props.screenProps.user.dietaryRestrictions,
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
   }
@@ -59,6 +61,13 @@ export default class Profile extends React.Component {
   // Method to change the currently selected index of the button group
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
+  };
+
+  // Method to change the user's current status
+  // TODO: Firebase call
+  updateStatus = status => {
+    this.setState({ changeStatus: false });
+    this.props.screenProps.functions.setStatus(status);
   };
 
   // Helper method to choose whether to render a component
@@ -113,6 +122,8 @@ export default class Profile extends React.Component {
   render() {
     // Create an array of named buttons
     const buttons = ["Ratings", "Friends", "Groups"];
+    // Create an array of buttons for changing status
+    const statusColor = ["#0F0", "#F00", "#FF0"];
     // Retrieve user data from state
     const { friends, groups, ratings, selectedIndex } = this.state;
 
@@ -156,6 +167,16 @@ export default class Profile extends React.Component {
             }}
             size={28}
             style={styles.settingsIcon}
+          />
+          {/* Icon that displays the user's status*/}
+          <Icon
+            reverse
+            color={statusColor[this.props.screenProps.user.status]}
+            size="15"
+            onPress={() => {
+              console.log("Press status button");
+              this.setState({ changeStatus: true });
+            }}
           />
         </Card>
 
@@ -210,6 +231,21 @@ export default class Profile extends React.Component {
               null
             )}
 
+            {/* Overlay to let the user change their status */}
+            <Overlay
+              isVisible={this.state.changeStatus}
+              height="30%"
+              width="90%"
+            >
+              <Text style={styles.changeStatusText}>Change your status</Text>
+              <ButtonGroup
+                onPress={this.updateStatus}
+                selectedIndex={this.props.screenProps.user.status}
+                buttons={this.props.screenProps.globals.statusMessage}
+                containerStyle={{ height: 60 }}
+              />
+            </Overlay>
+
             {/* Render the groups list if on the groups tab */}
             {this.shouldRender(
               selectedIndex == 2,
@@ -256,6 +292,10 @@ function RatingsList(props) {
 const styles = StyleSheet.create({
   backgroundColor: {
     backgroundColor: "lightgray"
+  },
+  changeStatusText: {
+    textAlign: "center",
+    fontSize: 30
   },
   settingsIcon: {
     position: "absolute",

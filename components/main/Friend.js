@@ -1,6 +1,7 @@
 import React from "react";
 import * as firebase from "firebase";
 import { View, Alert, TouchableOpacity } from "react-native";
+import { Icon } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import List from "../components/List";
@@ -152,6 +153,7 @@ export default class Friend extends React.Component {
   }
 
   render() {
+    const statusColor = ['#0F0', '#FF0', '#F00']
     return (
       <Screen
         title="Friend"
@@ -165,15 +167,14 @@ export default class Friend extends React.Component {
             { text: "Block", onPress: () => this.blockUser() }
           ]}
         >
-          <Text type="subHeader" style={{ padding: 8 }}>
-            Status: {this.state.otherUser.status}
-          </Text>
-          <Text type="subHeader" style={{ padding: 8 }}>
-            Location:{" "}
-            {this.state.otherUser.location
-              ? this.state.otherUser.location
-              : "Not currently eating"}
-          </Text>
+        //  <Text type="subHeader" style={{ padding: 8 }}>
+        //    Status: {this.state.otherUser.status}
+        //  </Text>
+          <Icon
+            reverse
+            color = {statusColor[this.state.otherUser.status]}
+            size = "5"
+          />
           <Separator />
           <List
             navigation={this.props.navigation}
