@@ -143,6 +143,19 @@ export default class Profile extends React.Component {
         navigation={{ ...this.props.navigation }}
         title="Profile"
       >
+        {/* Overlay to let the user change their status */}
+        <Overlay isVisible={this.state.changeStatus} height="30%" width="90%">
+          <View>
+            <Text style={styles.changeStatusText}>Change your status</Text>
+            <ButtonGroup
+              onPress={this.updateStatus}
+              selectedIndex={this.props.screenProps.user.status}
+              buttons={this.props.screenProps.globals.statusMessage}
+              containerStyle={{ height: 60 }}
+            />
+          </View>
+        </Overlay>
+
         {/* Card that shows user information */}
         <Card style={styles.profileInformation}>
           {/* Avatar to show profile picture */}
@@ -243,23 +256,6 @@ export default class Profile extends React.Component {
               null
             )}
 
-            {/* Overlay to let the user change their status */}
-            <Overlay
-              isVisible={this.state.changeStatus}
-              height="30%"
-              width="90%"
-            >
-              <View>
-                <Text style={styles.changeStatusText}>Change your status</Text>
-                <ButtonGroup
-                  onPress={this.updateStatus}
-                  selectedIndex={this.props.screenProps.user.status}
-                  buttons={this.props.screenProps.globals.statusMessage}
-                  containerStyle={{ height: 60 }}
-                />
-              </View>
-            </Overlay>
-
             {/* Render the groups list if on the groups tab */}
             {this.shouldRender(
               selectedIndex == 2,
@@ -282,6 +278,9 @@ export default class Profile extends React.Component {
 // Ratings List Component
 // TODO: Add styles of Ratings List instead of hardcoding
 function RatingsList(props) {
+  if (props.ratings.length == 0) {
+    return <Text>No ratings yet</Text>;
+  }
   return (
     <FlatList
       data={props.ratings}
