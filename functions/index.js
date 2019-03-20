@@ -93,10 +93,19 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
   var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
 
   if(date == null){
-    // sets as default for testing
-    var error = "No date provided!";
-    throw new Error(error);
-    return;
+    var today = new Date();
+    today.setDate(today.getDate() + 7);
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; //January is 0!
+
+    var yyyy = today.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    } 
+    if (mm < 10) {
+      mm = '0' + mm;
+    } 
+    date = yyyy+"-"+mm+"-"+dd;
   }
 
   const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
@@ -208,10 +217,19 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
   var date = request.body.date;
 
   if(date == null){
-    // sets as default for testing
-    var error = "No date provided!";
-    throw new Error(error);
-    return;
+    var today = new Date();
+    today.setDate(today.getDate() + 7);
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; //January is 0!
+
+    var yyyy = today.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    } 
+    if (mm < 10) {
+      mm = '0' + mm;
+    } 
+    date = yyyy+"-"+mm+"-"+dd;
   }
 
   const urlMenu = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
@@ -337,10 +355,19 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   var date = request.body.date;
 
   if(date == null){
-    // sets as default for testing
-    var error = "No date provided!";
-    throw new Error(error);
-    return;
+    var today = new Date();
+    today.setDate(today.getDate() + 7);
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; //January is 0!
+
+    var yyyy = today.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    } 
+    if (mm < 10) {
+      mm = '0' + mm;
+    } 
+    date = yyyy+"-"+mm+"-"+dd;
   }
 
 
