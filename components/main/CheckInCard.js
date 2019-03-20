@@ -73,7 +73,7 @@ export default class CheckIn extends React.Component {
             }}
           >
             <Text type="sectionName">{"Status: "}</Text>
-            <Text>{"profile status"}</Text>
+            <Text>{this.props.screenProps.globals.statusMessage[this.props.screenProps.user.status]}</Text>
           </View>
           <Card
             header="Reports"
@@ -102,7 +102,7 @@ export default class CheckIn extends React.Component {
           </Card>
           <ProfileList
             navigation={this.props.navigation}
-            list={this.props.screenProps.user.friends}
+            list={this.props.screenProps.user.friends.filter(f => f.location == this.props.screenProps.user.location && f.status == 0)}
           />
         </View>
       </Card>
