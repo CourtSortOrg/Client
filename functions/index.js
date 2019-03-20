@@ -105,6 +105,39 @@ exports.getRating = functions.https.onRequest(async (request, resopnse) => {
 
 })
 
+//get the list of dish court ratings from a user
+//PARAMETERS: userHandle
+exports.getUserDishRatings = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle
+
+  if (userHandle == null) {
+    throw new Error("incorrect parameters");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        userRef.collection("ItemRatings").get().then(function(querySnapshot) {
+          var ItemRatingsArray = [];
+          querySnapshot.forEach(function(itemRatingDoc) {
+            ItemRatingsArray.push(itemRatingDoc.data());
+          });
+          response.send(itemRatingDoc);
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+      else {
+        throw new Error("user does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
 // this function fetches the timings for dining courts on a particular day
 // PARAMETERS: date (as a string "YYYY-MM-DD")
 exports.fetchDiningTimes = functions.https.onRequest(async (request, response)=>{
