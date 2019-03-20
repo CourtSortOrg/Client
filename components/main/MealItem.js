@@ -44,7 +44,7 @@ export default class MealItem extends React.Component {
     this.setState({ selectedIndex });
   };
 
-  submitRating = async (dishName, rating, userHandle) => {
+  addRating = async (dishName, rating, userHandle) => {
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/addRating", {
       method: "POST",
       headers: {
@@ -56,11 +56,12 @@ export default class MealItem extends React.Component {
         rating: rating,
         userHandle: userHandle
       })
-    });
+    })
+      .then(() => this.getRating(dishName))
+      .catch(error => console.error(`addRating: ${error}`));
   };
 
   getRating = async dishName => {
-    console.log(dishName);
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getRating", {
       method: "POST",
       headers: {
@@ -70,14 +71,16 @@ export default class MealItem extends React.Component {
       body: JSON.stringify({
         dish: dishName
       })
-    }).then(data => {
-      let parsedData = JSON.parse(data._bodyText);
-      parsedData = parsedData.rating ? parsedData.rating : 0;
-      if (parsedData > 0) {
-        parsedData = Math.round(parsedData * 100) / 100;
-      }
-      this.setState({ rating: parsedData });
-    });
+    })
+      .then(data => {
+        let parsedData = JSON.parse(data._bodyText);
+        parsedData = parsedData.rating ? parsedData.rating : 0;
+        if (parsedData > 0) {
+          parsedData = Math.round(parsedData * 100) / 100;
+        }
+        this.setState({ rating: parsedData });
+      })
+      .catch(error => console.error(`getRating: ${error}`));
   };
 
   componentDidMount() {
@@ -262,7 +265,10 @@ export default class MealItem extends React.Component {
             </View>
           </Card>
           {this.props.screenProps.user ? (
-            <Card header={`Your Rating`}>
+            <Card
+              header={`Your Rating`}
+              footer={[{ text: "Submit Rating", onPress: this.confirmRating }]}
+            >
               <View>
                 <View style={{ alignItems: "center" }}>
                   <Text type="sectionName">
@@ -281,38 +287,7 @@ export default class MealItem extends React.Component {
                     Press and drag to edit rating
                   </Text>
                 </View>
-
-                <Button
-                  title="Submit Rating"
-                  buttonStyle={{ backgroundColor: "#e9650d" }}
-                  titleStyle={{ color: "black", fontFamily: "Quicksand-Bold" }}
-                  onPress={() => {
-                    Alert.alert(
-                      "Update meal rating?",
-                      `By clicking confirm you will update your rating for ${
-                        this.state.name
-                      }`,
-                      [
-                        {
-                          text: "Cancel",
-                          onPress: () => console.log("Cancel Pressed"),
-                          style: "cancel"
-                        },
-                        {
-                          text: "Confirm",
-                          onPress: () => {
-                            this.submitRating(
-                              this.state.name,
-                              this.state.userRating,
-                              this.props.screenProps.user.userHandle
-                            );
-                          }
-                        }
-                      ]
-                    );
-                  }}
-                />
-              </View>
+            </View>
             </Card>
           ) : (
             <TouchableOpacity
@@ -330,6 +305,30 @@ export default class MealItem extends React.Component {
       );
     }
   }
+
+  confirmRating = () => {
+    Alert.alert(
+      "Update meal rating?",
+      `By clicking confirm you will update your rating for ${this.state.name}`,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        {
+          text: "Confirm",
+          onPress: () => {
+            this.addRating(
+              this.state.name,
+              this.state.userRating,
+              this.props.screenProps.user.userHandle
+            );
+          }
+        }
+      ]
+    );
+  };
 
   render() {
     const buttons = ["Nutrition", "Serving", "Ratings"];

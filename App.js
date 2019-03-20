@@ -472,15 +472,7 @@ export default class App extends React.Component {
           dietaryRestrictionArray: restrictions
         })
       }
-    )
-      .then(data => {
-        // try {
-        //   this.updateUser(true, user, callback);
-        // } catch (error) {
-        //   console.error(`setDietaryRestrictions : ${error}--${data._bodyText}`);
-        // }
-      })
-      .catch(error => console.error(`setDietaryRestrictions : ${error}`));
+    ).catch(error => console.error(`setDietaryRestrictions : ${error}`));
   };
 
   checkIn = (courtId, callback) => {
