@@ -151,7 +151,7 @@ export default class Map extends React.Component {
   };
 
   getMalfunctions = () => {
-    let locations = this.state.diningLocations.locations.slice();
+    /*let locations = this.state.diningLocations.locations.slice();
     locations.forEach((loc, index) => {
       fetch(
         "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctions",
@@ -180,7 +180,7 @@ export default class Map extends React.Component {
         .catch(error =>
           console.error(`getMalfunctions: ${loc.name}: ${error}`)
         );
-    });
+    });*/
   };
 
   renderDiningCard = ({ item }) => {

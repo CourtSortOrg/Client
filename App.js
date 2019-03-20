@@ -593,6 +593,8 @@ export default class App extends React.Component {
 
     const iceCream = "Ice cream machine is nonfunctional.";
     const menu = "Menu is inaccurate.";
+    const utensils = "Inadequate utensils.";
+    const paper = "All dishes are paper and plastic.";
 
     Alert.alert("Report", `What would you like to report at ${diningCourt}?`, [
       {
@@ -602,6 +604,14 @@ export default class App extends React.Component {
       {
         text: menu,
         onPress: () => this.reportMalfunction(diningCourt, menu)
+      },
+      {
+        text: utensils,
+        onPress: () => this.reportMalfunction(diningCourt, utensils)
+      },
+      {
+        text: utensils,
+        onPress: () => this.reportMalfunction(diningCourt, paper)
       },
       {
         text: "Busyness",

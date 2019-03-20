@@ -47,7 +47,6 @@ export default class Notifications extends React.Component {
     )
       .then(data => {
         let items = JSON.parse(data._bodyText);
-        console.log(items);
         items.forEach(e => this.parseNotifications(e.type, e.id));
 
         this.setState(
