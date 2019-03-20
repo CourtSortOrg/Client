@@ -180,7 +180,7 @@ export default class App extends React.Component {
     "Still easy to find a table.",
     "It's crowded.",
     "The line is out the door.",
-    "We can't stuff any more people in!",
+    "We can't stuff any more people in!"
   ];
 
   _storeData = async (key, value) => {
@@ -346,6 +346,13 @@ export default class App extends React.Component {
   };
 
   updateFriends = async callback => {
+    /*await this.setState({
+      user: {
+        ...this.state.user,
+        friends: []
+      }
+    });*/
+
     await this.fetchFriends(
       this.state.user.userHandle,
       async data =>
@@ -358,6 +365,13 @@ export default class App extends React.Component {
   };
 
   updateGroups = async callback => {
+    /*await this.setState({
+      user: {
+        ...this.state.user,
+        groups: []
+      }
+    });*/
+
     await this.fetchGroups(this.state.user.userHandle, async data => {
       await data.forEach(
         async groupID => await this.updateGroup(groupID, true)
@@ -372,6 +386,7 @@ export default class App extends React.Component {
     if (action) {
       await this.fetchUser(id, async data => {
         const arr = this.state.user.friends.slice();
+        arr = arr.filter(f => f.userHandle != id);
         arr.push(data);
         await this.setState({
           user: {
@@ -397,6 +412,7 @@ export default class App extends React.Component {
     if (action) {
       await this.fetchGroup(id, async data => {
         const arr = this.state.user.groups.slice();
+        arr = arr.filter(g => g.groupID != id);
         arr.push({ ...data, groupID: id });
         await this.setState({
           user: {
@@ -501,7 +517,7 @@ export default class App extends React.Component {
   };
 
   changeStatus = callback => {
-    let courtId = this.state.user.checkInLocation;
+    let courtId = this.state.user.location;
 
     Alert.alert("Change Status", `What status would you like to have?`, [
       {
@@ -556,7 +572,7 @@ export default class App extends React.Component {
     this.setState({
       user: {
         ...this.state.user,
-        checkInLocation: courtId
+        location: courtId
       }
     });
 
@@ -581,7 +597,7 @@ export default class App extends React.Component {
     this.setState({
       user: {
         ...this.state.user,
-        checkInLocation: undefined
+        location: undefined
       }
     });
 
@@ -589,7 +605,7 @@ export default class App extends React.Component {
   };
 
   reportAlert = () => {
-    let diningCourt = this.state.user.checkInLocation;
+    let diningCourt = this.state.user.location;
 
     const iceCream = "Ice cream machine is nonfunctional.";
     const menu = "Menu is inaccurate.";
@@ -610,7 +626,7 @@ export default class App extends React.Component {
         onPress: () => this.reportMalfunction(diningCourt, utensils)
       },
       {
-        text: utensils,
+        text: paper,
         onPress: () => this.reportMalfunction(diningCourt, paper)
       },
       {
@@ -924,7 +940,7 @@ export default class App extends React.Component {
             },
             user: this.state.user,
             meals: this.state.meals,
-            busynessMessage: this.busynessMessage,
+            busynessMessage: this.busynessMessage
           }}
         />
       );

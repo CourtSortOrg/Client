@@ -102,10 +102,7 @@ export default class Map extends React.Component {
               diningLocations: parsedJSON,
               loading: false
             },
-            () => {
-              this.getBusyness();
-              this.getMalfunctions();
-            }
+            this.getBusyness
           );
         } catch (error) {
           console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
@@ -148,13 +145,15 @@ export default class Map extends React.Component {
         })
         .catch(error => console.error(`getBusyness ${loc.name}: ${error}`));
     });
+
+    this.getMalfunctions();
   };
 
   getMalfunctions = () => {
-    /*let locations = this.state.diningLocations.locations.slice();
+    let locations = this.state.diningLocations.locations.slice();
     locations.forEach((loc, index) => {
       fetch(
-        "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctions",
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctionReports",
         {
           method: "POST",
           headers: {
@@ -166,9 +165,11 @@ export default class Map extends React.Component {
           })
         }
       )
-        .then(data => {
-          console.log(data._bodyText);
-          locations[index].malfunctions = JSON.parse(data._bodyText);
+        .then(async data => {
+          let mal = await JSON.parse(data._bodyText);
+
+          if(mal.length != 0)
+            locations[index].malfunctions = mal;
 
           this.setState({
             diningLocations: {
@@ -180,7 +181,7 @@ export default class Map extends React.Component {
         .catch(error =>
           console.error(`getMalfunctions: ${loc.name}: ${error}`)
         );
-    });*/
+    });
   };
 
   renderDiningCard = ({ item }) => {
@@ -205,6 +206,20 @@ export default class Map extends React.Component {
             </Text>
           </View>
           <Separator />
+          {item.malfunctions != undefined && (
+            <View>
+              <List
+                list={item.malfunctions.map(item => {
+                  return {
+                    Name: `${item.malfunction} with ${item.numOfReports} reports`
+                  };
+                })}
+                type="element"
+                rank={1}
+              />
+              <Separator />
+            </View>
+          )}
           <List
             list={item.meals.map((meal, index) => {
               if (meal.hours) {
