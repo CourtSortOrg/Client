@@ -10,7 +10,7 @@ export default class CheckIn extends React.Component {
   render() {
     return (
       <Card
-        header={`Checked into ${this.props.screenProps.user.checkInLocation}`}
+        header={`Checked into ${this.props.screenProps.user.location}`}
         footer={[
           {
             text: "Change Status",
