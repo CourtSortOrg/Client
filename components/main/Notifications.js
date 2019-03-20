@@ -97,7 +97,7 @@ export default class Notifications extends React.Component {
 
   addNotification = item => {
     let arr = this.state.notifications.slice();
-    let list = arr.find(l => l.id == item.dateStr);
+    let list = arr.find(l => l.date === item.date);
     if (list == undefined) {
       list = {
         date: this.dateStr,
