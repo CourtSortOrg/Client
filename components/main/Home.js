@@ -4,7 +4,7 @@ import { Button } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import CheckInCard from "./CheckInCard";
-import RatingsCard from "./RatingsCard";
+import Card from "../components/Card";
 
 export default class Home extends React.Component {
   render() {
@@ -14,14 +14,60 @@ export default class Home extends React.Component {
         navigation={this.props.navigation}
         backButton={false}
       >
-        <CheckInCard
-          navigation={this.props.navigation}
-          screenProps={this.props.screenProps}
-        />
-        <RatingsCard
-          navigation={this.props.navigation}
-          screenProps={this.props.screenProps}
-        />
+        {this.props.screenProps.user.location != undefined ? (
+          <CheckInCard
+            navigation={this.props.navigation}
+            screenProps={this.props.screenProps}
+          />
+        ) : (
+          <Card header="Check into a Dining Court!">
+            <Card
+              footer={[
+                {
+                  text: "Hillenbrand",
+                  onPress: () =>
+                    this.props.screenProps.functions.checkIn("Hillenbrand")
+                }
+              ]}
+            />
+            <Card
+              footer={[
+                {
+                  text: "Ford",
+                  onPress: () =>
+                    this.props.screenProps.functions.checkIn("Ford")
+                }
+              ]}
+            />
+            <Card
+              footer={[
+                {
+                  text: "Wiley",
+                  onPress: () =>
+                    this.props.screenProps.functions.checkIn("Wiley")
+                }
+              ]}
+            />
+            <Card
+              footer={[
+                {
+                  text: "Windsor",
+                  onPress: () =>
+                    this.props.screenProps.functions.checkIn("Windsor")
+                }
+              ]}
+            />
+            <Card
+              footer={[
+                {
+                  text: "Earhart",
+                  onPress: () =>
+                    this.props.screenProps.functions.checkIn("Earhart")
+                }
+              ]}
+            />
+          </Card>
+        )}
       </Screen>
     );
   }

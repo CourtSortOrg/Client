@@ -29,6 +29,7 @@ import Meals from "./components/main/Meals";
 import Message from "./components/main/Message";
 import Messages from "./components/main/Messages";
 import Notifications from "./components/main/Notifications";
+import AddUser from "./components/main/AddUser";
 
 import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
@@ -91,6 +92,9 @@ const SettingsNavigation = createStackNavigator(
 
 const MainNavigation = createStackNavigator(
   {
+    AddUser: {
+      screen: AddUser
+    },
     Messages: {
       screen: Messages
     },
@@ -170,6 +174,14 @@ export default class App extends React.Component {
       meals: []
     };
   }
+
+  busynessMessage = [
+    "No one else is here!",
+    "Still easy to find a table.",
+    "It's crowded.",
+    "The line is out the door.",
+    "We can't stuff any more people in!"
+  ];
 
   _storeData = async (key, value) => {
     try {
@@ -336,6 +348,13 @@ export default class App extends React.Component {
   };
 
   updateFriends = async callback => {
+    /*await this.setState({
+      user: {
+        ...this.state.user,
+        friends: []
+      }
+    });*/
+
     await this.fetchFriends(
       this.state.user.userHandle,
       async data =>
@@ -348,6 +367,13 @@ export default class App extends React.Component {
   };
 
   updateGroups = async callback => {
+    /*await this.setState({
+      user: {
+        ...this.state.user,
+        groups: []
+      }
+    });*/
+
     await this.fetchGroups(this.state.user.userHandle, async data => {
       await data.forEach(
         async groupID => await this.updateGroup(groupID, true)
@@ -362,6 +388,7 @@ export default class App extends React.Component {
     if (action) {
       await this.fetchUser(id, async data => {
         const arr = this.state.user.friends.slice();
+        arr = arr.filter(f => f.userHandle != id);
         arr.push(data);
         await this.setState({
           user: {
@@ -387,6 +414,7 @@ export default class App extends React.Component {
     if (action) {
       await this.fetchGroup(id, async data => {
         const arr = this.state.user.groups.slice();
+        arr = arr.filter(g => g.groupID != id);
         arr.push({ ...data, groupID: id });
         await this.setState({
           user: {
@@ -423,6 +451,38 @@ export default class App extends React.Component {
     ]);
   };
 
+  updateDietaryRestrictions = async restrictions => {
+    await this.setState({
+      user: {
+        ...this.state.user,
+        dietaryRestrictions: restrictions
+      }
+    });
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/setDietaryRestrictions",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          dietaryRestrictionArray: restrictions
+        })
+      }
+    )
+      .then(data => {
+        // try {
+        //   this.updateUser(true, user, callback);
+        // } catch (error) {
+        //   console.error(`setDietaryRestrictions : ${error}--${data._bodyText}`);
+        // }
+      })
+      .catch(error => console.error(`setDietaryRestrictions : ${error}`));
+  };
+
   checkIn = (courtId, callback) => {
     Alert.alert(
       "Check In",
@@ -455,8 +515,7 @@ export default class App extends React.Component {
   };
 
   changeStatus = callback => {
-    let courtId = "set to user court id!";
-    console.log(courtId);
+    let courtId = this.state.user.location;
 
     Alert.alert("Change Status", `What status would you like to have?`, [
       {
@@ -491,13 +550,144 @@ export default class App extends React.Component {
   };
 
   checkIntoDiningCourt = (courtId, callback) => {
-    console.log(`checked into ${courtId}`);
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/checkInLocation",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          location: courtId
+        })
+      }
+    ).catch(error => console.error(`checkInLocation: ${error}`));
+
+    this.setState({
+      user: {
+        ...this.state.user,
+        location: courtId
+      }
+    });
+
     if (callback) callback();
   };
 
   checkOutOfDiningCourt = callback => {
-    console.log(`checked out`);
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/removeLocation",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle
+        })
+      }
+    ).catch(error => console.error(`removeLocation: ${error}`));
+
+    this.setState({
+      user: {
+        ...this.state.user,
+        location: undefined
+      }
+    });
+
     if (callback) callback();
+  };
+
+  reportAlert = () => {
+    let diningCourt = this.state.user.location;
+
+    const iceCream = "Ice cream machine is nonfunctional.";
+    const menu = "Menu is inaccurate.";
+    const utensils = "Inadequate utensils.";
+    const paper = "All dishes are paper and plastic.";
+
+    Alert.alert("Report", `What would you like to report at ${diningCourt}?`, [
+      {
+        text: iceCream,
+        onPress: () => this.reportMalfunction(diningCourt, iceCream)
+      },
+      {
+        text: menu,
+        onPress: () => this.reportMalfunction(diningCourt, menu)
+      },
+      {
+        text: utensils,
+        onPress: () => this.reportMalfunction(diningCourt, utensils)
+      },
+      {
+        text: paper,
+        onPress: () => this.reportMalfunction(diningCourt, paper)
+      },
+      {
+        text: "Busyness",
+        onPress: () =>
+          Alert.alert("Busyness", `How busy is ${diningCourt}?`, [
+            {
+              text: this.busynessMessage[4],
+              onPress: () => this.reportBusyness(diningCourt, 4)
+            },
+            {
+              text: this.busynessMessage[3],
+              onPress: () => this.reportBusyness(diningCourt, 3)
+            },
+            {
+              text: this.busynessMessage[2],
+              onPress: () => this.reportBusyness(diningCourt, 2)
+            },
+            {
+              text: this.busynessMessage[1],
+              onPress: () => this.reportBusyness(diningCourt, 1)
+            },
+            {
+              text: this.busynessMessage[0],
+              onPress: () => this.reportBusyness(diningCourt, 0)
+            }
+          ])
+      }
+    ]);
+  };
+
+  reportBusyness = (diningCourt, busyness) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/reportBusyness",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          diningCourt,
+          busyness
+        })
+      }
+    ).catch(error => console.error(`reportBusyness: ${error}`));
+  };
+
+  reportMalfunction = (diningCourt, malfunction) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/reportMalfunction",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          diningCourt,
+          malfunction
+        })
+      }
+    ).catch(error => console.error(`reportMalfunction: ${error}`));
   };
 
   addUserToDatabase = (user, callback) => {
@@ -741,13 +931,16 @@ export default class App extends React.Component {
               setStatus: this.setStatus,
               checkIn: this.checkIn,
               checkOut: this.checkOut,
-              updateNotifications: this.updateNotifications
+              updateDietaryRestrictions: this.updateDietaryRestrictions,
+              updateNotifications: this.updateNotifications,
+              reportAlert: this.reportAlert
             },
             globals: {
               statusMessage: this.statusMessage
             },
             user: this.state.user,
-            meals: this.state.meals
+            meals: this.state.meals,
+            busynessMessage: this.busynessMessage
           }}
         />
       );

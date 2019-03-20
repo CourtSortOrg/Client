@@ -15,6 +15,53 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
+// adds current location
+// requires userHandle and Location
+exports.checkInLocation = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var location = request.body.location;
+
+  if(userHandle == null || location == null)
+    throw new Error("Input data not valid!");
+  
+  var userRef = await db.collection("User").doc(userHandle).get().then(async doc =>{
+    if(!doc.exists)
+      throw new Error("no such user");
+    await db.collection("User").doc(userHandle).update({location: location});
+  });
+  response.send({success: true});
+})
+
+// removes location
+exports.removeLocation = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if(userHandle == null)
+    throw new Error("Input data not valid!");
+  
+  var userRef = await db.collection("User").doc(userHandle).get().then(async doc =>{
+    if(!doc.exists)
+      throw new Error("no such user");
+    await db.collection("User").doc(userHandle).update({location: null});
+  });
+  response.send({success: true});
+})
+
+// gets location
+exports.getLocation = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if(userHandle == null)
+    throw new Error("Input data not valid!");
+  
+  var userRef = await db.collection("User").doc(userHandle).get().then(doc =>{
+    if(!doc.exists)
+      throw new Error("no such user");
+    var userJSON = doc.data();
+    response.send({location: userJSON['location']});
+  });
+})
+
 // need name of dish, rating and userHandle
 exports.addRating = functions.https.onRequest(async (request, response) => {
   var dish = request.body.dish;
@@ -58,6 +105,39 @@ exports.getRating = functions.https.onRequest(async (request, resopnse) => {
 
 })
 
+//get the list of dish court ratings from a user
+//PARAMETERS: userHandle
+exports.getUserDishRatings = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle
+
+  if (userHandle == null) {
+    throw new Error("incorrect parameters");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        userRef.collection("ItemRatings").get().then(function(querySnapshot) {
+          var ItemRatingsArray = [];
+          querySnapshot.forEach(function(itemRatingDoc) {
+            ItemRatingsArray.push(itemRatingDoc.data());
+          });
+          response.send(itemRatingDoc);
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+      else {
+        throw new Error("user does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
 // this function fetches the timings for dining courts on a particular day
 // PARAMETERS: date (as a string "YYYY-MM-DD")
 exports.fetchDiningTimes = functions.https.onRequest(async (request, response)=>{
@@ -75,7 +155,8 @@ exports.fetchDiningTimes = functions.https.onRequest(async (request, response)=>
 	var getDishes = await docRef.get().then(
 		doc => {
 			if(!doc.exists){
-				response.send({error: "No such data in Database. Please populate with given date."});
+				//response.send({error: "No such data in Database. Please populate with given date."});
+        throw new Error("No such data in Database. Please populate with given data.");
 			}else{
 				response.send(doc.data());
 			}
@@ -93,10 +174,19 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
   var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
 
   if(date == null){
-    // sets as default for testing
-    var error = "No date provided!";
-    throw new Error(error);
-    return;
+    var today = new Date();
+    today.setDate(today.getDate() + 7);
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; //January is 0!
+
+    var yyyy = today.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    } 
+    if (mm < 10) {
+      mm = '0' + mm;
+    } 
+    date = yyyy+"-"+mm+"-"+dd;
   }
 
   const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
@@ -208,10 +298,19 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
   var date = request.body.date;
 
   if(date == null){
-    // sets as default for testing
-    var error = "No date provided!";
-    throw new Error(error);
-    return;
+    var today = new Date();
+    today.setDate(today.getDate() + 7);
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; //January is 0!
+
+    var yyyy = today.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    } 
+    if (mm < 10) {
+      mm = '0' + mm;
+    } 
+    date = yyyy+"-"+mm+"-"+dd;
   }
 
   const urlMenu = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
@@ -337,10 +436,19 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   var date = request.body.date;
 
   if(date == null){
-    // sets as default for testing
-    var error = "No date provided!";
-    throw new Error(error);
-    return;
+    var today = new Date();
+    today.setDate(today.getDate() + 7);
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; //January is 0!
+
+    var yyyy = today.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    } 
+    if (mm < 10) {
+      mm = '0' + mm;
+    } 
+    date = yyyy+"-"+mm+"-"+dd;
   }
 
 
@@ -408,6 +516,219 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   var updated = await updateDatabase(data);
   console.log("done");
   response.send("Finished Population for "+date);
+});
+
+//function to report a malfunction
+//PARAMETERS: diningCourt, malfunction
+exports.reportMalfunction = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var diningCourt = request.body.diningCourt;
+  var malfunction = request.body.malfunction;
+
+  if (userHandle == null || diningCourt == null || malfunction == null) {
+    throw new Error("must pass 'userHandle' and 'diningCourt' and 'malfunction' in body of request");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+          var userMalfunctionReportsRef = userRef.collection("malfunctionReports").doc(diningCourt);
+          userMalfunctionReportsRef.get().then(function(doc) {
+            if (doc.exists) {
+              var reportsArr = doc.data().reports;
+              for(var i = 0; i < reportsArr.length; i++) {
+                if (reportsArr[i] == malfunction) {
+                  throw new Error("user already reported that malfunction");
+                }
+              }
+
+              userMalfunctionReportsRef.update({
+                "reports": admin.firestore.FieldValue.arrayUnion(malfunction)
+              })
+              .then(function() {
+                var diningCourtRef = db.collection("DiningCourt").doc(diningCourt).collection("malfunctionReports").doc(malfunction);
+                diningCourtRef.get().then(function(doc) {
+                  if (doc.exists) {
+                    var newNumOfReports = ++(doc.data().numOfReports);
+                    diningCourtRef.update({
+                      "reportedBy": admin.firestore.FieldValue.arrayUnion(userHandle),
+                      "numOfReports": newNumOfReports
+                    })
+                    .then(function() {
+                      response.send({
+                        "success":true
+                      })
+                    })
+                    .catch(function(error) {
+                      throw new Error(error);
+                    });
+                  }
+                  else {
+                    var newNumOfReports = 1;
+                    diningCourtRef.set({
+                      "malfunction": malfunction,
+                      "reportedBy": admin.firestore.FieldValue.arrayUnion(userHandle),
+                      "numOfReports": newNumOfReports
+                    })
+                    .then(function() {
+                      response.send({
+                        "success":true
+                      })
+                    })
+                    .catch(function(error) {
+                      throw new Error(error);
+                    });
+                  }
+                })
+                .catch(function(error) {
+                  throw new Error(error);
+                });
+              })
+              .catch(function(error) {
+                throw new Error(error);
+              });
+            }
+            else {
+              userMalfunctionReportsRef.set({
+                "diningCourt":diningCourt,
+                "reports":[malfunction]
+              })
+              .then(function() {
+                var diningCourtRef = db.collection("DiningCourt").doc(diningCourt).collection("malfunctionReports").doc(malfunction);
+                diningCourtRef.get().then(function(doc) {
+                  if (doc.exists) {
+                    var newNumOfReports = ++(doc.data().numOfReports);
+                    diningCourtRef.update({
+                      "reportedBy": admin.firestore.FieldValue.arrayUnion(userHandle),
+                      "numOfReports": newNumOfReports
+                    })
+                    .then(function() {
+                      response.send({
+                        "success":true
+                      })
+                    })
+                    .catch(function(error) {
+                      throw new Error(error);
+                    });
+                  }
+                  else {
+                    var newNumOfReports = 1;
+                    diningCourtRef.set({
+                      "malfunction": malfunction,
+                      "reportedBy": admin.firestore.FieldValue.arrayUnion(userHandle),
+                      "numOfReports": newNumOfReports
+                    })
+                    .then(function() {
+                      response.send({
+                        "success":true
+                      })
+                    })
+                    .catch(function(error) {
+                      throw new Error(error);
+                    });
+                  }
+                })
+                .catch(function(error) {
+                  throw new Error(error);
+                });
+              })
+              .catch(function(error) {
+                throw new Error(error);
+              });
+            }
+          })
+          .catch(function(error) {
+            throw new Error(error);
+          });
+      }
+      else {
+          throw new Error("user does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
+//remove all malfunction reports, used to reset everything each day
+//PARAMETERS: N/A
+exports.clearMalfunctionReports = functions.https.onRequest(async (request, response) => {
+  var diningRef = db.collection("DiningCourt");
+  await diningRef.get().then(async function(querySnapshot) {
+    await querySnapshot.forEach(async function(diningCourtdoc) {
+      var diningCourt = diningCourtdoc.data().diningCourt;
+      console.log(diningCourt);
+      var diningCourtRef = diningRef.doc(diningCourt).collection("malfunctionReports");
+      await diningCourtRef.get().then(async function(querySnapshot) {
+        await querySnapshot.forEach(async function(malfunctionReportdoc) {
+          var reportedByArr = malfunctionReportdoc.data().reportedBy;
+          for(var i = 0; i < reportedByArr.length; i++) {
+            console.log(reportedByArr[i]);
+            var userRef = db.collection("User").doc(reportedByArr[i]).collection("malfunctionReports")
+            await userRef.get().then(async function(querySnapshot) {
+              await querySnapshot.forEach(async function(userMalfunctionReportsdoc) {
+                var diningCourtName = userMalfunctionReportsdoc.data().diningCourt;
+                await userRef.doc(diningCourtName).update({
+                  "reports":[]
+                })
+                .catch(function(error) {
+                  throw new Error(error);
+                });
+              });
+            })
+            .catch(function(error) {
+              throw new Error(error);
+            });
+          }
+
+          var malfunctionName = malfunctionReportdoc.data().malfunction;
+          await diningCourtRef.doc(malfunctionName).update({
+            "numOfReports":0,
+            "reportedBy":[]
+          })
+          .catch(function(error) {
+            throw new Error(error);
+          });
+        });
+      })
+      .catch(function(error) {
+        throw new Error(error);
+      });
+    });
+  })
+  .catch(function(error) {
+    throw new Error(error);
+  });
+
+  response.send({
+    "success":true
+  });
+});
+
+//get all malfunctions from a diningCourt
+//PARAMETERS: diningCourt
+exports.getMalfunctionReports = functions.https.onRequest((request, response) => {
+  var diningCourt = request.body.diningCourt;
+
+  if (diningCourt == null) {
+    throw new Error("must pass 'diningCourt' in body of request");
+  }
+  else {
+    db.collection("DiningCourt").doc(diningCourt).collection("malfunctionReports").get().then(function(querySnapshot) {
+      var malfunctions = [];
+      querySnapshot.forEach(function(doc) {
+        malfunctions.push({
+          "malfunction":doc.data().malfunction,
+          "numOfReports":doc.data().numOfReports
+        });
+      });
+      response.send(malfunctions);
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
 });
 
 //add dietary restrictions to a user

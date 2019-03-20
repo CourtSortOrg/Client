@@ -37,10 +37,47 @@ export default class MealItem extends React.Component {
       rating: 0,
       userRating: 0
     };
+    this.getRating(this.state.name);
   }
 
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
+  };
+
+  submitRating = async (dishName, rating, userHandle) => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/addRating", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        dish: dishName,
+        rating: rating,
+        userHandle: userHandle
+      })
+    });
+  };
+
+  getRating = async dishName => {
+    console.log(dishName);
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getRating", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        dish: dishName
+      })
+    }).then(data => {
+      let parsedData = JSON.parse(data._bodyText);
+      parsedData = parsedData.rating ? parsedData.rating : 0;
+      if (parsedData > 0) {
+        parsedData = Math.round(parsedData * 100) / 100;
+      }
+      this.setState({ rating: parsedData });
+    });
   };
 
   componentDidMount() {
@@ -62,33 +99,34 @@ export default class MealItem extends React.Component {
           this.setState(
             {
               ...JSON.parse(data._bodyText)
-            } /*,
+            },
             () => {
               this.setState(
                 {
                   allergens: this.state.allergens.filter(a => a.Value == true)
                 },
                 () => {
-                  this.setState({
-                    allergens: this.state.allergens.map(a => ({
-                      ...a,
-                      enabled:
-                        this.props.screenProps.user.dietaryRestrictions.filter(
-                          b => {
-                            if (b.Name == a.Name) {
-                              this.setState({
-                                warning: true
-                              });
-                              return true;
-                            }
-                            return false;
+                  allergens = this.state.allergens.map(a => ({
+                    ...a,
+                    enabled:
+                      this.props.screenProps.user.dietaryRestrictions.find(
+                        b => {
+                          if (b == a.Name) {
+                            this.setState({
+                              warning: true
+                            });
+                            return true;
                           }
-                        ).length != 0
-                    }))
+                          return false;
+                        }
+                      ) != undefined
+                  }));
+                  this.setState({
+                    allergens
                   });
                 }
               );
-            }*/
+            }
           );
         } catch (error) {
           console.error(`fetchAllOffered: ${error}: ${data._bodyText}`);
@@ -104,7 +142,6 @@ export default class MealItem extends React.Component {
   }
 
   renderNutrition() {
-    console.log(this.state.allergens);
     if (this.state.selectedIndex == 0) {
       return (
         <View>
@@ -117,7 +154,7 @@ export default class MealItem extends React.Component {
                   Name="This dish matches a dietary restriction!"
                   rank={1}
                 />
-                <Separator/>
+                <Separator />
               </View>
             )}
             {this.state.allergens.length != 0 ? (
@@ -263,7 +300,13 @@ export default class MealItem extends React.Component {
                         },
                         {
                           text: "Confirm",
-                          onPress: () => console.log("Confirm Pressed")
+                          onPress: () => {
+                            this.submitRating(
+                              this.state.name,
+                              this.state.userRating,
+                              this.props.screenProps.user.userHandle
+                            );
+                          }
                         }
                       ]
                     );

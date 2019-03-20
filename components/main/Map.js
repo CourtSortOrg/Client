@@ -1,5 +1,11 @@
 import React from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  StyleSheet,
+  View,
+  ScrollView
+} from "react-native";
 import Carousel from "react-native-snap-carousel";
 
 import { MapView } from "expo";
@@ -10,6 +16,7 @@ import Footer from "../Nav/Footer";
 import Card from "../components/Card";
 import Text from "../components/Text";
 import List from "../components/List";
+import Separator from "../components/Separator";
 
 const locations = {
   Hillenbrand: {
@@ -90,16 +97,92 @@ export default class Map extends React.Component {
       .then(data => {
         try {
           let parsedJSON = JSON.parse(data._bodyText);
-          this.setState({
-            diningLocations: parsedJSON,
-            loading: false
-          });
+          this.setState(
+            {
+              diningLocations: parsedJSON,
+              loading: false
+            },
+            this.getBusyness
+          );
         } catch (error) {
           console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
         }
       })
       .catch(error => console.error(`fetchDiningTimes: ${error}`));
   }
+
+  getBusyness = () => {
+    let locations = this.state.diningLocations.locations.slice();
+    locations.forEach((loc, index) => {
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getBusyness",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            diningCourt: loc.name
+          })
+        }
+      )
+        .then(data => {
+          if (data._bodyText != "No ratings") {
+            locations[index].busyness = this.props.screenProps.busynessMessage[
+              data._bodyText
+            ];
+          } else {
+            locations[index].busyness = "No ratings";
+          }
+
+          this.setState({
+            diningLocations: {
+              ...this.state.diningLocations,
+              locations
+            }
+          });
+        })
+        .catch(error => console.error(`getBusyness ${loc.name}: ${error}`));
+    });
+
+    this.getMalfunctions();
+  };
+
+  getMalfunctions = () => {
+    let locations = this.state.diningLocations.locations.slice();
+    locations.forEach((loc, index) => {
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctionReports",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            diningCourt: loc.name
+          })
+        }
+      )
+        .then(async data => {
+          let mal = await JSON.parse(data._bodyText);
+
+          if(mal.length != 0)
+            locations[index].malfunctions = mal;
+
+          this.setState({
+            diningLocations: {
+              ...this.state.diningLocations,
+              locations
+            }
+          });
+        })
+        .catch(error =>
+          console.error(`getMalfunctions: ${loc.name}: ${error}`)
+        );
+    });
+  };
 
   renderDiningCard = ({ item }) => {
     return (
@@ -115,24 +198,47 @@ export default class Map extends React.Component {
           }
         ]}
       >
-        <List
-          list={item.meals.map((meal, index) => {
-            if (meal.hours) {
-              return {
-                Name: `${meal.name}: ${convertToTwelveHour(
-                  meal.hours.StartTime
-                )}-${convertToTwelveHour(meal.hours.EndTime)}`
-              };
-            } else {
-              return {
-                Name: `${meal.name}: Not serving`
-              };
-            }
-          })}
-          type="element"
-          subList={false}
-          rank={1}
-        />
+        <ScrollView style={{ height: 100 }}>
+          <View style={{ padding: 16, paddingBottom: 8 }}>
+            <Text type="bold">
+              {"Busyness:  "}
+              <Text>{item.busyness}</Text>
+            </Text>
+          </View>
+          <Separator />
+          {item.malfunctions != undefined && (
+            <View>
+              <List
+                list={item.malfunctions.map(item => {
+                  return {
+                    Name: `${item.malfunction} with ${item.numOfReports} reports`
+                  };
+                })}
+                type="element"
+                rank={1}
+              />
+              <Separator />
+            </View>
+          )}
+          <List
+            list={item.meals.map((meal, index) => {
+              if (meal.hours) {
+                return {
+                  Name: `${meal.name}: ${convertToTwelveHour(
+                    meal.hours.StartTime
+                  )}-${convertToTwelveHour(meal.hours.EndTime)}`
+                };
+              } else {
+                return {
+                  Name: `${meal.name}: Not serving`
+                };
+              }
+            })}
+            type="element"
+            subList={false}
+            rank={1}
+          />
+        </ScrollView>
       </Card>
     );
   };
@@ -160,7 +266,7 @@ export default class Map extends React.Component {
               <Marker
                 key={index}
                 coordinate={{
-                  latitude: locations[key].latitude,
+                  latitude: locations[key].latitude + 0.001,
                   longitude: locations[key].longitude
                 }}
                 title={key}

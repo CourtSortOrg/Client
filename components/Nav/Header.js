@@ -38,7 +38,13 @@ export default class Header extends React.Component {
             {this.props.backButton && (
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => this.props.navigation.goBack()}
+                onPress={() => {
+                  if (this.props.backButtonCallback) {
+                    this.props.backButtonCallback();
+                  } else {
+                    this.props.navigation.goBack();
+                  }
+                }}
               >
                 <Image
                   style={styles.icon}
@@ -71,9 +77,11 @@ export default class Header extends React.Component {
             {this.props.map == true && (
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => this.props.navigation.navigate("Map", {
-                  ID: "Hillenbrand"
-                })}
+                onPress={() =>
+                  this.props.navigation.navigate("Map", {
+                    ID: "Hillenbrand"
+                  })
+                }
               >
                 <Image
                   style={styles.icon}
