@@ -28,7 +28,7 @@ module.exports = {
                     currScore = 0;
                 var currVotes = itemJSON['totalVotes'];
                 if(currVotes == undefined)
-                    currScore = 0;
+                    currVotes = 0;
                 //check if the user has already rated the dish
                 await userRef.get().then(async uDoc => {
                     if(uDoc.exists){
