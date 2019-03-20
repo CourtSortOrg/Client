@@ -911,6 +911,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
       incomingFriendReq: [],
       incomingGroupInvites: [],
       ratings: [],
+      status: 0,
       notifications: []
     }
     db.collection("User").doc(userHandle).set(updatedUser).then(function() {
