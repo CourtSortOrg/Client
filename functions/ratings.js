@@ -42,6 +42,6 @@ module.exports = {
             throw new Error(err);
         });
         
-        await userRef.set({rating: rating});
+        await userRef.set({rating: rating, dish: dish});
     }
 }
