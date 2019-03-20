@@ -42,6 +42,12 @@ export default class Profile extends React.Component {
     if (this.props.screenProps.user == undefined) {
       this.props.navigation.navigate("Auth");
     }
+
+    this.props.navigation.addListener("willFocus", payload => {
+      this.setState({
+        restrictions: this.props.screenProps.user.dietaryRestrictions
+      });
+    });
   }
 
   componentDidUpdate(prevProps) {
@@ -157,16 +163,15 @@ export default class Profile extends React.Component {
         {this.props.screenProps.user.dietaryRestrictions.length > 0 ? (
           <Card>
             <Text type="sectionName" style={{ textAlign: "center" }}>
-              Dietary Restrictions
+              Your Dietary Restrictions
             </Text>
             <VariableGrid
               data={this.state.restrictions}
-              colPattern={[4]}
+              colPattern={[3]}
               renderItem={(data, index) => {
                 return (
                   <View style={{ alignItems: "center" }}>
                     <AllergenIcon enabled name={data} />
-                    <Text>{data}</Text>
                   </View>
                 );
               }}
