@@ -5,13 +5,15 @@ import {
   StyleSheet,
   Text,
   View,
-  AsyncStorage
+  AsyncStorage,
+  Picker
 } from "react-native";
 import {
   createSwitchNavigator,
   createStackNavigator,
   createAppContainer
 } from "react-navigation";
+import { Overlay } from "react-native-elements";
 import { Font } from "expo";
 
 import Splash from "./components/auth/Splash";
@@ -37,6 +39,8 @@ import EditProfile from "./components/Settings/EditProfile";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
+
+import Card from "./components/components/Card";
 
 import * as firebase from "firebase";
 import config from "./config";
@@ -180,7 +184,7 @@ export default class App extends React.Component {
     "Still easy to find a table.",
     "It's crowded.",
     "The line is out the door.",
-    "We can't stuff any more people in!"
+    "There is no more space!"
   ];
 
   statusMessage = ["Not Eating", "Available", "Busy"];
@@ -598,58 +602,145 @@ export default class App extends React.Component {
     if (callback) callback();
   };
 
-  reportAlert = () => {
+  reportAlert = callback => {
     let diningCourt = this.state.user.location;
+    let reportMalfunction = this.reportMalfunction;
+    let busynessAlert = this.busynessAlert;
 
-    const iceCream = "Ice cream machine is nonfunctional.";
-    const menu = "Menu is inaccurate.";
-    const utensils = "Inadequate utensils.";
-    const paper = "All dishes are paper and plastic.";
+    class AlertPicker extends React.Component {
+      state = {
+        chosen: 0,
+        visible: true,
+        options: [
+          {
+            text: "Cancel",
+            onPress: 0
+          },
+          {
+            text: "Ice cream machine is nonfunctional.",
+            onPress: 1
+          },
+          {
+            text: "Menu is inaccurate.",
+            onPress: 1
+          },
+          {
+            text: "Inadequate utensils.",
+            onPress: 1
+          },
+          {
+            text: "All dishes are paper and plastic.",
+            onPress: 1
+          }
+        ]
+      };
 
-    Alert.alert("Report", `What would you like to report at ${diningCourt}?`, [
-      {
-        text: iceCream,
-        onPress: () => this.reportMalfunction(diningCourt, iceCream)
-      },
-      {
-        text: menu,
-        onPress: () => this.reportMalfunction(diningCourt, menu)
-      },
-      {
-        text: utensils,
-        onPress: () => this.reportMalfunction(diningCourt, utensils)
-      },
-      {
-        text: paper,
-        onPress: () => this.reportMalfunction(diningCourt, paper)
-      },
-      {
-        text: "Busyness",
-        onPress: () =>
-          Alert.alert("Busyness", `How busy is ${diningCourt}?`, [
-            {
-              text: this.busynessMessage[4],
-              onPress: () => this.reportBusyness(diningCourt, 4)
-            },
-            {
-              text: this.busynessMessage[3],
-              onPress: () => this.reportBusyness(diningCourt, 3)
-            },
-            {
-              text: this.busynessMessage[2],
-              onPress: () => this.reportBusyness(diningCourt, 2)
-            },
-            {
-              text: this.busynessMessage[1],
-              onPress: () => this.reportBusyness(diningCourt, 1)
-            },
-            {
-              text: this.busynessMessage[0],
-              onPress: () => this.reportBusyness(diningCourt, 0)
-            }
-          ])
+      render() {
+        return (
+          <Overlay
+            overlayStyle={{ padding: 0 }}
+            containerStyle={{ padding: 0, margin: 0 }}
+            isVisible={this.state.visible}
+          >
+            <Card
+              style={{ margin: -20 }}
+              header={`Report at ${diningCourt}?`}
+              footer={[
+                {
+                  text: "Submit",
+                  onPress: () => {
+                    switch (this.state.options[this.state.chosen].onPress) {
+                      case 0:
+                        break;
+                      case 1:
+                        reportMalfunction(
+                          diningCourt,
+                          this.state.options[this.state.chosen].text
+                        );
+                        break;
+                      case 2:
+                        busynessAlert();
+                        break;
+                    }
+                    this.setState({
+                      visible: false
+                    });
+                    if (callback) callback();
+                  }
+                }
+              ]}
+            >
+              <Picker
+                selectedValue={this.state.chosen}
+                onValueChange={(itemValue, itemIndex) => {
+                  this.setState({ chosen: itemValue });
+                }}
+              >
+                {this.state.options.map((o, index) => {
+                  return <Picker.Item label={o.text} value={index} />;
+                })}
+              </Picker>
+            </Card>
+          </Overlay>
+        );
       }
-    ]);
+    }
+
+    return <AlertPicker />;
+  };
+
+  busynessAlert = callback => {
+    let diningCourt = this.state.user.location;
+    let reportBusyness = this.reportBusyness;
+    let busynessMessage = this.busynessMessage;
+
+    class BusynessPicker extends React.Component {
+      state = {
+        chosen: 0,
+        visible: true,
+        options: busynessMessage
+      };
+
+      render() {
+        return (
+          <Overlay
+            overlayStyle={{ padding: 0 }}
+            containerStyle={{ padding: 0, margin: 0 }}
+            isVisible={this.state.visible}
+          >
+            <Card
+              style={{ margin: -20 }}
+              header={`Busyness at ${diningCourt}?`}
+              footer={[
+                {
+                  text: "Submit",
+                  onPress: () => {
+                    reportBusyness(diningCourt, this.state.chosen);
+                    this.setState({
+                      visible: false
+                    });
+                    if (callback) callback();
+                  }
+                }
+              ]}
+            >
+              <Picker
+                selectedValue={this.state.chosen}
+                onValueChange={(itemValue, itemIndex) => {
+                  this.setState({ chosen: itemValue });
+                }}
+              >
+                {this.state.options.map((o, index) => {
+                  return <Picker.Item label={o} value={index} />;
+                })}
+              </Picker>
+            </Card>
+          </Overlay>
+        );
+      }
+    }
+
+    return <BusynessPicker />;
   };
 
   reportBusyness = (diningCourt, busyness) => {
@@ -932,7 +1023,8 @@ export default class App extends React.Component {
               checkOut: this.checkOut,
               updateDietaryRestrictions: this.updateDietaryRestrictions,
               updateNotifications: this.updateNotifications,
-              reportAlert: this.reportAlert
+              reportAlert: this.reportAlert,
+              busynessAlert: this.busynessAlert
             },
             globals: {
               statusMessage: this.statusMessage,
