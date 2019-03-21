@@ -2171,7 +2171,7 @@ exports.getAggregateDiningCourtRatings = functions.https.onRequest((request, res
   dRef.get().then(function(querySnapshot) {
     var diningCourtRatingsArr = [];
     querySnapshot.forEach(function(diningCourtDoc) {
-      diningCourtRatingsArr.push(diningCourtDoc.data());
+      diningCourtRatingsArr.push(diningCourtDoc.data().rating);
     });
     response.send(diningCourtRatingsArr);
   })
