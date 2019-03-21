@@ -2165,15 +2165,19 @@ exports.getDiningCourtRatings = functions.https.onRequest((request, response) =>
 });
 
 //get the list of aggregate dining court ratings
-//PARAMETERS: N/A
+//PARAMETERS: diningCourt
 exports.getAggregateDiningCourtRatings = functions.https.onRequest((request, response) => {
-  dRef = db.collection("DiningCourt");
-  dRef.get().then(function(querySnapshot) {
-    var diningCourtRatingsArr = [];
-    querySnapshot.forEach(function(diningCourtDoc) {
-      diningCourtRatingsArr.push(diningCourtDoc.data().rating);
-    });
-    response.send(diningCourtRatingsArr);
+  var diningCourt = request.body.diningCourt;
+  console.log(diningCourt);
+
+  if(diningCourt == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  dRef = db.collection("DiningCourt").doc(diningCourt);;
+  dRef.get().then(doc => {
+    response.send(doc.data().rating.toString());
   })
   .catch(function(error) {
     throw new Error(error);
