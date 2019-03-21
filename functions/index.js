@@ -1510,19 +1510,25 @@ exports.getOutgoingFriendRequests = functions.https.onRequest((request, response
 //  1 - Eating
 //  2 - Busy
 //PARAMETERS: userHandle, status
-exports.setUserStatus = functions.https.onRequest((request, reponse) =>{
+exports.setUserStatus = functions.https.onRequest((request, response) =>{
   var name = request.body.userHandle;
   var status = request.body.status;
 
   console.log(name);
   console.log(status);
 
-  db.collection("User").doc(name).set({
+  if(name == null || status == null){
+    throw new Error("incorrect parameters");
+  }
+
+  db.collection("User").doc(name).update({
     status: status
   }).then(function(){
     console.log("Status updated.");
+    response.send("success");
   }).catch(function(error){
     console.error("Error updating status: ", error);
+    throw new Error(error.message);
   });
 });
 
@@ -1533,10 +1539,15 @@ exports.getUserStatus = functions.https.onRequest((request, response) => {
 
   console.log(name);
 
+  if(name == null){
+    throw new Error("incorrect parameters");
+  }
+
   db.collection("User").doc(name).get().then(doc => {
-    response.send(doc.data().status);
+    response.send(doc.data().status.toString());
   }).catch(function(error){
     console.error("Error getting user status: ", error);
+    throw new Error(error.message);
   });
 });
 
