@@ -555,6 +555,7 @@ export default class Notifications extends React.Component {
         title="Notifications"
         navigation={{ ...this.props.navigation }}
         backButton={false}
+        refresh={() => this.getNotifications()}
       >
         {this.state.loadingNotifications ? (
           <ActivityIndicator size="large" color="#e9650d" />

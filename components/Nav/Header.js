@@ -1,6 +1,7 @@
 import React from "react";
 import { View, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { Button, Avatar } from "react-native-elements";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import Text from "../components/Text";
 
@@ -89,6 +90,18 @@ export default class Header extends React.Component {
                 />
               </TouchableOpacity>
             )}
+            {this.props.refresh && (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => this.props.refresh()}
+              >
+                <MaterialIcons
+                  name="refresh"
+                  size={25}
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
+            )}
             {this.props.showNavigation != false && (
               <TouchableOpacity
                 onPress={() => this.props.navigation.navigate("Notifications")}
@@ -121,6 +134,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     aspectRatio: 1,
-    height: 25
+    height: 25,
   }
 });
