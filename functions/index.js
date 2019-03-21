@@ -122,7 +122,7 @@ exports.getUserDishRatings = functions.https.onRequest((request, response) => {
           querySnapshot.forEach(function(itemRatingDoc) {
             ItemRatingsArray.push(itemRatingDoc.data());
           });
-          response.send(itemRatingDoc);
+          response.send(ItemRatingsArray);
         })
         .catch(function(error) {
           throw new Error(error);
