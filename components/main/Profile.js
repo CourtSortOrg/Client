@@ -281,14 +281,14 @@ function RatingsList(props) {
   return (
     <FlatList
       data={props.ratings}
-      keyExtractor={item => item.id}
+      keyExtractor={item => item.dish}
       renderItem={({ item }) => (
         <ListItem
           bottomDivider
           subtitle={
             <View style={{ alignItems: "flex-start", flexDirection: "row" }}>
-              <Rating imageSize={20} readonly startingValue={item.userRating} />
-              <Text style={{ marginLeft: 5 }}>({item.diningCourt})</Text>
+              <Rating imageSize={20} readonly startingValue={item.rating} />
+              <Text style={{ marginLeft: 5 }}>({item.rating})</Text>
             </View>
           }
           title={item.dish}

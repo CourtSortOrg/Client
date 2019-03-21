@@ -306,6 +306,8 @@ export default class App extends React.Component {
       await this.updateProfile(() => console.log("profile loaded"));
       await this.updateFriends(() => console.log("friends loaded"));
       await this.updateGroups(() => console.log("groups loaded"));
+      await this.updateRatings();
+      // TODO: Get the user's ratings here
 
       await this._storeData(`user`, JSON.stringify(this.state.user));
 
@@ -434,6 +436,30 @@ export default class App extends React.Component {
           groups: this.state.user.groups.filter(g => g.groupID != id)
         }
       });
+    }
+  };
+
+  updateRatings = async () => {
+    try {
+      let data = await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserDishRatings",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      let ratingData = await JSON.parse(data._bodyText);
+      await this.setState({
+        user: { ...this.state.user, ratings: ratingData }
+      });
+    } catch (error) {
+      console.error(`getUserDishRatings : ${error}`);
     }
   };
 
