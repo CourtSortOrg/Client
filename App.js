@@ -529,7 +529,6 @@ export default class App extends React.Component {
 
   // status is an integer.
   setStatus = (status, callback) => {
-    console.log(`set status to be ${this.statusMessage[status]}`);
     this.setState({ user: { ...this.state.user, status: status } });
 
     // firebase function
@@ -833,7 +832,6 @@ export default class App extends React.Component {
   };
 
   fetchFriends = async (id, callback) => {
-    console.log(id);
     await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends",
       {
