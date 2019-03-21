@@ -213,7 +213,7 @@ export default class Notifications extends React.Component {
     id = {
       Name: `@${
         id.userHandle
-      } accepted your group invitation to join the group: ${id.groupName}.`,
+      } joined the group: ${id.groupName}.`,
       date: this.dateStr,
       ...id
     };
