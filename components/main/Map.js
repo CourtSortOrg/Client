@@ -154,6 +154,7 @@ export default class Map extends React.Component {
 
   getRatings = () => {
     let locations = this.state.diningLocations.locations.slice();
+    locations.forEach((loc, index) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getAggregateDiningCourtRatings",
       {
@@ -163,17 +164,15 @@ export default class Map extends React.Component {
           "Content-Type": "application/json"
         },
           body: JSON.stringify({
-
+            diningCourt: loc.name
         })
       }
     )
       .then(data => {
         console.log("~~~RESPONSE FROM getAggregateDiningCourtRatings:")
-        console.log(data);
         console.log(data._bodyText);
-        locations.forEach((index) => {
-          locations[index].rating = data.diningCourtRatingsArr[index];
-        });
+
+        locations[index].rating = data._bodyText;
 
         this.setState({
           diningLocations: {
@@ -183,7 +182,7 @@ export default class Map extends React.Component {
         });
       })
       .catch(error => console.error(`getRatings: ${error}`));
-
+    });
     this.getMalfunctions();
   };
 
