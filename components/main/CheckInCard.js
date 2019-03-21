@@ -12,9 +12,7 @@ export default class CheckIn extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      reports: undefined,
-      renderReport: false,
-      renderBusyness: false
+      reports: undefined
     };
   }
 
@@ -75,20 +73,14 @@ export default class CheckIn extends React.Component {
             }}
           >
             <Text type="sectionName">{"Status: "}</Text>
-            <Text>
-              {
-                this.props.screenProps.globals.statusMessage[
-                  this.props.screenProps.user.status
-                ]
-              }
-            </Text>
+            <Text>{this.props.screenProps.globals.statusMessage[this.props.screenProps.user.status]}</Text>
           </View>
           <Card
             header="Reports"
             footer={[
               {
                 text: "Submit Report",
-                onPress: () => this.setState({ renderReport: true })
+                onPress: () => this.props.screenProps.functions.reportAlert()
               }
             ]}
           >
@@ -108,31 +100,11 @@ export default class CheckIn extends React.Component {
               <ListElement Name="No Reports" rank={1} type="element" />
             )}
           </Card>
-          <Card
-            footer={[
-              {
-                text: "Submit Busyness Report",
-                onPress: () => this.setState({ renderBusyness: true })
-              }
-            ]}
-          />
           <ProfileList
             navigation={this.props.navigation}
-            list={this.props.screenProps.user.friends.filter(
-              f =>
-                f.location == this.props.screenProps.user.location &&
-                f.status == 0
-            )}
+            list={this.props.screenProps.user.friends.filter(f => f.location == this.props.screenProps.user.location && f.status == 0)}
           />
         </View>
-        {this.state.renderReport &&
-          this.props.screenProps.functions.reportAlert(() =>
-            this.setState({ renderReport: false })
-          )}
-        {this.state.renderBusyness &&
-          this.props.screenProps.functions.busynessAlert(() =>
-            this.setState({ renderBusyness: false })
-          )}
       </Card>
     );
   }
