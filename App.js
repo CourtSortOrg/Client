@@ -529,6 +529,20 @@ export default class App extends React.Component {
     this.setState({ user: { ...this.state.user, status: status } });
 
     // firebase function
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/setUserStatus",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          status: status
+        })
+      }
+    ).catch(error => console.error(`checkInLocation: ${error}`));
 
     if (callback) callback();
   };
@@ -705,7 +719,7 @@ export default class App extends React.Component {
     try {
       if (callback) callback(JSON.parse(data._bodyText));
     } catch (error) {
-      console.error(`${functionName}: ${error}: ${data._bodyText}`);
+      console.error(`${functionName}: ${error} -- ${data}`);
     }
   };
 
@@ -728,6 +742,7 @@ export default class App extends React.Component {
   };
 
   fetchFriends = async (id, callback) => {
+    console.log(id);
     await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getFriends",
       {
