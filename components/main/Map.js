@@ -148,6 +148,42 @@ export default class Map extends React.Component {
         .catch(error => console.error(`getBusyness ${loc.name}: ${error}`));
     });
 
+    this.getRatings();
+  };
+
+
+  getRatings = () => {
+    let locations = this.state.diningLocations.locations.slice();
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getAggregateDiningCourtRatings",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+          body: JSON.stringify({
+
+        })
+      }
+    )
+      .then(data => {
+        console.log("~~~RESPONSE FROM getAggregateDiningCourtRatings:")
+        console.log(data);
+        console.log(data._bodyText);
+        locations.forEach((index) => {
+          locations[index].rating = data.diningCourtRatingsArr[index];
+        });
+
+        this.setState({
+          diningLocations: {
+            ...this.state.diningLocations,
+            locations
+          }
+        });
+      })
+      .catch(error => console.error(`getRatings: ${error}`));
+
     this.getMalfunctions();
   };
 
@@ -200,6 +236,13 @@ export default class Map extends React.Component {
         ]}
       >
         <ScrollView style={{ height: 100 }}>
+          <View style={{ padding: 16, paddingBottom: 8 }}>
+            <Text>
+              {"Rating: "}
+              <Text>{item.rating}</Text>
+            </Text>
+          </View>
+          <Separator />
           <View style={{ padding: 16, paddingBottom: 8 }}>
             <Text type="bold">
               {"Busyness:  "}
