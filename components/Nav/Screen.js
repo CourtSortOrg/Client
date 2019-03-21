@@ -21,6 +21,7 @@ export default class Screen extends React.Component {
           backButton={this.props.backButton}
           backButtonCallback={this.props.backButtonCallback}
           map={this.props.map}
+          refresh={this.props.refresh}
           active={this.props.title}
           {...this.props.header}
         />
