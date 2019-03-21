@@ -13,10 +13,6 @@ export default class Messages extends React.Component {
         backButton={false}
       >
         <Text>Messages</Text>
-        <Button
-          title="Message"
-          onPress={() => this.props.navigation.push("Message")}
-        />
       </Screen>
     );
   }
