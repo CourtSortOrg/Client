@@ -947,9 +947,7 @@ export default class App extends React.Component {
           rating
         })
       }
-    )
-      .then(data => this.handleData(`getDiningCourtRatings`, data, callback))
-      .catch(error => console.error(`getDiningCourtRatings: ${error}`));
+    ).catch(error => console.error(`rateDiningCourt: ${error}`));
   };
 
   fetchMeals = (from, left) => {
@@ -1022,7 +1020,8 @@ export default class App extends React.Component {
               updateDietaryRestrictions: this.updateDietaryRestrictions,
               updateNotifications: this.updateNotifications,
               reportAlert: this.reportAlert,
-              busynessAlert: this.busynessAlert
+              busynessAlert: this.busynessAlert,
+              rateDiningCourt: this.rateDiningCourt
             },
             globals: {
               statusMessage: this.statusMessage,

@@ -7,6 +7,7 @@ import Text from "../components/Text";
 import ProfileList from "../components/ProfileList";
 import List from "../components/List";
 import ListElement from "../components/ListElement";
+import { Rating } from "react-native-elements";
 
 export default class CheckIn extends React.Component {
   constructor(props) {
@@ -14,7 +15,9 @@ export default class CheckIn extends React.Component {
     this.state = {
       reports: undefined,
       renderReport: false,
-      renderBusyness: false
+      renderBusyness: false,
+      hasRatedCourt: false,
+      userCourtRating: 0
     };
   }
 
@@ -61,7 +64,15 @@ export default class CheckIn extends React.Component {
           },
           {
             text: "Check Out",
-            onPress: () => this.props.screenProps.functions.checkOut()
+            onPress: () => {
+              if (this.state.hasRatedCourt) {
+                this.props.screenProps.functions.rateDiningCourt(
+                  this.props.screenProps.user.location,
+                  this.state.userCourtRating
+                );
+              }
+              this.props.screenProps.functions.checkOut();
+            }
           }
         ]}
       >
@@ -116,6 +127,17 @@ export default class CheckIn extends React.Component {
               }
             ]}
           />
+
+          <View style={{ marginBottom: 10 }}>
+            <Text style={{ textAlign: "center" }}>Rate Your Visit</Text>
+            <Rating
+              startingValue={this.state.userCourtRating}
+              onFinishRating={rating => {
+                this.setState({ hasRatedCourt: true, userCourtRating: rating });
+              }}
+            />
+          </View>
+
           <ProfileList
             navigation={this.props.navigation}
             list={this.props.screenProps.user.friends.filter(
