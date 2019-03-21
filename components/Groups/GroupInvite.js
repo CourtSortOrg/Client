@@ -15,14 +15,14 @@ export default class GroupInvite extends React.Component {
     };
   }
 
-  componentDidMount = () => {
+  componentWillMount = () => {
     if (this.props.groupID !== "NO-ID") {
-      let friends = this.state.friends.filter(friend => {
-        this.props.members.forEach(member => {
-          if (member.userHandle === friend.userHandle) return false;
-        });
-        return true;
-      });
+      let friends = this.state.friends.filter(
+        friend =>
+          this.props.members.find(
+            member => member.userHandle === friend.userHandle
+          ) == undefined
+      );
 
       this.setState({
         friends

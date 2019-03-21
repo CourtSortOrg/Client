@@ -19,6 +19,7 @@ export default class Group extends React.Component {
 
       ...this.props.screenProps.user
     };
+    
     if (this.state.groupID !== "NO-ID") {
       let groups = this.props.screenProps.user.groups.filter(
         group => group.groupID === this.state.groupID

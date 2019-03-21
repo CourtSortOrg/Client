@@ -14,13 +14,13 @@ export default class GroupSettings extends React.Component {
       selectedFriends: [],
       groupID: this.props.navigation.getParam("ID", "NO-ID"),
       group: {
-        members: [],
+        memberObjects: [],
         groupName: ""
       }
     };
   }
 
-  componentDidMount = () => {
+  componentWillMount = () => {
     // get group from screenProps.
     if(this.state.groupID !== "NO-ID") {
       let groups = this.props.screenProps.user.groups.filter(group => group.groupID === this.state.groupID);
@@ -201,10 +201,11 @@ export default class GroupSettings extends React.Component {
         />
         <GroupInvite
           friends={this.props.screenProps.user.friends}
-          members={this.state.group.members}
+          members={this.state.group.memberObjects}
           groupID={this.state.groupID}
           updateSelectedList={this.updateSelectedList}
           handleInvites={this.handleInvites}
+          screenProps={this.props.screenProps}
         />
         {this.state.groupID === "NO-ID" ? (
           <Card
