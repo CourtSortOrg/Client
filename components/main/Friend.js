@@ -28,21 +28,18 @@ export default class Friend extends React.Component {
     const friend = this.props.screenProps.user.friends.filter(
       friend => friend.userHandle === this.state.otherUser.userHandle
     );
-    if (friend.length == 1)
-      this.setState({
-        otherUser: { ...friend[0] }
-      });
-    else {
-      console.log("Refetching friend");
-      this.props.screenProps.functions.fetchFriend(
-        this.state.otherUser.userHandle,
-        data =>
-          this.setState({
-            otherUser: { ...this.state.otherUser, ...data }
-            //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
-          })
-      );
-    }
+    this.setState({
+      otherUser: { ...friend[0] }
+    });
+    console.log("Refetching friend");
+    this.props.screenProps.functions.fetchFriend(
+      this.state.otherUser.userHandle,
+      data =>
+        this.setState({
+          otherUser: { ...this.state.otherUser, ...data }
+          //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
+        })
+    );
   }
 
   removeFriend() {
@@ -171,7 +168,7 @@ export default class Friend extends React.Component {
             {"Status: "}
             {
               this.props.screenProps.globals.statusMessage[
-                this.props.screenProps.otherUser.status
+                this.state.otherUser.status
               ]
             }
           </Text>
