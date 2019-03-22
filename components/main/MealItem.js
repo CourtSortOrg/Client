@@ -16,8 +16,16 @@ export default class MealItem extends React.Component {
   constructor(props) {
     super(props);
 
+    let name = this.props.navigation.getParam("ID", "NO-ID");
+    let rating = 0;
+    for (let i in this.props.screenProps.user.ratings) {
+      if (this.props.screenProps.user.ratings[i].dish == name) {
+        rating = this.props.screenProps.user.ratings[i].rating;
+      }
+    }
+
     this.state = {
-      name: this.props.navigation.getParam("ID", "NO-ID"),
+      name: name,
       selectedIndex: 0,
       nutrition: [],
       ingredients: "",
@@ -35,7 +43,7 @@ export default class MealItem extends React.Component {
         }
       ],
       rating: 0,
-      userRating: 0
+      userRating: rating
     };
     this.getRating(this.state.name);
   }
