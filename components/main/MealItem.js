@@ -18,11 +18,12 @@ export default class MealItem extends React.Component {
 
     let name = this.props.navigation.getParam("ID", "NO-ID");
     let rating = 0;
-    for (let i in this.props.screenProps.user.ratings) {
-      if (this.props.screenProps.user.ratings[i].dish == name) {
-        rating = this.props.screenProps.user.ratings[i].rating;
+    if (this.props.screenProps.user != undefined)
+      for (let i in this.props.screenProps.user.ratings) {
+        if (this.props.screenProps.user.ratings[i].dish == name) {
+          rating = this.props.screenProps.user.ratings[i].rating;
+        }
       }
-    }
 
     this.state = {
       name: name,
@@ -275,7 +276,7 @@ export default class MealItem extends React.Component {
               />
             </View>
           </Card>
-          {this.props.screenProps.user ? (
+          {this.props.screenProps.user != undefined ? (
             <Card
               header={`Your Rating`}
               footer={[{ text: "Submit Rating", onPress: this.confirmRating }]}
