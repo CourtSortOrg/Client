@@ -11,7 +11,7 @@ export default class Notifications extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loadingNotifications: true,
+      loadingNotifications: false,
       loadingGroups: true,
       loadingFriends: true,
       loadingWarnings: true,
@@ -32,39 +32,49 @@ export default class Notifications extends React.Component {
   }`;
 
   getNotifications = () => {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getNotifications",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userHandle: this.state.userHandle
-        })
-      }
-    )
-      .then(data => {
-        let items = JSON.parse(data._bodyText);
-        items.forEach(e => this.parseNotifications(e.type, e.id));
+    if (!this.state.loadingNotifications) {
+      this.setState({
+        loadingNotifications: true
+      });
 
-        this.setState(
-          {
-            loadingNotifications: false
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getNotifications",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
           },
-          () =>
-            this.props.screenProps.functions.updateNotifications(
-              this.state.notifications
-            )
-        );
-        /*} catch (error) {
+          body: JSON.stringify({
+            userHandle: this.state.userHandle
+          })
+        }
+      )
+        .then(data => {
+          let items = JSON.parse(data._bodyText);
+          items.forEach(e => this.parseNotifications(e.type, e.id));
+
+          this.setState(
+            {
+              loadingNotifications: false
+            },
+            () => {
+              this.props.screenProps.functions.updateNotifications(
+                this.state.notifications
+              );
+              this.setState({
+                loadingNotifications: false
+              });
+            }
+          );
+          /*} catch (error) {
           console.error(
             `getIncomingFriendRequests: ${error}: ${data._bodyText}`
           );
         }*/
-      })
-      .catch(error => console.error(`getNotifications: ${error}`));
+        })
+        .catch(error => console.error(`getNotifications: ${error}`));
+    }
   };
 
   parseNotifications = (type, id) => {
