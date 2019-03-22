@@ -28,7 +28,7 @@ export default class Header extends React.Component {
           }}
         >
           <View style={{ flex: 1, flexDirection: "row" }}>
-            {this.props.showNavigation != false && (
+            {this.props.showNavigation != false && this.props.screenProps.user != undefined && (
               <Avatar
                 small
                 rounded
@@ -102,7 +102,7 @@ export default class Header extends React.Component {
                 />
               </TouchableOpacity>
             )}
-            {this.props.showNavigation != false && (
+            {this.props.showNavigation != false && this.props.screenProps.user != undefined && (
               <TouchableOpacity
                 onPress={() => this.props.navigation.navigate("Notifications")}
               >

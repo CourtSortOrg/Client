@@ -141,6 +141,7 @@ export default class Settings extends React.Component {
   render() {
     return (
       <Screen
+        screenProps={this.props.screenProps}
         title="Settings"
         navigation={{ ...this.props.navigation }}
         backButton={true}

@@ -17,6 +17,7 @@ export default class Screen extends React.Component {
           styles={styles}
           showNavigation={this.props.showNavigation}
           navigation={{ ...this.props.navigation }}
+          screenProps={this.props.screenProps}
           title={this.props.title}
           backButton={this.props.backButton}
           backButtonCallback={this.props.backButtonCallback}
@@ -28,6 +29,7 @@ export default class Screen extends React.Component {
         <Body>{this.props.children}</Body>
         <Footer
           styles={styles}
+          screenProps={this.props.screenProps}
           showNavigation={this.props.showNavigation}
           navigation={{ ...this.props.navigation }}
           active={this.props.title}

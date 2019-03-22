@@ -19,7 +19,7 @@ export default class Group extends React.Component {
 
       ...this.props.screenProps.user
     };
-    
+
     if (this.state.groupID !== "NO-ID") {
       let groups = this.props.screenProps.user.groups.filter(
         group => group.groupID === this.state.groupID
@@ -39,6 +39,7 @@ export default class Group extends React.Component {
       <Screen
         title="Group"
         navigation={{ ...this.props.navigation }}
+        screenProps={this.props.screenProps}
         backButton={true}
       >
         <Card

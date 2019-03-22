@@ -189,6 +189,7 @@ export default class GroupSettings extends React.Component {
     return (
       <Screen
         title={this.state.groupID !== "NO-ID" ? "Edit Group" : "Create Group"}
+        screenProps={this.props.screenProps}
         navigation={this.props.navigation}
         backButton={true}
         showNavigation={this.state.groupID !== "NO-ID"}

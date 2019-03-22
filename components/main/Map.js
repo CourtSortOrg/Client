@@ -151,40 +151,39 @@ export default class Map extends React.Component {
     this.getRatings();
   };
 
-
   getRatings = () => {
     let locations = this.state.diningLocations.locations.slice();
     locations.forEach((loc, index) => {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getAggregateDiningCourtRatings",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getAggregateDiningCourtRatings",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify({
             diningCourt: loc.name
-        })
-      }
-    )
-      .then(data => {
-        console.log("~~~RESPONSE FROM getAggregateDiningCourtRatings:")
-        let parsedData = data._bodyText;
-        if (parsedData > 0) {
-          parsedData = Math.round(parsedData * 100) / 100;
+          })
         }
-
-        locations[index].rating = parsedData;
-
-        this.setState({
-          diningLocations: {
-            ...this.state.diningLocations,
-            locations
+      )
+        .then(data => {
+          console.log("~~~RESPONSE FROM getAggregateDiningCourtRatings:");
+          let parsedData = data._bodyText;
+          if (parsedData > 0) {
+            parsedData = Math.round(parsedData * 100) / 100;
           }
-        });
-      })
-      .catch(error => console.error(`getRatings: ${error}`));
+
+          locations[index].rating = parsedData;
+
+          this.setState({
+            diningLocations: {
+              ...this.state.diningLocations,
+              locations
+            }
+          });
+        })
+        .catch(error => console.error(`getRatings: ${error}`));
     });
     this.getMalfunctions();
   };
@@ -296,6 +295,7 @@ export default class Map extends React.Component {
     return (
       <View style={{ flex: 1 }}>
         <Header
+          screenProps={this.props.screenProps}
           styles={styles}
           title="Map"
           navigation={{ ...this.props.navigation }}
@@ -354,7 +354,11 @@ export default class Map extends React.Component {
           </View>
         </View>
 
-        <Footer styles={styles} navigation={{ ...this.props.navigation }} />
+        <Footer
+          styles={styles}
+          screenProps={this.props.screenProps}
+          navigation={{ ...this.props.navigation }}
+        />
       </View>
     );
   }

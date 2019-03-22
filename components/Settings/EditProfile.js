@@ -112,6 +112,7 @@ export default class EditProfile extends React.Component {
     return (
       <Screen
         title="Edit Profile"
+        screenProps={this.props.screenProps}
         showNavigation={false}
         navigation={{ ...this.props.navigation }}
         backButton={true}

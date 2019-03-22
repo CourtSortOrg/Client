@@ -50,6 +50,7 @@ export default class AddUser extends React.Component {
   render() {
     return (
       <Screen
+        screenProps={this.props.screenProps}
         navigation={{ ...this.props.navigation }}
         title={"Add a Friend"}
         showNavigation={false}

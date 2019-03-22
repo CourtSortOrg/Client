@@ -140,7 +140,8 @@ export default class Profile extends React.Component {
     return (
       <Screen
         backButton={false}
-        navigation={{ ...this.props.navigation }}
+        navigation={this.props.navigation}
+        screenProps={this.props.screenProps}
         title="Profile"
       >
         {/* Overlay to let the user change their status */}

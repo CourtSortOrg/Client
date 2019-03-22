@@ -153,6 +153,7 @@ export default class Friend extends React.Component {
     const statusColor = ["#0F0", "#FF0", "#F00"];
     return (
       <Screen
+        screenProps={this.props.screenProps}
         title="Friend"
         navigation={{ ...this.props.navigation }}
         backButton={true}

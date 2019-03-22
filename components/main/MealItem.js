@@ -345,6 +345,7 @@ export default class MealItem extends React.Component {
     const buttons = ["Nutrition", "Serving", "Ratings"];
     return (
       <Screen
+        screenProps={this.props.screenProps}
         title={this.state.name}
         navigation={{ ...this.props.navigation }}
         backButton={true}

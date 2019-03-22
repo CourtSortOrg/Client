@@ -560,6 +560,7 @@ export default class Notifications extends React.Component {
   render() {
     return (
       <Screen
+        screenProps={this.props.screenProps}
         title="Notifications"
         navigation={{ ...this.props.navigation }}
         backButton={false}
