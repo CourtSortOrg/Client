@@ -1047,7 +1047,8 @@ export default class App extends React.Component {
               updateNotifications: this.updateNotifications,
               reportAlert: this.reportAlert,
               busynessAlert: this.busynessAlert,
-              rateDiningCourt: this.rateDiningCourt
+              rateDiningCourt: this.rateDiningCourt,
+              updateRatings: this.updateRatings
             },
             globals: {
               statusMessage: this.statusMessage,

@@ -57,7 +57,10 @@ export default class MealItem extends React.Component {
         userHandle: userHandle
       })
     })
-      .then(() => this.getRating(dishName))
+      .then(() => {
+        this.getRating(dishName);
+        this.props.screenProps.functions.updateRatings();
+      })
       .catch(error => console.error(`addRating: ${error}`));
   };
 
@@ -287,7 +290,7 @@ export default class MealItem extends React.Component {
                     Press and drag to edit rating
                   </Text>
                 </View>
-            </View>
+              </View>
             </Card>
           ) : (
             <TouchableOpacity
