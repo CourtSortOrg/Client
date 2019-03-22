@@ -211,9 +211,7 @@ export default class Notifications extends React.Component {
     this.props.screenProps.functions.updateGroup(id.groupID, true);
 
     id = {
-      Name: `@${
-        id.userHandle
-      } joined the group: ${id.groupName}.`,
+      Name: `@${id.userHandle} joined the group: ${id.groupName}.`,
       date: this.dateStr,
       ...id
     };
@@ -557,9 +555,7 @@ export default class Notifications extends React.Component {
         backButton={false}
         refresh={() => this.getNotifications()}
       >
-        {this.state.loadingNotifications ? (
-          <ActivityIndicator size="large" color="#e9650d" />
-        ) : this.state.notifications.length > 0 ? (
+        {this.state.notifications.length > 0 ? (
           <List
             list={this.state.notifications}
             type="expandable"
