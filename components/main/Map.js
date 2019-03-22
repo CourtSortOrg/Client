@@ -170,9 +170,12 @@ export default class Map extends React.Component {
     )
       .then(data => {
         console.log("~~~RESPONSE FROM getAggregateDiningCourtRatings:")
-        console.log(data._bodyText);
+        let parsedData = data._bodyText;
+        if (parsedData > 0) {
+          parsedData = Math.round(parsedData * 100) / 100;
+        }
 
-        locations[index].rating = data._bodyText;
+        locations[index].rating = parsedData;
 
         this.setState({
           diningLocations: {
