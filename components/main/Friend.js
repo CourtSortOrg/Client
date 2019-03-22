@@ -171,7 +171,7 @@ export default class Friend extends React.Component {
             {"Status: "}
             {
               this.props.screenProps.globals.statusMessage[
-                this.props.screenProps.user.status
+                this.props.screenProps.otherUser.status
               ]
             }
           </Text>
