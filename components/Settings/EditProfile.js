@@ -1,16 +1,16 @@
 import React from "react";
-import { Alert, Image, Platform, TouchableOpacity, View } from "react-native";
-import { Col, Row, Grid } from "react-native-easy-grid";
-import { ImagePicker } from "expo";
-import Card from "../components/Card";
-import Screen from "../Nav/Screen";
-import Text from "../components/Text";
+import { TouchableOpacity } from "react-native";
 import { ListItem } from "react-native-elements";
-import VariableGrid from "../components/VariableGrid";
+import { ImagePicker } from "expo";
+import DialogInput from "react-native-dialog-input";
 
 import AllergenIcon from "../main/AllergenIcon";
 
-const restrictions = [
+import Card from "../components/Card";
+import VariableGrid from "../components/VariableGrid";
+import Screen from "../Nav/Screen";
+
+const allRestrictions = [
   {
     name: "Eggs",
     enabled: false
@@ -61,51 +61,71 @@ export default class EditProfile extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      restrictions: restrictions,
-      showNameDialog: false,
-      userRestrictions: this.props.screenProps.user.dietaryRestrictions
+      allRestrictions: allRestrictions,
+      showNameInput: false,
+      updatedUsername: this.props.screenProps.user.userName
     };
-    //this.props.screenProps.user.dietaryRestrictions
 
-    for (let i = 0; i < restrictions.length; i++) {
-      if (this.state.userRestrictions.includes(restrictions[i].name)) {
-        console.log(`${restrictions[i].name} is restricted`);
-        restrictions[i].enabled = true;
-      } else {
-        console.log(`${restrictions[i].name} not restricted`);
-        restrictions[i].enabled = false;
-      }
+    // Loop through the user's restrictions and update the restriction grid
+    let userRestrictions = this.props.screenProps.user.dietaryRestrictions;
+    for (let i = 0; i < allRestrictions.length; i++) {
+      allRestrictions[i].enabled = userRestrictions.includes(
+        allRestrictions[i].name
+      );
     }
   }
+
+  updateUserInformation = () => {
+    // TODO: Update username and profile picture
+
+    // Loop through selected restrictions and update the users restrictions
+    var newRestrictions = [];
+    for (let i = 0; i < allRestrictions.length; i++) {
+      if (allRestrictions[i].enabled) {
+        newRestrictions.push(allRestrictions[i].name);
+      }
+    }
+    this.props.screenProps.functions.updateDietaryRestrictions(newRestrictions);
+
+    this.props.navigation.goBack();
+  };
+
+  displayNameInput = display => {
+    this.setState({ showNameInput: display });
+  };
+
+  submitNameInput = name => {
+    // TODO: Any preprocessing with the users name
+    this.setState({ updatedUsername: name });
+    this.displayNameInput(false);
+  };
+
+  pickProfilePicture = async () => {
+    // TODO: Update Profile Picture
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 4]
+    });
+    console.log(result);
+    // if (!result.cancelled) {
+    //   this.setState({ image: result.uri });
+    // }
+  };
 
   renderRestriction = (data, index) => {
     return (
       <TouchableOpacity
-        activeOpacity={0.5}
-        style={{ alignItems: "center", marginVertical: 5 }}
+        activeOpacity={0.8}
         onPress={() => {
-          this.state.restrictions[index].enabled = !this.state.restrictions[
-            index
-          ].enabled;
-          this.setState({ restrictions: this.state.restrictions });
+          let item = this.state.allRestrictions[index];
+          item.enabled = !item.enabled;
+          this.setState({ allRestrictions: this.state.allRestrictions });
         }}
       >
         <AllergenIcon name={data.name} enabled={data.enabled} />
       </TouchableOpacity>
     );
-  };
-
-  pickProfilePicture = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [4, 4]
-    });
-
-    console.log(result);
-
-    // if (!result.cancelled) {
-    //   this.setState({ image: result.uri });
-    // }
   };
 
   render() {
@@ -116,86 +136,50 @@ export default class EditProfile extends React.Component {
         showNavigation={false}
         navigation={{ ...this.props.navigation }}
         backButton={true}
-        backButtonCallback={() => {
-          console.log("BACK");
-          //TODO: Add saving state of restrictions
-          var newRestrictions = [];
-          for(let i = 0; i < restrictions.length; i++) {
-              if(restrictions[i].enabled) {
-                newRestrictions.push(restrictions[i].name);
-              }
-          }
-          this.props.screenProps.functions.updateDietaryRestrictions(newRestrictions);
-          this.props.navigation.goBack();
-        }}
+        backButtonCallback={this.updateUserInformation}
       >
+        {/* A Card to render and change general user information */}
         <Card header={"Your Information"}>
+          {/* A ListItem that when triggered shows a TextInput to edit the username */}
           <ListItem
-            title={`Profile Name: ${this.props.screenProps.user.userName}`}
+            title={`Profile Name: ${this.state.updatedUsername}`}
             onPress={() => {
-              Platform.IOS
-                ? AlertIOS.prompt("Enter new profile name", null, text =>
-                    console.log("You entered " + text)
-                  )
-                : Alert.alert("Android TextInput");
+              this.displayNameInput(true);
             }}
+            bottomDivider
             chevron
           />
+
+          {/* A DialogInput that display a TextInput to edit the username */}
+          <DialogInput
+            isDialogVisible={this.state.showNameInput}
+            title={"Edit Username"}
+            hintInput={"Username"}
+            submitInput={inputText => {
+              this.submitNameInput(inputText);
+            }}
+            closeDialog={() => {
+              this.displayNameInput(false);
+            }}
+          />
+
+          {/* A ListItem that when triggered shows triggers a picker to select a profile picture */}
           <ListItem
             title={`Profile Picture`}
             onPress={this.pickProfilePicture}
             chevron
           />
         </Card>
+
+        {/* An interactable Card to render and change user dietary restrictions */}
         <Card header={"Your Dietary Restrictions"}>
           <VariableGrid
-            data={this.state.restrictions}
             colPattern={[3]}
+            data={this.state.allRestrictions}
             renderItem={this.renderRestriction}
           />
         </Card>
       </Screen>
     );
   }
-}
-
-function RestrictionGrid(props) {
-  //Check if data exists as a prop
-  let data = props.data;
-  if (!data || data.constructor !== Array) {
-    console.error("Restriction Grid Prop 'data' must be of type Array");
-  }
-  //Check if colPattern exists as a prop
-  let colPattern = props.colPattern;
-  //Check if data exists as a prop
-  if (!colPattern || colPattern.constructor !== Array) {
-    console.error("Restriction Grid Prop 'data' must be of type Array");
-  }
-  //Check if renderItem exists as a prop
-  let renderItem = props.renderItem;
-  if (!renderItem || renderItem.constructor !== Function) {
-    console.error(
-      "Restriction Grid Prop 'renderItem' must be of type Function"
-    );
-  }
-
-  let colPatternIndex = 0,
-    num = 0;
-  let cols = [],
-    rows = [];
-
-  for (let i = 0; i < data.length; i++) {
-    cols.push(<Col key={i}>{renderItem(data[i], i)}</Col>);
-    num++;
-    if (num == colPattern[colPatternIndex]) {
-      num = 0;
-      colPatternIndex++;
-      colPatternIndex %= colPattern.length;
-      rows.push(<Row key={i}>{cols}</Row>);
-      cols = [];
-    } else if (i == data.length - 1) {
-      rows.push(<Row key={i}>{cols}</Row>);
-    }
-  }
-  return <Grid>{rows}</Grid>;
 }
