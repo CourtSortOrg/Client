@@ -13,6 +13,7 @@ import Text from "../components/Text";
 import Card from "../components/Card";
 import Screen from "../Nav/Screen";
 import SearchList from "../components/SearchList";
+import ListElement from "../components/ListElement";
 
 export default class ProfileList extends React.Component {
   constructor(props) {
@@ -41,6 +42,7 @@ export default class ProfileList extends React.Component {
   }
 
   renderElement(item) {
+    const statusMessage = ["Not Eating", "Available", "Busy"];
     return (
       <View style={{ padding: 8 }}>
         <TouchableOpacity
@@ -72,7 +74,10 @@ export default class ProfileList extends React.Component {
             <Text type="header" style={{ padding: 0 }}>
               {item.props.userName}
             </Text>
-            <Text type="subHeader">{`@${item.props.userHandle}`}</Text>
+            <Text type="bold">
+              {`@${item.props.userHandle} | Status: `}
+              <Text>{statusMessage[item.props.status]}</Text>
+            </Text>
           </View>
           <TouchableOpacity
             style={{ padding: 0 }}
@@ -100,6 +105,12 @@ export default class ProfileList extends React.Component {
         filterFunction={this.filter}
         extendedSearch={this.props.extendedSearch}
         updateSelectedList={this.props.updateSelectedList}
+        noElementFound={
+          <ListElement
+            type={"expandable"}
+            Name="No friends found"
+          />
+        }
         list={{
           list: this.state.list,
           type: "element",

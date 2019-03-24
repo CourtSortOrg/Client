@@ -1,6 +1,7 @@
 import React from "react";
 import { View, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { Button, Avatar } from "react-native-elements";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import Text from "../components/Text";
 
@@ -27,7 +28,7 @@ export default class Header extends React.Component {
           }}
         >
           <View style={{ flex: 1, flexDirection: "row" }}>
-            {this.props.showNavigation != false && (
+            {this.props.showNavigation != false && this.props.screenProps.user != undefined && (
               <Avatar
                 small
                 rounded
@@ -38,7 +39,13 @@ export default class Header extends React.Component {
             {this.props.backButton && (
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => this.props.navigation.goBack()}
+                onPress={() => {
+                  if (this.props.backButtonCallback) {
+                    this.props.backButtonCallback();
+                  } else {
+                    this.props.navigation.goBack();
+                  }
+                }}
               >
                 <Image
                   style={styles.icon}
@@ -71,9 +78,11 @@ export default class Header extends React.Component {
             {this.props.map == true && (
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => this.props.navigation.navigate("Map", {
-                  ID: "Hillenbrand"
-                })}
+                onPress={() =>
+                  this.props.navigation.navigate("Map", {
+                    ID: "Hillenbrand"
+                  })
+                }
               >
                 <Image
                   style={styles.icon}
@@ -81,7 +90,19 @@ export default class Header extends React.Component {
                 />
               </TouchableOpacity>
             )}
-            {this.props.showNavigation != false && (
+            {this.props.refresh && (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => this.props.refresh()}
+              >
+                <MaterialIcons
+                  name="refresh"
+                  size={25}
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
+            )}
+            {this.props.showNavigation != false && this.props.screenProps.user != undefined && (
               <TouchableOpacity
                 onPress={() => this.props.navigation.navigate("Notifications")}
               >
@@ -113,6 +134,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     aspectRatio: 1,
-    height: 25
+    height: 25,
   }
 });

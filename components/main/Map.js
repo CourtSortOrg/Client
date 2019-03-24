@@ -71,7 +71,7 @@ export default class Map extends React.Component {
       diningLocations: { locations: [] },
       initialIndex: locations[initialCourt].index,
       region: {
-        latitude: locations[initialCourt].latitude,
+        latitude: locations[initialCourt].latitude - 0.001,
         longitude: locations[initialCourt].longitude,
         latitudeDelta: 0.004,
         longitudeDelta: 0.003
@@ -102,10 +102,7 @@ export default class Map extends React.Component {
               diningLocations: parsedJSON,
               loading: false
             },
-            () => {
-              this.getBusyness();
-              this.getMalfunctions();
-            }
+            this.getBusyness
           );
         } catch (error) {
           console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
@@ -132,7 +129,9 @@ export default class Map extends React.Component {
       )
         .then(data => {
           if (data._bodyText != "No ratings") {
-            locations[index].busyness = this.props.screenProps.busynessMessage[
+            locations[
+              index
+            ].busyness = this.props.screenProps.globals.busynessMessage[
               data._bodyText
             ];
           } else {
@@ -148,13 +147,15 @@ export default class Map extends React.Component {
         })
         .catch(error => console.error(`getBusyness ${loc.name}: ${error}`));
     });
+
+    this.getRatings();
   };
 
-  getMalfunctions = () => {
+  getRatings = () => {
     let locations = this.state.diningLocations.locations.slice();
     locations.forEach((loc, index) => {
       fetch(
-        "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctions",
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getAggregateDiningCourtRatings",
         {
           method: "POST",
           headers: {
@@ -167,8 +168,46 @@ export default class Map extends React.Component {
         }
       )
         .then(data => {
-          console.log(data._bodyText);
-          locations[index].malfunctions = JSON.parse(data._bodyText);
+          console.log("~~~RESPONSE FROM getAggregateDiningCourtRatings:");
+          let parsedData = data._bodyText;
+          if (parsedData > 0) {
+            parsedData = Math.round(parsedData * 100) / 100;
+          }
+
+          locations[index].rating = parsedData;
+
+          this.setState({
+            diningLocations: {
+              ...this.state.diningLocations,
+              locations
+            }
+          });
+        })
+        .catch(error => console.error(`getRatings: ${error}`));
+    });
+    this.getMalfunctions();
+  };
+
+  getMalfunctions = () => {
+    let locations = this.state.diningLocations.locations.slice();
+    locations.forEach((loc, index) => {
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctionReports",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            diningCourt: loc.name
+          })
+        }
+      )
+        .then(async data => {
+          let mal = await JSON.parse(data._bodyText);
+
+          if (mal.length != 0) locations[index].malfunctions = mal;
 
           this.setState({
             diningLocations: {
@@ -199,12 +238,35 @@ export default class Map extends React.Component {
       >
         <ScrollView style={{ height: 100 }}>
           <View style={{ padding: 16, paddingBottom: 8 }}>
+            <Text>
+              {"Rating: "}
+              <Text>{item.rating}</Text>
+            </Text>
+          </View>
+          <Separator />
+          <View style={{ padding: 16, paddingBottom: 8 }}>
             <Text type="bold">
               {"Busyness:  "}
               <Text>{item.busyness}</Text>
             </Text>
           </View>
           <Separator />
+          {item.malfunctions != undefined && (
+            <View>
+              <List
+                list={item.malfunctions.map(item => {
+                  return {
+                    Name: `${item.malfunction} with ${
+                      item.numOfReports
+                    } reports`
+                  };
+                })}
+                type="element"
+                rank={1}
+              />
+              <Separator />
+            </View>
+          )}
           <List
             list={item.meals.map((meal, index) => {
               if (meal.hours) {
@@ -233,6 +295,7 @@ export default class Map extends React.Component {
     return (
       <View style={{ flex: 1 }}>
         <Header
+          screenProps={this.props.screenProps}
           styles={styles}
           title="Map"
           navigation={{ ...this.props.navigation }}
@@ -251,7 +314,7 @@ export default class Map extends React.Component {
               <Marker
                 key={index}
                 coordinate={{
-                  latitude: locations[key].latitude + 0.001,
+                  latitude: locations[key].latitude,
                   longitude: locations[key].longitude
                 }}
                 title={key}
@@ -278,7 +341,7 @@ export default class Map extends React.Component {
                     locations[this.state.diningLocations.locations[index].name];
                   this.mapView.animateToRegion(
                     {
-                      latitude: latlng.latitude,
+                      latitude: latlng.latitude - 0.001,
                       longitude: latlng.longitude,
                       latitudeDelta: 0.004,
                       longitudeDelta: 0.003
@@ -291,7 +354,11 @@ export default class Map extends React.Component {
           </View>
         </View>
 
-        <Footer styles={styles} navigation={{ ...this.props.navigation }} />
+        <Footer
+          styles={styles}
+          screenProps={this.props.screenProps}
+          navigation={{ ...this.props.navigation }}
+        />
       </View>
     );
   }

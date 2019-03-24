@@ -16,8 +16,17 @@ export default class MealItem extends React.Component {
   constructor(props) {
     super(props);
 
+    let name = this.props.navigation.getParam("ID", "NO-ID");
+    let rating = 0;
+    if (this.props.screenProps.user != undefined)
+      for (let i in this.props.screenProps.user.ratings) {
+        if (this.props.screenProps.user.ratings[i].dish == name) {
+          rating = this.props.screenProps.user.ratings[i].rating;
+        }
+      }
+
     this.state = {
-      name: this.props.navigation.getParam("ID", "NO-ID"),
+      name: name,
       selectedIndex: 0,
       nutrition: [],
       ingredients: "",
@@ -35,12 +44,55 @@ export default class MealItem extends React.Component {
         }
       ],
       rating: 0,
-      userRating: 0
+      userRating: rating
     };
+    this.getRating(this.state.name);
   }
 
   updateIndex = selectedIndex => {
     this.setState({ selectedIndex });
+  };
+
+  addRating = async (dishName, rating, userHandle) => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/addRating", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        dish: dishName,
+        rating: rating,
+        userHandle: userHandle
+      })
+    })
+      .then(() => {
+        this.getRating(dishName);
+        this.props.screenProps.functions.updateRatings();
+      })
+      .catch(error => console.error(`addRating: ${error}`));
+  };
+
+  getRating = async dishName => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/getRating", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        dish: dishName
+      })
+    })
+      .then(data => {
+        let parsedData = JSON.parse(data._bodyText);
+        parsedData = parsedData.rating ? parsedData.rating : 0;
+        if (parsedData > 0) {
+          parsedData = Math.round(parsedData * 100) / 100;
+        }
+        this.setState({ rating: parsedData });
+      })
+      .catch(error => console.error(`getRating: ${error}`));
   };
 
   componentDidMount() {
@@ -62,33 +114,34 @@ export default class MealItem extends React.Component {
           this.setState(
             {
               ...JSON.parse(data._bodyText)
-            } /*,
+            },
             () => {
               this.setState(
                 {
                   allergens: this.state.allergens.filter(a => a.Value == true)
                 },
                 () => {
-                  this.setState({
-                    allergens: this.state.allergens.map(a => ({
-                      ...a,
-                      enabled:
-                        this.props.screenProps.user.dietaryRestrictions.filter(
-                          b => {
-                            if (b.Name == a.Name) {
-                              this.setState({
-                                warning: true
-                              });
-                              return true;
-                            }
-                            return false;
+                  allergens = this.state.allergens.map(a => ({
+                    ...a,
+                    enabled:
+                      this.props.screenProps.user.dietaryRestrictions.find(
+                        b => {
+                          if (b == a.Name) {
+                            this.setState({
+                              warning: true
+                            });
+                            return true;
                           }
-                        ).length != 0
-                    }))
+                          return false;
+                        }
+                      ) != undefined
+                  }));
+                  this.setState({
+                    allergens
                   });
                 }
               );
-            }*/
+            }
           );
         } catch (error) {
           console.error(`fetchAllOffered: ${error}: ${data._bodyText}`);
@@ -104,7 +157,6 @@ export default class MealItem extends React.Component {
   }
 
   renderNutrition() {
-    console.log(this.state.allergens);
     if (this.state.selectedIndex == 0) {
       return (
         <View>
@@ -117,7 +169,7 @@ export default class MealItem extends React.Component {
                   Name="This dish matches a dietary restriction!"
                   rank={1}
                 />
-                <Separator/>
+                <Separator />
               </View>
             )}
             {this.state.allergens.length != 0 ? (
@@ -224,8 +276,11 @@ export default class MealItem extends React.Component {
               />
             </View>
           </Card>
-          {this.props.screenProps.user ? (
-            <Card header={`Your Rating`}>
+          {this.props.screenProps.user != undefined ? (
+            <Card
+              header={`Your Rating`}
+              footer={[{ text: "Submit Rating", onPress: this.confirmRating }]}
+            >
               <View>
                 <View style={{ alignItems: "center" }}>
                   <Text type="sectionName">
@@ -244,31 +299,6 @@ export default class MealItem extends React.Component {
                     Press and drag to edit rating
                   </Text>
                 </View>
-
-                <Button
-                  title="Submit Rating"
-                  buttonStyle={{ backgroundColor: "#e9650d" }}
-                  titleStyle={{ color: "black", fontFamily: "Quicksand-Bold" }}
-                  onPress={() => {
-                    Alert.alert(
-                      "Update meal rating?",
-                      `By clicking confirm you will update your rating for ${
-                        this.state.name
-                      }`,
-                      [
-                        {
-                          text: "Cancel",
-                          onPress: () => console.log("Cancel Pressed"),
-                          style: "cancel"
-                        },
-                        {
-                          text: "Confirm",
-                          onPress: () => console.log("Confirm Pressed")
-                        }
-                      ]
-                    );
-                  }}
-                />
               </View>
             </Card>
           ) : (
@@ -288,10 +318,35 @@ export default class MealItem extends React.Component {
     }
   }
 
+  confirmRating = () => {
+    Alert.alert(
+      "Update meal rating?",
+      `By clicking confirm you will update your rating for ${this.state.name}`,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        {
+          text: "Confirm",
+          onPress: () => {
+            this.addRating(
+              this.state.name,
+              this.state.userRating,
+              this.props.screenProps.user.userHandle
+            );
+          }
+        }
+      ]
+    );
+  };
+
   render() {
     const buttons = ["Nutrition", "Serving", "Ratings"];
     return (
       <Screen
+        screenProps={this.props.screenProps}
         title={this.state.name}
         navigation={{ ...this.props.navigation }}
         backButton={true}

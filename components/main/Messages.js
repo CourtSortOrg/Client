@@ -9,14 +9,11 @@ export default class Messages extends React.Component {
     return (
       <Screen
         title="Messages"
+        screenProps={this.props.screenProps}
         navigation={{ ...this.props.navigation }}
         backButton={false}
       >
         <Text>Messages</Text>
-        <Button
-          title="Message"
-          onPress={() => this.props.navigation.push("Message")}
-        />
       </Screen>
     );
   }

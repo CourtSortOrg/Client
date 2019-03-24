@@ -5,13 +5,15 @@ import {
   StyleSheet,
   Text,
   View,
-  AsyncStorage
+  AsyncStorage,
+  Picker
 } from "react-native";
 import {
   createSwitchNavigator,
   createStackNavigator,
   createAppContainer
 } from "react-navigation";
+import { Overlay } from "react-native-elements";
 import { Font } from "expo";
 
 import Splash from "./components/auth/Splash";
@@ -29,6 +31,7 @@ import Meals from "./components/main/Meals";
 import Message from "./components/main/Message";
 import Messages from "./components/main/Messages";
 import Notifications from "./components/main/Notifications";
+import AddUser from "./components/main/AddUser";
 
 import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
@@ -36,6 +39,8 @@ import EditProfile from "./components/Settings/EditProfile";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
+
+import Card from "./components/components/Card";
 
 import * as firebase from "firebase";
 import config from "./config";
@@ -91,6 +96,9 @@ const SettingsNavigation = createStackNavigator(
 
 const MainNavigation = createStackNavigator(
   {
+    AddUser: {
+      screen: AddUser
+    },
     Messages: {
       screen: Messages
     },
@@ -176,8 +184,10 @@ export default class App extends React.Component {
     "Still easy to find a table.",
     "It's crowded.",
     "The line is out the door.",
-    "We can't stuff any more people in!",
+    "There is no more space!"
   ];
+
+  statusMessage = ["Not Eating", "Available", "Busy"];
 
   _storeData = async (key, value) => {
     try {
@@ -296,6 +306,8 @@ export default class App extends React.Component {
       await this.updateProfile(() => console.log("profile loaded"));
       await this.updateFriends(() => console.log("friends loaded"));
       await this.updateGroups(() => console.log("groups loaded"));
+      await this.updateRatings();
+      // TODO: Get the user's ratings here
 
       await this._storeData(`user`, JSON.stringify(this.state.user));
 
@@ -307,7 +319,7 @@ export default class App extends React.Component {
       });
     } else {
       await this._storeData("user", "");
-      await this.setState({ firebaseLoaded: true }, () => {
+      await this.setState({ firebaseLoaded: true, user: undefined }, () => {
         console.log("After::After");
         if (callback && !errorGetUserHandle) callback();
       });
@@ -342,6 +354,13 @@ export default class App extends React.Component {
   };
 
   updateFriends = async callback => {
+    /*await this.setState({
+      user: {
+        ...this.state.user,
+        friends: []
+      }
+    });*/
+
     await this.fetchFriends(
       this.state.user.userHandle,
       async data =>
@@ -354,6 +373,13 @@ export default class App extends React.Component {
   };
 
   updateGroups = async callback => {
+    /*await this.setState({
+      user: {
+        ...this.state.user,
+        groups: []
+      }
+    });*/
+
     await this.fetchGroups(this.state.user.userHandle, async data => {
       await data.forEach(
         async groupID => await this.updateGroup(groupID, true)
@@ -367,7 +393,7 @@ export default class App extends React.Component {
     // action == true, add friend.
     if (action) {
       await this.fetchUser(id, async data => {
-        const arr = this.state.user.friends.slice();
+        const arr = this.state.user.friends.filter(f => f.userHandle != id);
         arr.push(data);
         await this.setState({
           user: {
@@ -392,7 +418,7 @@ export default class App extends React.Component {
     // action == true, add friend.
     if (action) {
       await this.fetchGroup(id, async data => {
-        const arr = this.state.user.groups.slice();
+        const arr = this.state.user.groups.filter(g => g.groupID != id);
         arr.push({ ...data, groupID: id });
         await this.setState({
           user: {
@@ -413,6 +439,30 @@ export default class App extends React.Component {
     }
   };
 
+  updateRatings = async () => {
+    try {
+      let data = await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserDishRatings",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      let ratingData = await JSON.parse(data._bodyText);
+      await this.setState({
+        user: { ...this.state.user, ratings: ratingData }
+      });
+    } catch (error) {
+      console.error(`getUserDishRatings : ${error}`);
+    }
+  };
+
   checkOut = callback => {
     Alert.alert("Check Out", `Would you like to check out?`, [
       {
@@ -424,11 +474,33 @@ export default class App extends React.Component {
       {
         text: "Yes",
         onPress: () =>
-          this.checkOutOfDiningCourt(() =>
-            this.setStatus("not eating", callback)
-          )
+          this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
       }
     ]);
+  };
+
+  updateDietaryRestrictions = async restrictions => {
+    await this.setState({
+      user: {
+        ...this.state.user,
+        dietaryRestrictions: restrictions
+      }
+    });
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/setDietaryRestrictions",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          dietaryRestrictionArray: restrictions
+        })
+      }
+    ).catch(error => console.error(`setDietaryRestrictions : ${error}`));
   };
 
   checkIn = (courtId, callback) => {
@@ -437,27 +509,22 @@ export default class App extends React.Component {
       `What status would you like to have while you eat at ${courtId}?`,
       [
         {
-          text: "Cancel"
+          text: this.statusMessage[0],
+          onPress: () =>
+            this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
         },
         {
-          text: "Come eat with me!",
+          text: this.statusMessage[1],
           onPress: () =>
             this.checkIntoDiningCourt(courtId, () =>
-              this.setStatus("available", callback)
+              this.setStatus(1, callback)
             )
         },
         {
-          text: "Sorry, I'm busy.",
+          text: this.statusMessage[2],
           onPress: () =>
             this.checkIntoDiningCourt(courtId, () =>
-              this.setStatus("busy", callback)
-            )
-        },
-        {
-          text: "I'm no longer eating",
-          onPress: () =>
-            this.checkOutOfDiningCourt(() =>
-              this.setStatus("not eating", callback)
+              this.setStatus(2, callback)
             )
         }
       ]
@@ -465,39 +532,47 @@ export default class App extends React.Component {
   };
 
   changeStatus = callback => {
-    let courtId = this.state.user.checkInLocation;
+    let courtId = this.state.user.location;
 
     Alert.alert("Change Status", `What status would you like to have?`, [
       {
-        text: "Cancel"
+        text: this.statusMessage[0],
+        onPress: () =>
+          this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
       },
       {
-        text: "Come eat with me!",
+        text: this.statusMessage[1],
         onPress: () =>
-          this.checkIntoDiningCourt(courtId, () =>
-            this.setStatus("available", callback)
-          )
+          this.checkIntoDiningCourt(courtId, () => this.setStatus(1, callback))
       },
       {
-        text: "Sorry, I'm busy.",
+        text: this.statusMessage[2],
         onPress: () =>
-          this.checkIntoDiningCourt(courtId, () =>
-            this.setStatus("busy", callback)
-          )
-      },
-      {
-        text: "I'm no longer eating",
-        onPress: () =>
-          this.checkOutOfDiningCourt(() =>
-            this.setStatus("not eating", callback)
-          )
+          this.checkIntoDiningCourt(courtId, () => this.setStatus(2, callback))
       }
     ]);
   };
 
+  // status is an integer.
   setStatus = (status, callback) => {
-    // fetch.
-    console.log(`set status to be ${status}`);
+    this.setState({ user: { ...this.state.user, status: status } });
+
+    // firebase function
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/setUserStatus",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          status: status
+        })
+      }
+    ).catch(error => console.error(`checkInLocation: ${error}`));
+
     if (callback) callback();
   };
 
@@ -520,7 +595,7 @@ export default class App extends React.Component {
     this.setState({
       user: {
         ...this.state.user,
-        checkInLocation: courtId
+        location: courtId
       }
     });
 
@@ -545,55 +620,152 @@ export default class App extends React.Component {
     this.setState({
       user: {
         ...this.state.user,
-        checkInLocation: undefined
+        location: undefined
       }
     });
 
     if (callback) callback();
   };
 
-  reportAlert = () => {
-    let diningCourt = this.state.user.checkInLocation;
+  reportAlert = callback => {
+    let diningCourt = this.state.user.location;
+    let reportMalfunction = this.reportMalfunction;
+    let busynessAlert = this.busynessAlert;
 
-    const iceCream = "Ice cream machine is nonfunctional.";
-    const menu = "Menu is inaccurate.";
+    class AlertPicker extends React.Component {
+      state = {
+        chosen: 0,
+        visible: true,
+        options: [
+          {
+            text: "Cancel",
+            onPress: 0
+          },
+          {
+            text: "Ice cream machine is nonfunctional.",
+            onPress: 1
+          },
+          {
+            text: "Menu is inaccurate.",
+            onPress: 1
+          },
+          {
+            text: "Inadequate utensils.",
+            onPress: 1
+          },
+          {
+            text: "All dishes are paper and plastic.",
+            onPress: 1
+          }
+        ]
+      };
 
-    Alert.alert("Report", `What would you like to report at ${diningCourt}?`, [
-      {
-        text: iceCream,
-        onPress: () => this.reportMalfunction(diningCourt, iceCream)
-      },
-      {
-        text: menu,
-        onPress: () => this.reportMalfunction(diningCourt, menu)
-      },
-      {
-        text: "Busyness",
-        onPress: () =>
-          Alert.alert("Busyness", `How busy is ${diningCourt}?`, [
-            {
-              text: this.busynessMessage[4],
-              onPress: () => this.reportBusyness(diningCourt, 4)
-            },
-            {
-              text: this.busynessMessage[3],
-              onPress: () => this.reportBusyness(diningCourt, 3)
-            },
-            {
-              text: this.busynessMessage[2],
-              onPress: () => this.reportBusyness(diningCourt, 2)
-            },
-            {
-              text: this.busynessMessage[1],
-              onPress: () => this.reportBusyness(diningCourt, 1)
-            },
-            {
-              text: this.busynessMessage[0],
-              onPress: () => this.reportBusyness(diningCourt, 0)
-            }
-          ])
+      render() {
+        return (
+          <Overlay
+            overlayStyle={{ padding: 0 }}
+            containerStyle={{ padding: 0, margin: 0 }}
+            isVisible={this.state.visible}
+          >
+            <Card
+              style={{ margin: -20 }}
+              header={`Report at ${diningCourt}?`}
+              footer={[
+                {
+                  text: "Submit",
+                  onPress: () => {
+                    switch (this.state.options[this.state.chosen].onPress) {
+                      case 0:
+                        break;
+                      case 1:
+                        reportMalfunction(
+                          diningCourt,
+                          this.state.options[this.state.chosen].text
+                        );
+                        break;
+                      case 2:
+                        busynessAlert();
+                        break;
+                    }
+                    this.setState({
+                      visible: false
+                    });
+                    if (callback) callback();
+                  }
+                }
+              ]}
+            >
+              <Picker
+                selectedValue={this.state.chosen}
+                onValueChange={(itemValue, itemIndex) => {
+                  this.setState({ chosen: itemValue });
+                }}
+              >
+                {this.state.options.map((o, index) => {
+                  return <Picker.Item label={o.text} value={index} />;
+                })}
+              </Picker>
+            </Card>
+          </Overlay>
+        );
       }
-    ]);
+    }
+
+    return <AlertPicker />;
+  };
+
+  busynessAlert = callback => {
+    let diningCourt = this.state.user.location;
+    let reportBusyness = this.reportBusyness;
+    let busynessMessage = this.busynessMessage;
+
+    class BusynessPicker extends React.Component {
+      state = {
+        chosen: 0,
+        visible: true,
+        options: busynessMessage
+      };
+
+      render() {
+        return (
+          <Overlay
+            overlayStyle={{ padding: 0 }}
+            containerStyle={{ padding: 0, margin: 0 }}
+            isVisible={this.state.visible}
+          >
+            <Card
+              style={{ margin: -20 }}
+              header={`Busyness at ${diningCourt}?`}
+              footer={[
+                {
+                  text: "Submit",
+                  onPress: () => {
+                    reportBusyness(diningCourt, this.state.chosen);
+                    this.setState({
+                      visible: false
+                    });
+                    if (callback) callback();
+                  }
+                }
+              ]}
+            >
+              <Picker
+                selectedValue={this.state.chosen}
+                onValueChange={(itemValue, itemIndex) => {
+                  this.setState({ chosen: itemValue });
+                }}
+              >
+                {this.state.options.map((o, index) => {
+                  return <Picker.Item label={o} value={index} />;
+                })}
+              </Picker>
+            </Card>
+          </Overlay>
+        );
+      }
+    }
+
+    return <BusynessPicker />;
   };
 
   reportBusyness = (diningCourt, busyness) => {
@@ -663,7 +835,7 @@ export default class App extends React.Component {
     try {
       if (callback) callback(JSON.parse(data._bodyText));
     } catch (error) {
-      console.error(`${functionName}: ${error}: ${data._bodyText}`);
+      console.error(`${functionName}: ${error} -- ${data}`);
     }
   };
 
@@ -801,9 +973,7 @@ export default class App extends React.Component {
           rating
         })
       }
-    )
-      .then(data => this.handleData(`getDiningCourtRatings`, data, callback))
-      .catch(error => console.error(`getDiningCourtRatings: ${error}`));
+    ).catch(error => console.error(`rateDiningCourt: ${error}`));
   };
 
   fetchMeals = (from, left) => {
@@ -870,14 +1040,22 @@ export default class App extends React.Component {
               updateFriend: this.updateFriend,
               updateGroup: this.updateGroup,
               changeStatus: this.changeStatus,
+              setStatus: this.setStatus,
               checkIn: this.checkIn,
               checkOut: this.checkOut,
+              updateDietaryRestrictions: this.updateDietaryRestrictions,
               updateNotifications: this.updateNotifications,
-              reportAlert: this.reportAlert
+              reportAlert: this.reportAlert,
+              busynessAlert: this.busynessAlert,
+              rateDiningCourt: this.rateDiningCourt,
+              updateRatings: this.updateRatings
+            },
+            globals: {
+              statusMessage: this.statusMessage,
+              busynessMessage: this.busynessMessage
             },
             user: this.state.user,
-            meals: this.state.meals,
-            busynessMessage: this.busynessMessage,
+            meals: this.state.meals
           }}
         />
       );

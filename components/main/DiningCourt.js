@@ -379,6 +379,7 @@ export default class DiningCourt extends React.Component {
     return (
       <Screen
         title="Dining Court"
+        screenProps={this.props.screenProps}
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >

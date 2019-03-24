@@ -1,38 +1,77 @@
 import React from "react";
-import Screen from "../Nav/Screen";
 import { Alert, Platform, Vibration } from "react-native";
 import { Icon, ListItem } from "react-native-elements";
+import DialogInput from "react-native-dialog-input";
+
 import * as firebase from "firebase";
+
+import Screen from "../Nav/Screen";
 
 export default class Settings extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      ...this.props.screenProps.user
+      ...this.props.screenProps.user,
+      showPasswordReset: false
     };
   }
 
-  signOut = () => {
-    firebase
-      .auth()
-      .signOut()
-      .then(() => {
-        this.props.screenProps.functions.updateUser(false, undefined, () =>
-          this.props.navigation.navigate("Auth")
-        );
-      })
-      .catch(error => {
-        alert(error.message);
-        this.props.screenProps.functions.updateUser(false, undefined, () =>
-          this.props.navigation.navigate("Auth")
-        );
-      });
+  displayPasswordReset = display => {
+    this.setState({ showPasswordReset: display });
   };
 
+  submitPasswordReset = async email => {
+    // Hide the TextInput Dialog
+    this.displayPasswordReset(false);
+
+    // Check if the current user is a third party account
+    if (firebase.auth().currentUser.providerData[0].providerId != "password") {
+      // Alert the user that they cannot reset a third party account's password
+      Alert.alert(
+        "Password Reset Error",
+        "Can't reset the password of a third party account"
+      );
+    } else if (/[^@]+@[^\.]+\..+$/.test(email)) {
+      // If the email matches the email regex
+      try {
+        // Send the reset email
+        await firebase.auth().sendPasswordResetEmail(email);
+
+        // Alert the user that the email was sent and sign them out
+        Alert.alert(
+          "Password Reset Email Sent",
+          `An email has been sent to ${email}. You will be signed out`,
+          [{ text: "OK", onPress: this.signOut }]
+        );
+      } catch (error) {
+        // Alert any errors when sending a reset email
+        alert(error.message);
+      }
+    } else {
+      // The email doesn't match the regex so no action is taken
+      Alert.alert("Invalid Email", "Please enter a valid email address");
+    }
+  };
+  
+  signOut = async () => {
+    try {
+      // Sign out the user on the backend
+      await firebase.auth().signOut();
+      // Remove stored user information and navigate them to the sign in screen
+      this.props.screenProps.functions.updateUser(false, undefined, () =>
+        this.props.navigation.navigate("Auth")
+      );
+    } catch (error) {
+      // Alert any errors when signing the user out
+      alert(error.message);
+    }
+  };
+
+  // TODO: Refactor this function
   deleteAccount = () => {
     // Use different Vibration schemes depending on the platform
     const pattern = Platform.IOS ? [0] : [0, 500];
-    // Vibrate to
+    // Vibrate to the pattern
     Vibration.vibrate(pattern);
 
     Alert.alert(
@@ -122,14 +161,18 @@ export default class Settings extends React.Component {
                     )
                   );
                 //navigate to SignIn Screen
-                this.props.screenProps.functions.updateUser(false, undefined, () =>
-                  this.props.navigation.navigate("Auth")
+                this.props.screenProps.functions.updateUser(
+                  false,
+                  undefined,
+                  () => this.props.navigation.navigate("Auth")
                 );
               })
               .catch(function(error) {
                 alert("Firebase Delete User: " + error.message);
-                this.props.screenProps.functions.updateUser(false, undefined, () =>
-                  this.props.navigation.navigate("Auth")
+                this.props.screenProps.functions.updateUser(
+                  false,
+                  undefined,
+                  () => this.props.navigation.navigate("Auth")
                 );
               });
           }
@@ -142,9 +185,11 @@ export default class Settings extends React.Component {
     return (
       <Screen
         title="Settings"
+        screenProps={this.props.screenProps}
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >
+        {/* A ListItem that navigates the user to EditProfile */}
         <ListItem
           title="Edit Profile"
           subtitle="Make changes to your profile"
@@ -156,15 +201,23 @@ export default class Settings extends React.Component {
           bottomDivider
           chevron
         />
+
+        {/* A ListItem that navigates the user to BlockedUsers */}
+        {/* TODO: Implement functionality */}
         <ListItem
           title="Blocked Users"
           subtitle="View and edit your blocked users"
           leftIcon={<Icon name="block" />}
-          onPress={() => {}}
+          onPress={() => {
+            Alert.alert("Need to implement this!");
+          }}
           topDivider
           bottomDivider
           chevron
         />
+
+        {/* A ListItem that clears all the user dish ratings */}
+        {/* TODO: Implement functionality */}
         <ListItem
           title="Clear Ratings"
           subtitle="Delete your account's ratings"
@@ -175,16 +228,33 @@ export default class Settings extends React.Component {
           topDivider
           bottomDivider
         />
+
+        {/* A ListItem that using a TextInput, prompts for an email to reset the users password */}
         <ListItem
           title="Reset Password"
           subtitle="Send an email to reset your password"
           leftIcon={<Icon name="lock-reset" type="material-community" />}
           onPress={() => {
-            Alert.alert("Need to implement this!");
+            this.displayPasswordReset(true);
           }}
           topDivider
           bottomDivider
         />
+
+        {/* A DialogInput that displays a TextInput to enter the user email */}
+        <DialogInput
+          isDialogVisible={this.state.showPasswordReset}
+          title={"Submit email"}
+          hintInput={"Email Address"}
+          submitInput={inputText => {
+            this.submitPasswordReset(inputText);
+          }}
+          closeDialog={() => {
+            this.displayPasswordReset(false);
+          }}
+        />
+
+        {/* A ListItem that signs the user out */}
         <ListItem
           title="Sign Out"
           subtitle="Sign out of your account"
@@ -193,6 +263,8 @@ export default class Settings extends React.Component {
           topDivider
           bottomDivider
         />
+
+        {/* A ListItem that deletes the user */}
         <ListItem
           title="Delete Account"
           subtitle="Delete your account and all your data"

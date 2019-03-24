@@ -11,7 +11,7 @@ export default class Notifications extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loadingNotifications: true,
+      loadingNotifications: false,
       loadingGroups: true,
       loadingFriends: true,
       loadingWarnings: true,
@@ -32,40 +32,49 @@ export default class Notifications extends React.Component {
   }`;
 
   getNotifications = () => {
-    fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/getNotifications",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userHandle: this.state.userHandle
-        })
-      }
-    )
-      .then(data => {
-        let items = JSON.parse(data._bodyText);
-        console.log(items);
-        items.forEach(e => this.parseNotifications(e.type, e.id));
+    if (!this.state.loadingNotifications) {
+      this.setState({
+        loadingNotifications: true
+      });
 
-        this.setState(
-          {
-            loadingNotifications: false
+      fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getNotifications",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
           },
-          () =>
-            this.props.screenProps.functions.updateNotifications(
-              this.state.notifications
-            )
-        );
-        /*} catch (error) {
+          body: JSON.stringify({
+            userHandle: this.state.userHandle
+          })
+        }
+      )
+        .then(data => {
+          let items = JSON.parse(data._bodyText);
+          items.forEach(e => this.parseNotifications(e.type, e.id));
+
+          this.setState(
+            {
+              loadingNotifications: false
+            },
+            () => {
+              this.props.screenProps.functions.updateNotifications(
+                this.state.notifications
+              );
+              this.setState({
+                loadingNotifications: false
+              });
+            }
+          );
+          /*} catch (error) {
           console.error(
             `getIncomingFriendRequests: ${error}: ${data._bodyText}`
           );
         }*/
-      })
-      .catch(error => console.error(`getNotifications: ${error}`));
+        })
+        .catch(error => console.error(`getNotifications: ${error}`));
+    }
   };
 
   parseNotifications = (type, id) => {
@@ -98,7 +107,7 @@ export default class Notifications extends React.Component {
 
   addNotification = item => {
     let arr = this.state.notifications.slice();
-    let list = arr.find(l => l.id == item.dateStr);
+    let list = arr.find(l => l.date === item.date);
     if (list == undefined) {
       list = {
         date: this.dateStr,
@@ -212,9 +221,7 @@ export default class Notifications extends React.Component {
     this.props.screenProps.functions.updateGroup(id.groupID, true);
 
     id = {
-      Name: `@${
-        id.userHandle
-      } accepted your group invitation to join the group: ${id.groupName}.`,
+      Name: `@${id.userHandle} joined the group: ${id.groupName}.`,
       date: this.dateStr,
       ...id
     };
@@ -553,13 +560,13 @@ export default class Notifications extends React.Component {
   render() {
     return (
       <Screen
+        screenProps={this.props.screenProps}
         title="Notifications"
         navigation={{ ...this.props.navigation }}
         backButton={false}
+        refresh={() => this.getNotifications()}
       >
-        {this.state.loadingNotifications ? (
-          <ActivityIndicator size="large" color="#e9650d" />
-        ) : this.state.notifications.length > 0 ? (
+        {this.state.notifications.length > 0 ? (
           <List
             list={this.state.notifications}
             type="expandable"

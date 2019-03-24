@@ -110,6 +110,8 @@ export default class SearchList extends React.Component {
             expand={this.state.text.length != 0}
             selectFunction={this.toggleSelected}
           />
+        ) : this.props.noElementFound ? (
+          this.props.noElementFound
         ) : (
           <ListElement
             type={this.props.list.type}

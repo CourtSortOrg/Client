@@ -1,6 +1,7 @@
 import React from "react";
 import * as firebase from "firebase";
 import { View, Alert, TouchableOpacity } from "react-native";
+import { Icon } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import List from "../components/List";
@@ -27,21 +28,18 @@ export default class Friend extends React.Component {
     const friend = this.props.screenProps.user.friends.filter(
       friend => friend.userHandle === this.state.otherUser.userHandle
     );
-    if (friend.length == 1)
-      this.setState({
-        otherUser: { ...friend[0] }
-      });
-    else {
-      console.log("Refetching friend");
-      this.props.screenProps.functions.fetchFriend(
-        this.state.otherUser.userHandle,
-        data =>
-          this.setState({
-            otherUser: { ...this.state.otherUser, ...data }
-            //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
-          })
-      );
-    }
+    this.setState({
+      otherUser: { ...friend[0] }
+    });
+    console.log("Refetching friend");
+    this.props.screenProps.functions.fetchFriend(
+      this.state.otherUser.userHandle,
+      data =>
+        this.setState({
+          otherUser: { ...this.state.otherUser, ...data }
+          //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
+        })
+    );
   }
 
   removeFriend() {
@@ -152,8 +150,10 @@ export default class Friend extends React.Component {
   }
 
   render() {
+    const statusColor = ["#0F0", "#FF0", "#F00"];
     return (
       <Screen
+        screenProps={this.props.screenProps}
         title="Friend"
         navigation={{ ...this.props.navigation }}
         backButton={true}
@@ -166,7 +166,18 @@ export default class Friend extends React.Component {
           ]}
         >
           <Text type="subHeader" style={{ padding: 8 }}>
-            Status: {this.state.otherUser.status}
+            {"Status: "}
+            {
+              this.props.screenProps.globals.statusMessage[
+                this.state.otherUser.status
+              ]
+            }
+          </Text>
+          <Text type="subHeader" style={{ padding: 8 }}>
+            Location:
+            {this.state.otherUser.location
+              ? this.state.otherUser.location
+              : " Not Currently Eating"}
           </Text>
           <Separator />
           <List

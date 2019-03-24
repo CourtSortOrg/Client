@@ -128,6 +128,7 @@ export default class Meals extends React.Component {
     ];
     return (
       <Screen
+        screenProps={this.props.screenProps}
         title="Meals"
         navigation={{ ...this.props.navigation }}
         backButton={false}

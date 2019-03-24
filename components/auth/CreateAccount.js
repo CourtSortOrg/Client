@@ -26,9 +26,7 @@ export default class CreateAccount extends React.Component {
     userName: "",
     userHandle: "",
     email: "",
-    password: "",
-    isVegan: false,
-    isVegetarian: false
+    password: ""
   };
 
   createAccount = () => {
@@ -175,21 +173,6 @@ export default class CreateAccount extends React.Component {
             secureTextEntry={true}
             underlineColorAndroid="transparent"
           />
-
-          {/* Ask the user if they are vegan and or vegetarian */}
-          <Text>Are you vegan?</Text>
-          <Switch
-            onValueChange={value => this.setState({ isVegan: value })}
-            value={this.state.isVegan}
-          />
-
-          <Text>Are you vegetarian?</Text>
-          <Switch
-            onValueChange={value => this.setState({ isVegetarian: value })}
-            value={this.state.isVegetarian}
-          />
-          {/* Ask the user about any dietary restrictions */}
-          {/* Allergens: Eggs, Fish, Gluten, Milk, Peanuts, Shellfish, Soy, Tree Nuts, Wheat*/}
 
           {/* The Button to create the account */}
           <Button
