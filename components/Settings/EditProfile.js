@@ -75,21 +75,6 @@ export default class EditProfile extends React.Component {
     }
   }
 
-  updateUserInformation = () => {
-    // TODO: Update username and profile picture
-
-    // Loop through selected restrictions and update the users restrictions
-    var newRestrictions = [];
-    for (let i = 0; i < allRestrictions.length; i++) {
-      if (allRestrictions[i].enabled) {
-        newRestrictions.push(allRestrictions[i].name);
-      }
-    }
-    this.props.screenProps.functions.updateDietaryRestrictions(newRestrictions);
-
-    this.props.navigation.goBack();
-  };
-
   displayNameInput = display => {
     this.setState({ showNameInput: display });
   };
@@ -111,6 +96,21 @@ export default class EditProfile extends React.Component {
     // if (!result.cancelled) {
     //   this.setState({ image: result.uri });
     // }
+  };
+
+  updateUserInformation = () => {
+    // TODO: Update username and profile picture
+
+    // Loop through selected restrictions and update the users restrictions
+    var newRestrictions = [];
+    for (let i = 0; i < allRestrictions.length; i++) {
+      if (allRestrictions[i].enabled) {
+        newRestrictions.push(allRestrictions[i].name);
+      }
+    }
+    this.props.screenProps.functions.updateDietaryRestrictions(newRestrictions);
+
+    this.props.navigation.goBack();
   };
 
   renderRestriction = (data, index) => {
@@ -150,7 +150,7 @@ export default class EditProfile extends React.Component {
             chevron
           />
 
-          {/* A DialogInput that display a TextInput to edit the username */}
+          {/* A DialogInput that displays a TextInput to edit the username */}
           <DialogInput
             isDialogVisible={this.state.showNameInput}
             title={"Edit Username"}
