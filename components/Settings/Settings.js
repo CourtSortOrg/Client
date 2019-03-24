@@ -52,23 +52,19 @@ export default class Settings extends React.Component {
       Alert.alert("Invalid Email", "Please enter a valid email address");
     }
   };
-
-  // TODO: Refactor this function
-  signOut = () => {
-    firebase
-      .auth()
-      .signOut()
-      .then(() => {
-        this.props.screenProps.functions.updateUser(false, undefined, () =>
-          this.props.navigation.navigate("Auth")
-        );
-      })
-      .catch(error => {
-        alert(error.message);
-        this.props.screenProps.functions.updateUser(false, undefined, () =>
-          this.props.navigation.navigate("Auth")
-        );
-      });
+  
+  signOut = async () => {
+    try {
+      // Sign out the user on the backend
+      await firebase.auth().signOut();
+      // Remove stored user information and navigate them to the sign in screen
+      this.props.screenProps.functions.updateUser(false, undefined, () =>
+        this.props.navigation.navigate("Auth")
+      );
+    } catch (error) {
+      // Alert any errors when signing the user out
+      alert(error.message);
+    }
   };
 
   // TODO: Refactor this function
