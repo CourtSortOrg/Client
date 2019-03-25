@@ -23,7 +23,7 @@ export default class Settings extends React.Component {
   submitPasswordReset = async email => {
     // Hide the TextInput Dialog
     this.displayPasswordReset(false);
-
+    console.log(firebase.auth().currentUser);
     // Check if the current user is a third party account
     if (firebase.auth().currentUser.providerData[0].providerId != "password") {
       // Alert the user that they cannot reset a third party account's password
@@ -52,7 +52,7 @@ export default class Settings extends React.Component {
       Alert.alert("Invalid Email", "Please enter a valid email address");
     }
   };
-  
+
   signOut = async () => {
     try {
       // Sign out the user on the backend
@@ -203,13 +203,12 @@ export default class Settings extends React.Component {
         />
 
         {/* A ListItem that navigates the user to BlockedUsers */}
-        {/* TODO: Implement functionality */}
         <ListItem
           title="Blocked Users"
-          subtitle="View and edit your blocked users"
+          subtitle="View and manage your blocked users"
           leftIcon={<Icon name="block" />}
           onPress={() => {
-            Alert.alert("Need to implement this!");
+            this.props.navigation.navigate("BlockedUsers");
           }}
           topDivider
           bottomDivider
