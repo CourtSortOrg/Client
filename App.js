@@ -1040,6 +1040,36 @@ export default class App extends React.Component {
       .catch(error => console.error(`fetchMeals: ${error}`));
   };
 
+  changeGroupName = (groupID, groupName) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/changeGroupName",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          groupID: groupID,
+          groupName: groupName
+        })
+      }
+    )
+      .then(data => {
+        let g = this.state.user.groups.slice();
+        g.find(g => g.groupID === groupID).groupName = groupName;
+        this.setState({
+          user: {
+            ...this.state.user,
+            groups: g
+          }
+        })
+        console.log(`Update group name to ${groupName}`)
+      })
+      .catch(error => console.error(`changeGroupName: ${error}`));
+  };
+
+
   resetNotifications = async callback => {
     let n = this.state.user.notifications;
     this.setState(
@@ -1437,7 +1467,8 @@ export default class App extends React.Component {
               reportAlert: this.reportAlert,
               busynessAlert: this.busynessAlert,
               rateDiningCourt: this.rateDiningCourt,
-              updateRatings: this.updateRatings
+              updateRatings: this.updateRatings,
+              changeGroupName: this.changeGroupName
             },
             globals: {
               statusMessage: this.statusMessage,

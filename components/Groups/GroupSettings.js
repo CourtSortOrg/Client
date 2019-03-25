@@ -34,10 +34,6 @@ export default class GroupSettings extends React.Component {
     }
   };
 
-  updateGroup = groupName => {
-    console.log(`Update Group Name: ${groupName}`);
-  };
-
   updateGroupName = groupName => {
     this.setState({
       group: {
@@ -48,7 +44,7 @@ export default class GroupSettings extends React.Component {
   };
 
   setGroupName = () => {
-    // updateGroup.
+    this.props.screenProps.functions.changeGroupName(this.state.groupID, this.state.group.groupName)
   };
 
   updateSelectedList = list => {
