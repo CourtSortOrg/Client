@@ -795,7 +795,7 @@ export default class App extends React.Component {
         onPress: () => id.onPress()
       }
     ]);
-  }
+  };
 
   reportBusyness = (diningCourt, busyness) => {
     fetch(
@@ -1059,12 +1059,12 @@ export default class App extends React.Component {
     );
   };
 
-  updateNotifications = async (callback, noStore) => {
+  updateNotifications = async (callback, alert, noStore) => {
     this.getNotifications(data => {
       let arr = [];
       data.forEach((e, index) => this.parseNotifications(arr, e.type, e.id));
       this.addNotifications(arr, () => {
-        arr.forEach(i => this.notificationAlert(i));
+        if (alert) arr.forEach(i => this.notificationAlert(i));
         if (noStore !== true) {
           console.log("storing ...");
           console.log(this.state.user.notifications);

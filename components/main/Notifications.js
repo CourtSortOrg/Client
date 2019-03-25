@@ -44,7 +44,7 @@ export default class Notifications extends React.Component {
       this.props.screenProps.functions.updateNotifications(() =>
         this.setState({
           loadingNotifications: false
-        })
+        }), false
       );
     }
   };
