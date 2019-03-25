@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Platform, Vibration } from "react-native";
+import { Alert, Platform, Switch, Vibration } from "react-native";
 import { Icon, ListItem } from "react-native-elements";
 import DialogInput from "react-native-dialog-input";
 
@@ -12,7 +12,8 @@ export default class Settings extends React.Component {
     super(props);
     this.state = {
       ...this.props.screenProps.user,
-      showPasswordReset: false
+      showPasswordReset: false,
+      trackLocation: false
     };
   }
 
@@ -23,7 +24,6 @@ export default class Settings extends React.Component {
   submitPasswordReset = async email => {
     // Hide the TextInput Dialog
     this.displayPasswordReset(false);
-    console.log(firebase.auth().currentUser);
     // Check if the current user is a third party account
     if (firebase.auth().currentUser.providerData[0].providerId != "password") {
       // Alert the user that they cannot reset a third party account's password
@@ -182,6 +182,11 @@ export default class Settings extends React.Component {
   };
 
   render() {
+    let locationIcon = this.state.trackLocation ? (
+      <Icon name="location-on" />
+    ) : (
+      <Icon name="location-off" />
+    );
     return (
       <Screen
         title="Settings"
@@ -213,6 +218,24 @@ export default class Settings extends React.Component {
           topDivider
           bottomDivider
           chevron
+        />
+
+        {/* A ListItem that toggles location tracking*/}
+        {/* TODO: Implement functionality */}
+        <ListItem
+          title="Track Location"
+          subtitle="Use location tracking"
+          leftIcon={locationIcon}
+          rightElement={
+            <Switch
+              value={this.state.trackLocation}
+              onValueChange={() =>
+                this.setState({ trackLocation: !this.state.trackLocation })
+              }
+            />
+          }
+          topDivider
+          bottomDivider
         />
 
         {/* A ListItem that clears all the user dish ratings */}
