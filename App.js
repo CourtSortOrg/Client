@@ -785,6 +785,18 @@ export default class App extends React.Component {
     return <BusynessPicker />;
   };
 
+  notificationAlert = (id, callback) => {
+    Alert.alert("Notification", id.Name, [
+      {
+        text: "Dismiss"
+      },
+      {
+        text: "Handle",
+        onPress: () => id.onPress()
+      }
+    ]);
+  }
+
   reportBusyness = (diningCourt, busyness) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/reportBusyness",
@@ -1052,6 +1064,7 @@ export default class App extends React.Component {
       let arr = [];
       data.forEach((e, index) => this.parseNotifications(arr, e.type, e.id));
       this.addNotifications(arr, () => {
+        arr.forEach(i => this.notificationAlert(i));
         if (noStore !== true) {
           console.log("storing ...");
           console.log(this.state.user.notifications);
@@ -1156,6 +1169,7 @@ export default class App extends React.Component {
   };
 
   removeNotification = id => {
+    console.log(id);
     let n = this.state.user.notifications.slice();
     for (let i = 0; i < n.length; i++) {
       if (n[i].date == id.date) {
