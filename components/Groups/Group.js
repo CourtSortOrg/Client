@@ -34,6 +34,16 @@ export default class Group extends React.Component {
     }
   }
 
+  componentDidMount = () => {
+    this.props.navigation.addListener("willFocus", payload => {
+      this.setState({
+        group: this.props.screenProps.user.groups.find(
+          g => g.groupID === this.state.groupID
+        )
+      });
+    });
+  };
+
   render() {
     return (
       <Screen
