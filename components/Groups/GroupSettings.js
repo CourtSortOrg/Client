@@ -16,17 +16,22 @@ export default class GroupSettings extends React.Component {
       group: {
         memberObjects: [],
         groupName: ""
-      }
+      },
+      newGroupName: ""
     };
   }
 
   componentWillMount = () => {
     // get group from screenProps.
-    if(this.state.groupID !== "NO-ID") {
-      let groups = this.props.screenProps.user.groups.filter(group => group.groupID === this.state.groupID);
-      if(groups.length === 0) {
-          this.props.screenProps.functions.updateGroup(this.state.groupID, true);
-          groups = this.props.screenProps.user.groups.filter(group => group.groupID === this.state.groupID);
+    if (this.state.groupID !== "NO-ID") {
+      let groups = this.props.screenProps.user.groups.filter(
+        group => group.groupID === this.state.groupID
+      );
+      if (groups.length === 0) {
+        this.props.screenProps.functions.updateGroup(this.state.groupID, true);
+        groups = this.props.screenProps.user.groups.filter(
+          group => group.groupID === this.state.groupID
+        );
       }
       this.setState({
         group: groups[0]
@@ -36,15 +41,19 @@ export default class GroupSettings extends React.Component {
 
   updateGroupName = groupName => {
     this.setState({
-      group: {
-        ...this.state.group,
-        groupName
-      }
+      newGroupName: groupName
     });
   };
 
   setGroupName = () => {
-    this.props.screenProps.functions.changeGroupName(this.state.groupID, this.state.group.groupName)
+    if (this.state.newGroupName.length !== 0) {
+      this.props.screenProps.functions.changeGroupName(
+        this.state.groupID,
+        this.state.newGroupName
+      );
+    } else {
+      Alert.alert("Error", "Please enter in a group name.");
+    }
   };
 
   updateSelectedList = list => {
@@ -54,11 +63,9 @@ export default class GroupSettings extends React.Component {
   };
 
   handleInvites = () => {
-    this.state.selectedFriends.forEach(friend =>
-      {
-        this.inviteToGroup(friend.item.userHandle)
-      }
-    );
+    this.state.selectedFriends.forEach(friend => {
+      this.inviteToGroup(friend.item.userHandle);
+    });
   };
 
   inviteToGroup = id => {
@@ -83,7 +90,10 @@ export default class GroupSettings extends React.Component {
   };
 
   createGroup = () => {
-    if (this.state.group.groupName !== "" && this.state.selectedFriends.length > 0) {
+    if (
+      this.state.group.groupName !== "" &&
+      this.state.selectedFriends.length > 0
+    ) {
       fetch(
         "https://us-central1-courtsort-e1100.cloudfunctions.net/createGroup",
         {
@@ -144,9 +154,9 @@ export default class GroupSettings extends React.Component {
   leaveGroup = () => {
     Alert.alert(
       "Leave Group",
-      `You are about to leave ${this.state.group.groupName}. You can always rejoin ${
+      `You are about to leave ${
         this.state.group.groupName
-      }.`,
+      }. You can always rejoin ${this.state.group.groupName}.`,
       [
         {
           text: "Yes",
@@ -171,7 +181,7 @@ export default class GroupSettings extends React.Component {
       },
       body: JSON.stringify({
         groupID: this.state.groupID,
-        userHandle: this.props.screenProps.user.userHandle,
+        userHandle: this.props.screenProps.user.userHandle
       })
     })
       .then(() => {
