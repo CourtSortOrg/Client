@@ -1199,13 +1199,14 @@ export default class App extends React.Component {
   };
 
   removeNotification = id => {
-    console.log(id);
     let n = this.state.user.notifications.slice();
     for (let i = 0; i < n.length; i++) {
       if (n[i].date == id.date) {
         n[i].items = n[i].items.filter(req => req.Name != id.Name);
       }
     }
+
+    n = n.filter(list => list.items.length != 0)
 
     this.setState(
       {
@@ -1216,6 +1217,7 @@ export default class App extends React.Component {
       },
       () => {
         console.log("storing ...");
+        console.log(n);
         this._storeData("user", JSON.stringify(this.state.user));
       }
     );
