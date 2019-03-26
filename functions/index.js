@@ -17,7 +17,7 @@ exports.test = functions.https.onRequest((request, response) => {
 
 // adds current location
 // requires userHandle and Location
-exports.checkInLocation = functions.https.onRequest(async (request, response) => {
+exports.checkInLocation = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
   var location = request.body.location;
 
@@ -31,7 +31,7 @@ exports.checkInLocation = functions.https.onRequest(async (request, response) =>
         throw new Error("no such user");
       }
       else {
-        await userRef.update({location: location}).then(async function() {
+        userRef.update({location: location}).then(async function() {
           var userObj = {
             "friendHandle":doc.data().userHandle,
             "friendName":doc.data().userName
