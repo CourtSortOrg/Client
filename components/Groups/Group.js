@@ -68,7 +68,7 @@ export default class Group extends React.Component {
         <Card header="Members">
           <ProfileList
             navigation={this.props.navigation}
-            list={this.state.group.memberObjects}
+            list={this.state.group.memberObjects.filter(g => g.userHandle != this.props.screenProps.user.userHandle)}
           />
         </Card>
       </Screen>
