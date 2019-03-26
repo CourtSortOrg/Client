@@ -1573,7 +1573,8 @@ exports.createGroup = functions.https.onRequest((request, response) => {
       memberHandles: [userHandle],
       memberObjects: [{userHandle: userHandle, userName: userName}],
       messages: [],
-      groupName: groupName
+      groupName: groupName,
+      numMessages: 0
     }).then(function(docRef){
       console.log("Document written with ID: ", docRef.id);
 
@@ -2367,5 +2368,197 @@ exports.clearBusyness = functions.https.onRequest((request, response) => {
   }).catch(function(error){
     console.error(error.message);
     response.send("error");
+  });
+});
+
+//Creates a poll for users to vote on a time
+//PARAMETERS: userHandle, diningCourt, expirationTime, groupID, timeOptions
+//expirationTime is a Date object               timeOptions is an array of times
+exports.createPoll = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var diningCourt = request.body.diningCourt;
+  var expirationTime = request.body.expirationTime;
+  var groupID = request.body.groupID;
+  var timeOptions = request.body.timeOptions;
+
+  console.log(userHandle);
+  console.log(diningCourt);
+  console.log(expirationTime);
+  console.log(groupID);
+  console.log(timeOptions);
+
+  if(userHandle == null || diningCourt == null || expirationTime == null || groupID == null || timeOptions == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  if(timeOptions.length == 0){
+    throw new Error("No time options.");
+    return;
+  }
+
+  var groupDoc = db.collection("Group").doc(groupID);
+
+  var numMessages;
+
+  await groupDoc.get().then(async doc => {
+    var groupName = await doc.data().groupName;
+    var notification = {type: "newPoll", id: {groupName: groupName, userHandle: userHandle}};
+    var userCol = db.collection("User");
+    var members = doc.data().memberHandles;
+    numMessages = doc.data().numMessages;
+
+    for(var i = 0; i < members.length; i++){
+      if(members[i] == userHandle){
+        continue;
+      }
+      userCol.doc(members[i]).update({
+        notifications: admin.firestore.FieldValue.arrayUnion(notification)
+      }).catch(function(error){
+        console.log(error.message);
+        throw new Error(error);
+        return;
+      });
+    }
+  });
+
+  var votes = [];
+  for(var i = 0; i < timeOptions.length; i++){
+    votes.push({time: timeOptions[i], numVotes: 0});
+  }
+
+  var id = numMessages + 1;
+
+  var poll = {userHandle: userHandle, diningCourt: diningCourt, expirationTime: expirationTime, timeOptions: timeOptions, votes: votes, messageID: id, voters: []};
+
+  groupDoc.update({
+    messages: admin.firestore.FieldValue.arrayUnion(poll),
+    numMessages: id
+  }).then(function(){
+    response.send({success: true});
+  }).catch(function(error){
+    console.log(error.message);
+    throw new Error(error);
+    return;
+  });
+
+  //add the notification to the group's members
+});
+
+//Sends a users vote within a poll to the database
+//PARAMETERS: userHandle, choiceIndex, groupID, messageID
+exports.vote = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var choiceIndex = request.body.choiceIndex;
+  var messageID = request.body.messageID;
+  var groupID = request.body.groupID;
+
+  console.log(userHandle);
+  console.log(choiceIndex);
+  console.log(messageID);
+  console.log(groupID);
+
+  if(userHandle == null || choiceIndex == null || messageID == null || groupID == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var groupDoc = db.collection("Group").doc(groupID);
+
+  await groupDoc.get().then(async doc => {
+    var messages = doc.data().messages;
+
+    for(var i = 0; i < messages.length; i++){
+      var message = messages[i];
+      if(message.messageID == messageID){
+        var voters = message.voters;
+        for(var j = 0; j < voters.length; j++){
+          if(userHandle == voters[j].name){
+            messages[i].votes[voters[j].choice].numVotes--;
+            messages[i].voters.splice(j, 1);
+
+            break;
+          }
+        }
+        messages[i].votes[choiceIndex].numVotes++;
+
+        await messages[i].voters.push({name: userHandle, choice: choiceIndex});
+            console.log(messages);
+
+            groupDoc.update({
+              "messages": messages
+            }).then(function(){
+              response.send({success: true});
+            }).catch(function(error){
+              console.error(error.message);
+              throw new Error("error");
+            });
+        break;
+      }
+    }
+
+  });
+});
+
+//returns all open poles in a group
+//PARAMETERS: groupID
+exports.getPolls = functions.https.onRequest((request, response) => {
+  var groupID = request.body.groupID;
+
+  console.log(groupID);
+
+  if(groupID == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var groupDoc = db.collection("Group").doc(groupID);
+  groupDoc.get().then(doc => {
+    response.send(doc.data().messages);
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+})
+
+exports.closePolls = functions.https.onRequest((request, response) => {
+  var date = new Date();
+  //loop through all groups
+  var groupDoc = db.collection("Group");
+  groupDoc.get().then(gDoc => {
+    gDoc.forEach(function(doc){
+      var messages = doc.data().messages;
+      for(var i = 0; i < messages.length; i++){
+        var message = messages[i];
+        if(date.getTime()/1000 >= message.expirationTime._seconds){
+          //send a notification to the group members and remove the message
+          var data = doc.data();
+          var max = message.votes[0];
+          var maxIndex = 0;
+          for(var j = 1; j < message.votes.length; j++){
+            if(message.votes[j] > max){
+              max = message.votes[j];
+              maxIndex = j;
+            }
+          }
+
+          var notification = {type: "closePoll", id: {groupName: data.groupName, diningCourt: message.diningCourt, time: message.timeOptions[maxIndex]}};
+          var userCol = db.collection("User");
+          for(var j = 0; j < data.memberHandles.length; j++){
+            userCol.doc(data.memberHandles[j]).update({
+              notifications: admin.firestore.FieldValue.arrayUnion(notification)
+            })
+          }
+
+          //remove the message from the array
+          messages.splice(i, 1);
+          i--;
+        }
+      }
+      groupDoc.doc(doc.id).update({
+        "messages": messages
+      }).then(function(){
+        response.send("success");
+      });
+    });
   });
 });
