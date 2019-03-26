@@ -21,16 +21,63 @@ exports.checkInLocation = functions.https.onRequest(async (request, response) =>
   var userHandle = request.body.userHandle;
   var location = request.body.location;
 
-  if(userHandle == null || location == null)
+  if(userHandle == null || location == null) {
     throw new Error("Input data not valid!");
-
-  var userRef = await db.collection("User").doc(userHandle).get().then(async doc =>{
-    if(!doc.exists)
-      throw new Error("no such user");
-    await db.collection("User").doc(userHandle).update({location: location});
-  });
-  response.send({success: true});
-})
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(async doc =>{
+      if(!doc.exists) {
+        throw new Error("no such user");
+      }
+      else {
+        await userRef.update({location: location}).then(async function() {
+          var userObj = {
+            "friendHandle":doc.data().userHandle,
+            "friendName":doc.data().userName
+          };
+          var notification = {
+            "type":"joinedDiningCourt",
+            "id":userObj
+          }
+          var friendsArr = doc.data().friends;
+          console.log("friendsArr: " + friendsArr);
+          var buddiesArr = [];
+          for(var i = 0; i < friendsArr.length; i++) {
+            var friendObj = friendsArr[i]
+            console.log("friendObj: " + friendObj)
+            var friendHandle = friendObj.friendHandle;
+            var friendRef = db.collection("User").doc(friendHandle);
+            await friendRef.get().then(async function(doc) {
+              var friendLocation = doc.data().location;
+              console.log("friendHandle: " + friendHandle + " friendLocation: " + friendLocation);
+              if (friendLocation == location) {
+                console.log("MATCH");
+                buddiesArr.push(friendObj);
+                await friendRef.update({
+                  "notifications": admin.firestore.FieldValue.arrayUnion(notification)
+                })
+                .catch(function(error) {
+                  throw new Error(error);
+                });
+              }
+            })
+            .catch(function(error) {
+              throw new Error(error);
+            });
+          }
+          response.send(buddiesArr);
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
 
 // removes location
 exports.removeLocation = functions.https.onRequest(async (request, response) => {
