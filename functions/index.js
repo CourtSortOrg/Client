@@ -2562,3 +2562,43 @@ exports.closePolls = functions.https.onRequest((request, response) => {
     });
   });
 });
+
+//invites friends to eat with the user
+//PARAMETERS: userHandle, friendHandles, diningCourt, time
+//                        friendHandles is an array of the friends
+//      If you give me time as a date object, the notification will be returned as an object with a field _seconds which contains the total number of seconds in the date object. you should be able to use this to create a new date object    ex: "time":{"_seconds":1553626800,"_nanoseconds":0}
+exports.inviteToEat = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandles = request.body.friendHandles;
+  var diningCourt = request.body.diningCourt;
+  var time = request.body.time;
+
+  console.log(userHandle);
+  console.log(friendHandles);
+  console.log(diningCourt);
+  console.log(time);
+
+  if(userHandle == null || friendHandles == null || diningCourt == null || time == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var userCol = db.collection("User");
+
+  var userName;
+  await userCol.doc(userHandle).get().then(async doc => {
+    userName = await doc.data().userName;
+  });
+
+  var notification = {type: "inviteToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt, time: time}};
+
+  for(var i = 0; i < friendHandles.length; i++){
+    userCol.doc(friendHandles[i]).update({
+      notifications: admin.firestore.FieldValue.arrayUnion(notification)
+    }).catch(function(error){
+      throw new Error(error.message);
+    });
+  }
+
+  response.send({success: true});
+});
