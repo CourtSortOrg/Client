@@ -25,13 +25,10 @@ export default class Friend extends React.Component {
   }
 
   componentDidMount() {
-    const friend = this.props.screenProps.user.friends.filter(
+    const friend = this.props.screenProps.user.friends.find(
       friend => friend.userHandle === this.state.otherUser.userHandle
     );
-    this.setState({
-      otherUser: { ...friend[0] }
-    });
-    console.log("Refetching friend");
+    this.setState({ friend: friend !== undefined });
     this.props.screenProps.functions.fetchFriend(
       this.state.otherUser.userHandle,
       data =>
@@ -57,7 +54,26 @@ export default class Friend extends React.Component {
         },
         {
           text: "No",
-          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
+  addFriend() {
+    Alert.alert(
+      "Friend",
+      `You are about to friend ${
+        this.state.otherUser.userName
+      }.`,
+      [
+        {
+          text: "Yes",
+          onPress: () => this.sendFriendRequest()
+        },
+        {
+          text: "No",
           style: "cancel"
         }
       ],
@@ -80,12 +96,55 @@ export default class Friend extends React.Component {
         },
         {
           text: "No",
-          onPress: () => console.log("Cancel Pressed"),
           style: "cancel"
         }
       ],
       { cancelable: false }
     );
+  }
+
+  // Copied from AddUser.js
+  sendFriendRequest = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.userHandle,
+          friendHandle: this.state.otherUser.userHandle
+        })
+      }
+    )
+      .then(data => {
+        //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+        if (data._bodyText == "success")
+          Alert.alert(
+            "Friend Request",
+            `You sent a friend request to ${this.state.otherUser.userHandle}.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
+        else
+          Alert.alert(
+            "Friend Request",
+            `Friend request to ${this.state.otherUser.userHandle} could not be sent.`,
+            [
+              {
+                text: "Ok"
+              }
+            ],
+            { cancelable: false }
+          );
+      })
+      .catch(error => console.error(`sendFriendRequest: ${error}`));
   }
 
   removeFriendFirebaseFunction() {
@@ -98,7 +157,7 @@ export default class Friend extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          userHandle: this.state.id,
+          userHandle: this.state.userHandle,
           friendHandle: this.state.otherUser.userHandle
         })
       }
@@ -128,7 +187,7 @@ export default class Friend extends React.Component {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        userHandle: this.state.id,
+        userHandle: this.state.userHandle,
         blockedHandle: this.state.otherUser.userHandle
       })
     })
@@ -154,14 +213,18 @@ export default class Friend extends React.Component {
     return (
       <Screen
         screenProps={this.props.screenProps}
-        title="Friend"
+        title={this.state.friend ? "Friend" : "Stranger"}
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >
         <Card
           header={this.state.otherUser.userName}
           footer={[
-            { text: "Unfriend", onPress: () => this.removeFriend() },
+            {
+              text: this.state.friend ? "Unfriend" : "Friend",
+              onPress: () =>
+                this.state.friend ? this.removeFriend() : this.addFriend()
+            },
             { text: "Block", onPress: () => this.blockUser() }
           ]}
         >
@@ -174,7 +237,7 @@ export default class Friend extends React.Component {
             }
           </Text>
           <Text type="subHeader" style={{ padding: 8 }}>
-            Location:
+            {"Location: "}
             {this.state.otherUser.location
               ? this.state.otherUser.location
               : " Not Currently Eating"}
