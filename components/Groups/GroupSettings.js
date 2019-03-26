@@ -47,10 +47,14 @@ export default class GroupSettings extends React.Component {
 
   setGroupName = () => {
     if (this.state.newGroupName.length !== 0) {
-      this.props.screenProps.functions.changeGroupName(
-        this.state.groupID,
-        this.state.newGroupName
-      );
+      if (this.state.newGroupName != this.state.group.groupName) {
+        this.props.screenProps.functions.changeGroupName(
+          this.state.groupID,
+          this.state.newGroupName
+        );
+      } else {
+        Alert.alert("Error", "The new group name is the same as the previous.");
+      }
     } else {
       Alert.alert("Error", "Please enter in a group name.");
     }
