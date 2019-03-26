@@ -2602,3 +2602,35 @@ exports.inviteToEat = functions.https.onRequest(async (request, response) => {
 
   response.send({success: true});
 });
+
+//requests a friend for the user to  eat with them
+//PARAMETERS: userHandle, friendHandle
+exports.requestToEat = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandle = request.body.friendHandle;
+
+  console.log(userHandle);
+  console.log(friendHandle);
+
+  if(userHandle == null || friendHandle == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var userCol = db.collection("User");
+
+  var userName;
+  await userCol.doc(userHandle).get().then(async doc => {
+    userName = await doc.data().userName;
+  });
+
+  var notification = {type: "requestToEat", id: {friendHandle: userHandle, friendName: userName}};
+
+  userCol.doc(friendHandle).update({
+    notifications: admin.firestore.FieldValue.arrayUnion(notification)
+  }).then(function(){
+    response.send({success: true});
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+});
