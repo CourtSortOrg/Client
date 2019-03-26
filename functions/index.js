@@ -15,6 +15,64 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
+// returns the offered locations array for each dish
+// PARAMETERS: userHandle, date, meal
+exports.getOfferedOfRatedDishes = functions.https.onRequest(async (request, response)=>{
+  var userHandle = request.body.userHandle;
+  var date = request.body.date;
+  var meal = request.body.meal;
+  if(userHandle == null || date == null || meal == null)
+    throw new Error("incorrect parameters!");
+
+  var userDishRatings = [];
+  
+  var userRef = db.collection("User").doc(userHandle);
+  await userRef.get().then(async function(doc) {
+    if (doc.exists) {
+      await userRef.collection("ItemRatings").get().then(function(querySnapshot) {
+        querySnapshot.forEach(async function(itemRatingDoc) {
+          await userDishRatings.push(itemRatingDoc.data());
+        });
+        console.log("all dish ratings: " +userDishRatings);
+      })
+      .catch(function(error) {
+        throw new Error(error);
+      });
+    }
+    else {
+      throw new Error("user does not exist");
+    }
+  })
+  .catch(function(error) {
+    throw new Error(error);
+  });
+  
+  var ratedDishOfferings = [];
+  for(var i=0; i<userDishRatings.length; i++){
+    var ratingObj = userDishRatings[i];
+    console.log(i+"th rating: "+ratingObj['dish']);
+    var dishRef = db.collection("Dish").doc(ratingObj['dish']);
+    await dishRef.get().then(function(doc){
+      var dishOffering = doc.data().offered;
+      ratedDishOfferings.push({dish: ratingObj['dish'], offered: dishOffering, rating: ratingObj['rating']});
+    })
+  }
+
+  var matches = [{version: "1", length: ratedDishOfferings.length}];
+  for(var i = 0; i<ratedDishOfferings.length; i++){
+    var currDish = ratedDishOfferings[i];
+    matches.push({testing: currDish['dish'], length: currDish['offered'].length});
+    for(var j = 0; j<currDish['offered'].length; j++){
+      var offeredObj = currDish['offered'][j];
+      if(offeredObj['date'] == date && offeredObj['meal'] == meal){
+        matches.push({dish: currDish['dish'], location: offeredObj['location'], rating: currDish['rating']});
+      }
+    }
+  }
+  matches.push({after: "loop"})
+  response.send(matches);
+})
+
 // adds current location
 // requires userHandle and Location
 exports.checkInLocation = functions.https.onRequest(async (request, response) => {
@@ -108,7 +166,7 @@ exports.getRating = functions.https.onRequest(async (request, resopnse) => {
 //get the list of dish court ratings from a user
 //PARAMETERS: userHandle
 exports.getUserDishRatings = functions.https.onRequest((request, response) => {
-  var userHandle = request.body.userHandle
+  var userHandle = request.body.userHandle;
 
   if (userHandle == null) {
     throw new Error("incorrect parameters");
@@ -122,6 +180,7 @@ exports.getUserDishRatings = functions.https.onRequest((request, response) => {
           querySnapshot.forEach(function(itemRatingDoc) {
             ItemRatingsArray.push(itemRatingDoc.data());
           });
+          console.log("inf func: "+ItemRatingsArray);
           response.send(ItemRatingsArray);
         })
         .catch(function(error) {
