@@ -51,6 +51,7 @@ export default class Profile extends React.Component {
 
     this.props.navigation.addListener("willFocus", payload => {
       if (this.state.user) {
+        console.log("update")
         this.setState({
           restrictions: this.props.screenProps.user.dietaryRestrictions,
           friends: this.props.screenProps.user.friends,
@@ -211,6 +212,7 @@ export default class Profile extends React.Component {
             )}
 
             {/* Render the friends list if on the friends tab */}
+            {console.log(this.state.friends)}
             {this.shouldRender(
               selectedIndex == 1,
               <ProfileList

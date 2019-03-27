@@ -1063,12 +1063,11 @@ export default class App extends React.Component {
             ...this.state.user,
             groups: g
           }
-        })
-        console.log(`Update group name to ${groupName}`)
+        });
+        console.log(`Update group name to ${groupName}`);
       })
       .catch(error => console.error(`changeGroupName: ${error}`));
   };
-
 
   resetNotifications = async callback => {
     let n = this.state.user.notifications;
@@ -1198,26 +1197,26 @@ export default class App extends React.Component {
     list.items.push(item);
   };
 
-  removeNotification = id => {
-    let n = this.state.user.notifications.slice();
-    for (let i = 0; i < n.length; i++) {
-      if (n[i].date == id.date) {
-        n[i].items = n[i].items.filter(req => req.Name != id.Name);
-      }
-    }
-
-    n = n.filter(list => list.items.length != 0)
-
+  removeNotification = async id => {
     this.setState(
       {
         user: {
           ...this.state.user,
-          notifications: n
+          notifications: this.state.user.notifications
+            .map(list =>
+              list.date == id.date
+                ? {
+                    ...list,
+                    items: list.items.filter(item => item.Name != id.Name)
+                  }
+                : list
+            )
+            .filter(list => list.items.length != 0)
         }
       },
       () => {
         console.log("storing ...");
-        console.log(n);
+        console.log(this.state.user.notifications);
         this._storeData("user", JSON.stringify(this.state.user));
       }
     );
@@ -1243,6 +1242,7 @@ export default class App extends React.Component {
       id.friendHandle
     }  would like to become friends`;
     id.id = id.friendHandle;
+    id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.friendAlert(id) };
     return obj;
   };
@@ -1253,6 +1253,7 @@ export default class App extends React.Component {
     id.Name = `${id.friendName} @${
       id.friendHandle
     } accepted your friend request.`;
+    id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1261,6 +1262,7 @@ export default class App extends React.Component {
     this.updateFriend(id.friendHandle, false);
 
     id.Name = `${id.friendName} @${id.friendHandle} unfriended you.`;
+    id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1269,6 +1271,7 @@ export default class App extends React.Component {
     this.updateFriend(id.friendHandle, false);
 
     id.Name = `${id.userName} @${id.userHandle} blocked you.`;
+    id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1277,6 +1280,7 @@ export default class App extends React.Component {
     this.updateGroup(id.groupID, true);
 
     id.Name = `@${id.userHandle} joined the group: ${id.groupName}.`;
+    id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1285,12 +1289,14 @@ export default class App extends React.Component {
     this.updateGroup(id.groupID, true);
 
     id.Name = `@${id.userHandle} has left the group: ${id.groupName}.`;
+    id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
 
   newGroupInvitationNotification = id => {
     id.Name = `@${id.friendHandle} invited you to join ${id.groupName}`;
+    id.date = this.dateStr;
     id.id = id.groupID;
 
     let obj = { ...id, onPress: () => this.groupAlert(id) };
