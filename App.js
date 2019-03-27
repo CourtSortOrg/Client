@@ -174,6 +174,21 @@ export default class App extends React.Component {
       user: undefined,
       meals: []
     };
+
+    // navigator.geolocation.getCurrentPosition(
+    //   position => {
+    //     const location = JSON.stringify(position);
+    //     console.log(location);
+    //   },
+    //   error => console.log(error.message),
+    //   { enableHighAccuracy: true, maximumAge: 1000 }
+    // );
+
+    navigator.geolocation.watchPosition(
+      position => console.log(position),
+      error => console.log(error.message),
+      { enableHighAccuracy: true, maximumAge: 1000 }
+    );
   }
 
   busynessMessage = [
