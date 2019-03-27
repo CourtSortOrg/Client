@@ -3,7 +3,7 @@ import { Alert, Platform, Switch, Vibration } from "react-native";
 import { Icon, ListItem } from "react-native-elements";
 import DialogInput from "react-native-dialog-input";
 
-import * as firebase from "firebase";
+import { auth } from "firebase";
 
 import Screen from "../Nav/Screen";
 
@@ -25,7 +25,7 @@ export default class Settings extends React.Component {
     // Hide the TextInput Dialog
     this.displayPasswordReset(false);
     // Check if the current user is a third party account
-    if (firebase.auth().currentUser.providerData[0].providerId != "password") {
+    if (auth().currentUser.providerData[0].providerId != "password") {
       // Alert the user that they cannot reset a third party account's password
       Alert.alert(
         "Password Reset Error",
@@ -35,7 +35,7 @@ export default class Settings extends React.Component {
       // If the email matches the email regex
       try {
         // Send the reset email
-        await firebase.auth().sendPasswordResetEmail(email);
+        await auth().sendPasswordResetEmail(email);
 
         // Alert the user that the email was sent and sign them out
         Alert.alert(
@@ -56,7 +56,7 @@ export default class Settings extends React.Component {
   signOut = async () => {
     try {
       // Sign out the user on the backend
-      await firebase.auth().signOut();
+      await auth().signOut();
       // Remove stored user information and navigate them to the sign in screen
       this.props.screenProps.functions.updateUser(false, undefined, () =>
         this.props.navigation.navigate("Auth")
@@ -80,15 +80,12 @@ export default class Settings extends React.Component {
       [
         {
           text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
           style: "cancel"
         },
         {
           text: "Confirm",
           onPress: () => {
-            user = firebase.auth().currentUser;
-            //get list of friends
-            //get list of individual ratings
+            user = auth().currentUser;
             user
               .delete()
               .then(async () => {
@@ -182,11 +179,13 @@ export default class Settings extends React.Component {
   };
 
   render() {
+    // Use a different icon based on whether location tracking is on or off
     let locationIcon = this.state.trackLocation ? (
       <Icon name="location-on" />
     ) : (
       <Icon name="location-off" />
     );
+    
     return (
       <Screen
         title="Settings"
