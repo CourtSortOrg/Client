@@ -26,7 +26,9 @@ export default class Screen extends React.Component {
           active={this.props.title}
           {...this.props.header}
         />
-        <Body>{this.props.children}</Body>
+        <Body refreshControl={this.props.refreshControl}>
+          {this.props.children}
+        </Body>
         <Footer
           styles={styles}
           screenProps={this.props.screenProps}

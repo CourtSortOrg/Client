@@ -36,6 +36,7 @@ import AddUser from "./components/main/AddUser";
 import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
+import BlockedUsers from "./components/Settings/BlockedUsers";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
@@ -52,32 +53,25 @@ if (!firebase.apps.length) {
   firebase.initializeApp(config);
 }
 
-const AuthNavigation = createStackNavigator({
-  Signin: {
-    screen: SignIn,
-    navigationOptions: {
-      header: null //this will hide the header
+const AuthNavigation = createStackNavigator(
+  {
+    Signin: {
+      screen: SignIn
+    },
+    ResetPassword: {
+      screen: ResetPassword
+    },
+    CreateAccount: {
+      screen: CreateAccount
+    },
+    CreateThirdParty: {
+      screen: CreateThirdParty
     }
   },
-  ResetPassword: {
-    screen: ResetPassword,
-    navigationOptions: {
-      header: null //this will hide the header
-    }
-  },
-  CreateAccount: {
-    screen: CreateAccount,
-    navigationOptions: {
-      header: null //this will hide the header
-    }
-  },
-  CreateThirdParty: {
-    screen: CreateThirdParty,
-    navigationOptions: {
-      header: null //this will hide the header
-    }
+  {
+    headerMode: "none"
   }
-});
+);
 
 const SettingsNavigation = createStackNavigator(
   {
@@ -89,6 +83,9 @@ const SettingsNavigation = createStackNavigator(
     },
     EditProfile: {
       screen: EditProfile
+    },
+    BlockedUsers: {
+      screen: BlockedUsers
     }
   },
   {
@@ -404,6 +401,34 @@ export default class App extends React.Component {
     if (callback) callback();
   };
 
+  updateBlockedUsers = async callback => {
+    try {
+      let data = await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getBlockedUsers",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      let blockedUsersList = await JSON.parse(data._bodyText);
+      await this.setState({
+        user: { ...this.state.user, blockedUsers: blockedUsersList }
+      });
+      // Call the callback if provided
+      if (callback) callback();
+    } catch (error) {
+      console.error(`updateBlockedUsers: ${error}`);
+      // Call the callback if provided
+      if (callback) callback();
+    }
+  };
+
   updateFriend = async (id, action) => {
     // action == true, add friend.
     if (action) {
@@ -617,6 +642,30 @@ export default class App extends React.Component {
     });
 
     if (callback) callback();
+  };
+
+  unblockUser = async (blockedUserHandle, callback) => {
+    try {
+      await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/unblockUser",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle,
+            blockedHandle: blockedUserHandle
+          })
+        }
+      );
+
+      if (callback) callback();
+    } catch (error) {
+      console.error(`removeLocation: ${error}`);
+      if (callback) callback();
+    }
   };
 
   checkOutOfDiningCourt = callback => {
@@ -1477,6 +1526,8 @@ export default class App extends React.Component {
               rateDiningCourt: this.rateDiningCourt,
               updateRatings: this.updateRatings,
               changeGroupName: this.changeGroupName
+              updateBlockedUsers: this.updateBlockedUsers,
+              unblockUser: this.unblockUser
             },
             globals: {
               statusMessage: this.statusMessage,

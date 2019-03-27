@@ -1059,7 +1059,7 @@ exports.removeUserFromDatabase = functions.https.onRequest((request, response) =
     throw new Error("Must pass userHandle in body of request");
   }
   else {
-    db.collection("User").doc(userHandle).delete().then(function() {
+    db.collection("User").doc(userHandle).delete({recursive: true}).then(function() {
       console.log("User successfully deleted!");
       response.send("success");
     }).catch(function(error) {
@@ -1940,6 +1940,7 @@ exports.getNotifications = functions.https.onRequest((request, response) => {
     var notifications = doc.data().notifications;
     var updates = {notifications: []};
     userDoc.update(updates).then(function(){
+      console.log(notifications);
       response.send(notifications);
     }).catch(function(error){
       response.send("error");

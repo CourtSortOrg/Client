@@ -9,6 +9,7 @@ export default class Body extends React.Component {
           flex: 1,
           flexGrow: 1
         }}
+        refreshControl={this.props.refreshControl}
       >
         {this.props.children}
       </ScrollView>
