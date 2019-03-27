@@ -40,6 +40,7 @@ import BlockedUsers from "./components/Settings/BlockedUsers";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
+import GroupPoll from "./components/Groups/GroupPoll";
 
 import Card from "./components/components/Card";
 import List from "./components/components/List";
@@ -109,6 +110,9 @@ const MainNavigation = createStackNavigator(
     },
     Group: {
       screen: Group
+    },
+    GroupPoll: {
+      screen: GroupPoll
     },
     GroupSettings: {
       screen: GroupSettings

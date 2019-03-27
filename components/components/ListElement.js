@@ -150,11 +150,19 @@ export default class ListElement extends React.Component {
             (this.state.selected == false ? (
               <MaterialIcons
                 size={32}
-                name="check-box-outline-blank"
+                name={
+                  this.props.radio
+                    ? "radio-button-unchecked"
+                    : "check-box-outline-blank"
+                }
                 color="#E86515"
               />
             ) : (
-              <MaterialIcons size={32} name="check-box" color="#E86515" />
+              <MaterialIcons
+                size={32}
+                name={this.props.radio ? "radio-button-checked" : "check-box"}
+                color="#E86515"
+              />
             ))}
           <Text type="subHeader">{this.props.Name}</Text>
         </TouchableOpacity>
@@ -173,10 +181,10 @@ export default class ListElement extends React.Component {
           this.props,
           this.props.Name,
           this.state.selected
-        )
+        );
       }
     );
-  }
+  };
 
   render() {
     if (this.props.renderElement) {
