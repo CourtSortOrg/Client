@@ -53,7 +53,12 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
     console.log(i+"th rating: "+ratingObj['dish']);
     var dishRef = db.collection("Dish").doc(ratingObj['dish']);
     await dishRef.get().then(function(doc){
-      var dishOffering = doc.data().offered;
+      var dishOffering = [];
+      try{
+        var dishOffering = doc.data().offered;
+      } catch(error){
+        console.log("no offered array for this!");
+      }
       ratedDishOfferings.push({dish: ratingObj['dish'], offered: dishOffering, rating: ratingObj['rating']});
     })
   }
@@ -118,8 +123,8 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
       best['rating'] = currRating;
     }
   }
-  response.send(courts);
-  //response.send(best);
+  //response.send(courts);
+  response.send(best);
 })
 
 // adds current location
