@@ -39,7 +39,15 @@ export default class SearchList extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.reset != undefined && prevProps.reset != this.props.reset)
+    if (prevProps.list.list != this.props.list.list) {
+      this.setState({
+        text: "",
+        reset: this.props.reset,
+        list: JSON.parse(JSON.stringify(this.props.list.list)),
+        selected: []
+      });
+    }
+    else if (prevProps.reset != undefined && prevProps.reset != this.props.reset)
       this.setState({
         text: "",
         reset: this.props.reset,
