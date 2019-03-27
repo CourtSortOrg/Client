@@ -1198,6 +1198,25 @@ export default class App extends React.Component {
       case "user left group":
         obj = this.newGroupLeaveNotification(id);
         break;
+      case "newPoll":
+        obj = this.newNewPollNotification(id);
+        break;
+      case "closePoll":
+        obj = this.newClosePollNotification(id);
+        break;
+      case "inviteToEat":
+        obj = this.newInviteToEatNotification(id);
+        break;
+      case "requestToEat":
+        obj = this.newRequestToEatNotification(id);
+        break;
+      case "joinedDiningCourt":
+        obj = this.newJoinedDiningCourtNotification(id);
+        break;
+      case "communicationResponse":
+        obj = this.newCommunicationResponse(id);
+        break;
+
       default:
         console.error(`invalid notification type: ${type}\nid: ${id}`);
     }
@@ -1352,6 +1371,61 @@ export default class App extends React.Component {
     return obj;
   };
 
+  newNewPollNotification = id => {
+    id.Name = `@${id.userHandle} has created a new event in ${
+      id.groupName
+    }.\nVote on a time!`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.voteGroupAlert(id) };
+    return obj;
+  };
+
+  newClosePollNotification = id => {
+    id.Name = `${id.groupName} has chosen to eat at ${id.diningCourt} at ${
+      id.time._seconds
+    }!`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newInviteToEatNotification = id => {
+    id.Name = `${id.friendName}  @${
+      id.userHandle
+    }  has invited you to eat with them at ${id.diningCourt} at ${id.time}!
+    \nWould you like to join?`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
+    return obj;
+  };
+
+  newRequestToEatNotification = id => {
+    id.Name = `${id.friendName}  @${
+      id.userHandle
+    }  has asked to join you!\nAre you available?`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
+    return obj;
+  };
+
+  newJoinedDiningCourtNotification = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has checked into your dining court!`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.requestToJoinAlert(id) };
+    return obj;
+  };
+
+  newCommunicationResponse = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has responded with: \n${id.message}`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  }
+
   friendAlert = id => {
     Alert.alert("Friend Request", `Accept request from @${id.friendHandle}?`, [
       {
@@ -1383,6 +1457,68 @@ export default class App extends React.Component {
         {
           text: "Accept",
           onPress: () => this.acceptGroupInvitation(id)
+        }
+      ]
+    );
+  };
+
+  requestToJoinAlert = id => {
+    Alert.alert(
+      "Request to Join",
+      `Would you like to ask to join ${id.friendName}  @${id.friendHandle}?`,
+      [
+        {
+          text: "No, I'm leaving soon",
+          onPress: () => this.removeNotification(id);
+        },
+        {
+          text: "No, I'm busy",
+          onPress: () => this.removeNotification(id);
+        },
+        {
+          text: "Yes, I would like to",
+          onPress: () => this.requestToJoin(id)
+        }
+      ]
+    );
+  };
+
+  respondToJoinAlert = id => {
+    Alert.alert(
+      "Respond",
+      `Would you like to join ${id.friendName}  @${id.friendHandle}?`,
+      [
+        {
+          text: "No, I'm leaving soon",
+          onPress: () => this.removeNotification(id);
+        },
+        {
+          text: "No, I'm busy",
+          onPress: () => this.removeNotification(id);
+        },
+        {
+          text: "Yes, I would like to",
+          onPress: () => this.requestToJoin(id)
+        }
+      ]
+    );
+  };
+
+  voteGroupAlert = id => {
+    Alert.alert(
+      `Group Poll in ${id.groupName}`,
+      `Would you like to vote?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "No",
+          onPress: () => this.removeNotification(id);
+        },
+        {
+          text: "Yes",
+          onPress: () => this.voteGroup(id)
         }
       ]
     );
@@ -1496,6 +1632,14 @@ export default class App extends React.Component {
       .catch(error => console.error(`denyGroupInvitation: ${error}`));
   };
 
+  requestToJoin = id => {
+    //firebase function to make a request to a user.
+  }
+
+  voteGroup = id => {
+    // group poll vote.
+  }
+
   render = () => {
     /*console.log("render:")
     console.log(this.state.user);
@@ -1525,7 +1669,7 @@ export default class App extends React.Component {
               busynessAlert: this.busynessAlert,
               rateDiningCourt: this.rateDiningCourt,
               updateRatings: this.updateRatings,
-              changeGroupName: this.changeGroupName
+              changeGroupName: this.changeGroupName,
               updateBlockedUsers: this.updateBlockedUsers,
               unblockUser: this.unblockUser
             },
