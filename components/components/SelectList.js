@@ -26,12 +26,17 @@ export default class SearchList extends React.Component {
     }
   }
 
-  toggleSelected = (item, id, nextSelectedState) => {
+  toggleSelected = (item, id, nextSelectedState, deselect) => {
     // if selected
     if (nextSelectedState) {
       let arr = [];
-      if (!this.props.radio) arr = this.state.selected.slice();
-      arr.push({ item, id });
+      if (!item.radio) {
+        arr = this.state.selected.slice();
+      } else {
+        this.state.selected.forEach(item => item.deselect());
+      }
+
+      arr.push({ item, id, deselect });
 
       this.setState(
         {
@@ -53,25 +58,12 @@ export default class SearchList extends React.Component {
 
   render() {
     return (
-      <View style={{ flex: 1 }}>
-        {this.state.list.length != 0 ? (
-          <List
-            navigation={this.props.navigation}
-            {...this.props.list}
-            list={this.state.list}
-            expand={this.state.text.length != 0}
-            selectFunction={this.toggleSelected}
-          />
-        ) : this.props.noElementFound ? (
-          this.props.noElementFound
-        ) : (
-          <ListElement
-            type={this.props.list.type}
-            rank={1}
-            Name="No item found"
-          />
-        )}
-      </View>
+      <List
+        navigation={this.props.navigation}
+        {...this.props.list}
+        list={this.state.list}
+        selectFunction={this.toggleSelected}
+      />
     );
   }
 }

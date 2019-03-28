@@ -180,11 +180,18 @@ export default class ListElement extends React.Component {
         this.props.selectFunction(
           this.props,
           this.props.Name,
-          this.state.selected
+          this.state.selected,
+          this.deselect
         );
       }
     );
   };
+
+  deselect = () => {
+    this.setState({
+      selected: false
+    })
+  }
 
   render() {
     if (this.props.renderElement) {
