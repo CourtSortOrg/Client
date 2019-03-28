@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
 
 import Screen from "../Nav/Screen";
 import Card from "../components/Card";
+import Text from "../components/Text";
 import ProfileList from "../components/ProfileList";
 import Separator from "../components/Separator";
 
@@ -56,6 +57,20 @@ export default class Group extends React.Component {
           header={this.state.group.groupName}
           footer={[
             {
+              text: "Create New Event",
+              onPress: () => {
+                this.props.navigation.navigate("GroupEvent", {
+                  ID: this.state.groupID,
+                });
+              }
+            }
+          ]}
+        >
+          <Text>{JSON.stringify(this.state.group)}</Text>
+        </Card>
+        <Card header="Members"
+          footer={[
+            {
               text: "Edit Group",
               onPress: () => {
                 this.props.navigation.navigate("GroupSettings", {
@@ -64,8 +79,7 @@ export default class Group extends React.Component {
               }
             }
           ]}
-        />
-        <Card header="Members">
+        >
           <ProfileList
             navigation={this.props.navigation}
             list={this.state.group.memberObjects.filter(g => g.userHandle != this.props.screenProps.user.userHandle)}

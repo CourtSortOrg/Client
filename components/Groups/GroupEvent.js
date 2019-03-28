@@ -7,7 +7,7 @@ import Card from "../components/Card";
 import ProfileList from "../components/ProfileList";
 import Separator from "../components/Separator";
 
-export default class GroupPoll extends React.Component {
+export default class GroupEvent extends React.Component {
   constructor(props) {
     super(props);
 
@@ -17,12 +17,35 @@ export default class GroupPoll extends React.Component {
         groupName: "",
         memberObjects: []
       },
-      options: [],
-      date: undefined,
-      time: undefined,
+
+      meals: [],
+      days: [],
 
       ...this.props.screenProps.user
     };
+    let mealNames = ["Breakfast", "Lunch", "Late Lunch", "Dinner"];
+
+    let dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ];
+
+    this.state.meals = mealNames.map((meal, index) => ({
+      Name: meal,
+      type: "element",
+      index: index
+    }));
+
+    this.state.days = dayNames.map((day, index) => ({
+      Name: day,
+      type: "element",
+      index: index
+    }));
 
     //if (this.state.groupID !== "NO-ID") {
     /*let groups = this.props.screenProps.user.groups.filter(
@@ -36,71 +59,29 @@ export default class GroupPoll extends React.Component {
       }
       this.state.group = { ...groups[0] };
       */
-
-    let date = new Date();
-    let times = {
-      breakfast: [
-        "7:00",
-        "7:30",
-        "8:00",
-        "8:30",
-        "9:00",
-        "9:30",
-        "10:00",
-        "10:30",
-        "11:00"
-      ],
-      lunch: [
-        "11:00",
-        "11:30",
-        "12:00",
-        "12:30",
-        "1:00",
-        "1:30",
-        "2:00",
-        "2:30",
-        "3:00"
-      ],
-      dinner: ["5:00", "5:30", "6:00", "6:30", "7:00", "7:30", "8:00"]
-    };
-    let dayNames = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday"
-    ];
-
-    for (let i = 0; i < 7; i++) {
-      this.state.options.push({
-        Name: dayNames[date.getDay()],
-        type: "expandable",
-        times: times["lunch"].map(time => ({
-          Name: time,
-          date: date,
-          time: time
-        }))
-      });
-      date.setDate(date.getDate() + 1);
-    }
   }
-  //}
 
-  vote = selected => {
+  voteDay = selected => {
     if (selected.length == 0) {
       this.setState({
-        date: undefined,
-        time: undefined
+        date: undefined
       });
     } else {
-      this.setState(
-        {
-          date: selected[0].item.date,
-          time: selected[0].item.time
-        },
-      );
+      this.setState({
+        date: selected[0].item.index
+      });
+    }
+  };
+
+  voteMeal = selected => {
+    if (selected.length == 0) {
+      this.setState({
+        meal: undefined
+      });
+    } else {
+      this.setState({
+        meal: selected[0].item.Name
+      });
     }
   };
 
@@ -108,30 +89,40 @@ export default class GroupPoll extends React.Component {
     return (
       <Screen
         title="Group Poll"
-        navigation={{ ...this.props.navigation }}
+        navigation={this.props.navigation}
         screenProps={this.props.screenProps}
         backButton={true}
       >
-        <SelectList
-          navigation={this.props.navigation}
-          list={{
-            list: this.state.options,
-            type: "expandable",
-            subList: {
-              list: "times",
+        <Card header="Day">
+          <SelectList
+            navigation={this.props.navigation}
+            list={{
+              list: this.state.days,
               type: "element",
               selectable: true,
               radio: true
-            }
-          }}
-          updateSelectedList={this.vote}
-        />
+            }}
+            updateSelectedList={this.voteDay}
+          />
+        </Card>
+        <Card header="Meal">
+          <SelectList
+            navigation={this.props.navigation}
+            list={{
+              list: this.state.meals,
+              type: "element",
+              selectable: true,
+              radio: true
+            }}
+            updateSelectedList={this.voteMeal}
+          />
+        </Card>
         <Card
           footer={[
             {
-              text: "Vote",
+              text: "Create!",
               onPress: () => {
-                console.log("voted!");
+                console.log("Created Event!");
                 /*this.props.screenProps.functions.vote(
                   this.state.date,
                   this.state.time
