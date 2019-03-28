@@ -164,6 +164,8 @@ TaskManager.defineTask(
       // check `error.message` for more details.
       return;
     }
+    Alert.alert("GEOFENCE is reached");
+
     if (eventType === Location.GeofencingEventType.Enter) {
       console.log("You've entered region:", region);
     } else if (eventType === Location.GeofencingEventType.Exit) {
@@ -174,6 +176,8 @@ TaskManager.defineTask(
 
 TaskManager.defineTask("MONITOR_LOCATION", ({ data: { locations }, error }) => {
   if (error) {
+    console.log(error.message);
+
     // check `error.message` for more details.
     return;
   }
@@ -189,28 +193,10 @@ export default class App extends React.Component {
       firebaseLoaded: false,
       userLoaded: false,
       user: undefined,
-      meals: [],
-      locationID: 0
+      meals: []
     };
 
     this.enableLocation();
-
-    Location.startLocationUpdatesAsync("MONITOR_LOCATION", {
-      accuracy: Location.Accuracy.High,
-      timeInterval: 10000,
-      showBackgroundLocationIndicator: true
-    });
-
-    Location.startGeofencingAsync("MONITOR_GEOFENCE", [
-      {
-        identifier: "HILLY",
-        latitude: 40.4269,
-        longitude: -86.9264,
-        radius: 200,
-        notifyOnEnter: true,
-        notifyOnExit: true
-      }
-    ]);
   }
 
   busynessMessage = [
@@ -351,6 +337,7 @@ export default class App extends React.Component {
       await this.updateFriends(() => console.log("friends loaded"));
       await this.updateGroups(() => console.log("groups loaded"));
       await this.updateRatings();
+      await this.enableLocation();
       // TODO: Get the user's ratings here
 
       await this._storeData(`user`, JSON.stringify(this.state.user));
@@ -434,34 +421,29 @@ export default class App extends React.Component {
   };
 
   enableLocation = async callback => {
-    // await BackgroundGeolocation.addGeofence(
-    //   {
-    //     identifier: "Hilly",
-    //     radius: 200,
-    //     latitude: 40.4269,
-    //     longitude: -86.9264,
-    //     notifyOnEntry: true
-    //   },
-    //   () => console.log("Add geofence success"),
-    //   () => console.log("error adding geofence")
-    // );
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    await Location.startGeofencingAsync("MONITOR_GEOFENCE", [
+      {
+        identifier: "HILLY",
+        latitude: 40.4269,
+        longitude: -86.9264,
+        radius: 50,
+        notifyOnEnter: true,
+        notifyOnExit: true
+      }
+    ]);
+    let response = await Location.hasStartedGeofencingAsync("MONITOR_GEOFENCE");
+    console.log(response);
+    response = await TaskManager.isTaskDefined("MONITOR_GEOFENCE");
+    console.log(response);
 
-    // await BackgroundGeolocation.onGeofence(function(geofence, taskId) {
-    //   try {
-    //     var identifier = geofence.identifier;
-    //     var action = geofence.action;
-    //     var location = geofence.location;
+    await Location.startLocationUpdatesAsync("MONITOR_LOCATION", {
+      accuracy: Location.Accuracy.High,
+      timeInterval: 10000,
+      distanceInterval: 1,
+      showBackgroundLocationIndicator: true
+    });
 
-    //     console.log("- A Geofence transition occurred");
-    //     console.log("  identifier: ", identifier);
-    //     console.log("  action: ", action);
-    //     console.log("  location: ", JSON.stringify(location));
-    //   } catch (e) {
-    //     console.error("An error occurred in my code!", e);
-    //   }
-    //   // Be sure to call #finish!!
-    //   BackgroundGeolocation.finish(taskId);
-    // });
     if (callback) callback();
   };
 

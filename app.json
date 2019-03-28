@@ -21,14 +21,17 @@
       "supportsTablet": true,
       "config": {
         "googleMapsApiKey": "AIzaSyDJ0Ka2RYGk4cAQMO4avyc_7q1opokVDIk"
+      },
+      "infoPlist": {
+        "UIBackgroundModes": ["location", "fetch"]
       }
     },
     "android": {
       "config": {
         "googleSignIn": {
           "apiKey": "AIzaSyDJ0Ka2RYGk4cAQMO4avyc_7q1opokVDIk"
-        }, 
-        "googleMaps" : {
+        },
+        "googleMaps": {
           "apiKey": "AIzaSyDJ0Ka2RYGk4cAQMO4avyc_7q1opokVDIk"
         }
       }
