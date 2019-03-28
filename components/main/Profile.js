@@ -36,6 +36,9 @@ export default class Profile extends React.Component {
       status: 2,
 
       restrictions: this.props.screenProps.user.dietaryRestrictions,
+      friends: this.props.screenProps.user.friends,
+      ratings: this.props.screenProps.user.ratings,
+      groups: this.props.screenProps.user.groups,
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
     };
   }
@@ -47,9 +50,15 @@ export default class Profile extends React.Component {
     }
 
     this.props.navigation.addListener("willFocus", payload => {
-      this.setState({
-        restrictions: this.props.screenProps.user.dietaryRestrictions
-      });
+      if (this.state.user) {
+        console.log("update")
+        this.setState({
+          restrictions: this.props.screenProps.user.dietaryRestrictions,
+          friends: this.props.screenProps.user.friends,
+          ratings: this.props.screenProps.user.ratings,
+          groups: this.props.screenProps.user.groups
+        });
+      }
     });
   }
 
@@ -78,46 +87,6 @@ export default class Profile extends React.Component {
 
   sendFriendRequest = () => {
     this.props.navigation.navigate("AddUser");
-    // fetch(
-    //   "https://us-central1-courtsort-e1100.cloudfunctions.net/sendFriendRequest",
-    //   {
-    //     method: "POST",
-    //     headers: {
-    //       Accept: "application/json",
-    //       "Content-Type": "application/json"
-    //     },
-    //     body: JSON.stringify({
-    //       userHandle: this.props.screenProps.user.userHandle,
-    //       friendHandle: text
-    //     })
-    //   }
-    // )
-    //   .then(data => {
-    //     //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
-    //     if (data._bodyText == "success")
-    //       Alert.alert(
-    //         "Friend Request",
-    //         `You sent a friend request to ${text}.`,
-    //         [
-    //           {
-    //             text: "Ok"
-    //           }
-    //         ],
-    //         { cancelable: false }
-    //       );
-    //     else
-    //       Alert.alert(
-    //         "Friend Request",
-    //         `Friend request to ${text} could not be sent.`,
-    //         [
-    //           {
-    //             text: "Ok"
-    //           }
-    //         ],
-    //         { cancelable: false }
-    //       );
-    //   })
-    //   .catch(error => console.error(`sendFriendRequest: ${error}`));
   };
 
   render() {
@@ -206,8 +175,7 @@ export default class Profile extends React.Component {
           </TouchableOpacity>
         </Card>
 
-        {/* TODO: Add user dietary restrictions */}
-        {this.props.screenProps.user.dietaryRestrictions.length > 0 ? (
+        {this.state.restrictions.length > 0 ? (
           <Card header="Your Dietary Restrictions">
             <VariableGrid
               data={this.state.restrictions}
@@ -238,18 +206,19 @@ export default class Profile extends React.Component {
               selectedIndex == 0,
               <RatingsList
                 id={this.props.screenProps.user.id}
-                ratings={this.props.screenProps.user.ratings}
+                ratings={this.state.ratings}
               />,
               null
             )}
 
             {/* Render the friends list if on the friends tab */}
+            {console.log(this.state.friends)}
             {this.shouldRender(
               selectedIndex == 1,
               <ProfileList
                 navigation={this.props.navigation}
                 extendedSearch={this.sendFriendRequest}
-                list={this.props.screenProps.user.friends}
+                list={this.state.friends}
               />,
               null
             )}
@@ -262,7 +231,7 @@ export default class Profile extends React.Component {
                 extendedSearch={text =>
                   this.props.navigation.navigate("GroupSettings")
                 }
-                list={this.props.screenProps.user.groups}
+                list={this.state.groups}
               />,
               null
             )}

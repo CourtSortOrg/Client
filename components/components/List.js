@@ -15,7 +15,7 @@ export default class List extends React.Component {
     listElement:
       type: {expandable, dropDown, element}
       subList: [array of listElements] //Only if header or dropdown is chosen.
-      text: "element text to show"
+      Name: "element text to show"
       viewMore: false || { page: stack navigator page, item: props to set page }
     */
 
@@ -38,6 +38,7 @@ export default class List extends React.Component {
             renderElement={this.props.renderElement}
             onPress={this.props.onPress}
             selectable={this.props.selectable}
+            radio={this.props.radio}
             selectFunction={this.props.selectFunction}
           />
         ))}
