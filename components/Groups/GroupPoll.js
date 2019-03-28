@@ -95,12 +95,10 @@ export default class GroupPoll extends React.Component {
         time: undefined
       });
     } else {
-      this.setState(
-        {
-          date: selected[0].item.date,
-          time: selected[0].item.time
-        },
-      );
+      this.setState({
+        date: selected[0].item.date,
+        time: selected[0].item.time
+      });
     }
   };
 
@@ -108,25 +106,12 @@ export default class GroupPoll extends React.Component {
     return (
       <Screen
         title="Group Poll"
-        navigation={{ ...this.props.navigation }}
+        navigation={this.props.navigation}
         screenProps={this.props.screenProps}
         backButton={true}
       >
-        <SelectList
-          navigation={this.props.navigation}
-          list={{
-            list: this.state.options,
-            type: "expandable",
-            subList: {
-              list: "times",
-              type: "element",
-              selectable: true,
-              radio: true
-            }
-          }}
-          updateSelectedList={this.vote}
-        />
         <Card
+          header={`Vote on a time for $MEAL on $DATE`}
           footer={[
             {
               text: "Vote",
@@ -139,7 +124,22 @@ export default class GroupPoll extends React.Component {
               }
             }
           ]}
-        />
+        >
+          <SelectList
+            navigation={this.props.navigation}
+            list={{
+              list: this.state.options,
+              type: "expandable",
+              subList: {
+                list: "times",
+                type: "element",
+                selectable: true,
+                radio: true
+              }
+            }}
+            updateSelectedList={this.vote}
+          />
+        </Card>
       </Screen>
     );
   }
