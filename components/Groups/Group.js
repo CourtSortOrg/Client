@@ -37,6 +37,13 @@ export default class Group extends React.Component {
 
   componentDidMount = () => {
     this.props.navigation.addListener("willFocus", payload => {
+      let nav = this.props.navigation.getParam("NAVIGATE", undefined);
+      if (nav != undefined) {
+        this.props.navigation.navigate(nav, {
+          ID: this.state.groupID
+        });
+      }
+
       this.setState({
         group: this.props.screenProps.user.groups.find(
           g => g.groupID === this.state.groupID
@@ -59,8 +66,8 @@ export default class Group extends React.Component {
             {
               text: "Create New Event",
               onPress: () => {
-                this.props.navigation.navigate("GroupEvent", {
-                  ID: this.state.groupID,
+                this.props.navigation.navigate("GroupCreateEvent", {
+                  ID: this.state.groupID
                 });
               }
             }
@@ -68,7 +75,8 @@ export default class Group extends React.Component {
         >
           <Text>{JSON.stringify(this.state.group)}</Text>
         </Card>
-        <Card header="Members"
+        <Card
+          header="Members"
           footer={[
             {
               text: "Edit Group",
@@ -82,7 +90,9 @@ export default class Group extends React.Component {
         >
           <ProfileList
             navigation={this.props.navigation}
-            list={this.state.group.memberObjects.filter(g => g.userHandle != this.props.screenProps.user.userHandle)}
+            list={this.state.group.memberObjects.filter(
+              g => g.userHandle != this.props.screenProps.user.userHandle
+            )}
           />
         </Card>
       </Screen>
