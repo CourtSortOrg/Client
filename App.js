@@ -1422,13 +1422,13 @@ export default class App extends React.Component {
   };
 
   newCommunicationResponse = id => {
-    id.Name = `${id.friendName}  @${
-      id.friendHandle
-    }  has responded with: \n${id.message}`;
+    id.Name = `${id.friendName}  @${id.friendHandle}  has responded with: \n${
+      id.message
+    }`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
-  }
+  };
 
   friendAlert = id => {
     Alert.alert("Friend Request", `Accept request from @${id.friendHandle}?`, [
@@ -1473,11 +1473,11 @@ export default class App extends React.Component {
       [
         {
           text: "No, I'm leaving soon",
-          onPress: () => this.removeNotification(id);
+          onPress: () => this.removeNotification(id)
         },
         {
           text: "No, I'm busy",
-          onPress: () => this.removeNotification(id);
+          onPress: () => this.removeNotification(id)
         },
         {
           text: "Yes, I would like to",
@@ -1494,11 +1494,11 @@ export default class App extends React.Component {
       [
         {
           text: "No, I'm leaving soon",
-          onPress: () => this.removeNotification(id);
+          onPress: () => this.removeNotification(id)
         },
         {
           text: "No, I'm busy",
-          onPress: () => this.removeNotification(id);
+          onPress: () => this.removeNotification(id)
         },
         {
           text: "Yes, I would like to",
@@ -1509,23 +1509,19 @@ export default class App extends React.Component {
   };
 
   voteGroupAlert = id => {
-    Alert.alert(
-      `Group Poll in ${id.groupName}`,
-      `Would you like to vote?`,
-      [
-        {
-          text: "Cancel"
-        },
-        {
-          text: "No",
-          onPress: () => this.removeNotification(id);
-        },
-        {
-          text: "Yes",
-          onPress: () => this.voteGroup(id)
-        }
-      ]
-    );
+    Alert.alert(`Group Poll in ${id.groupName}`, `Would you like to vote?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "No",
+        onPress: () => this.removeNotification(id)
+      },
+      {
+        text: "Yes",
+        onPress: () => this.voteGroup(id)
+      }
+    ]);
   };
 
   acceptFriendRequest = id => {
@@ -1638,11 +1634,11 @@ export default class App extends React.Component {
 
   requestToJoin = id => {
     //firebase function to make a request to a user.
-  }
+  };
 
   voteGroup = id => {
     // group poll vote.
-  }
+  };
 
   render = () => {
     /*console.log("render:")
