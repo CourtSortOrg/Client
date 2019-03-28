@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  Alert,
-  Button,
-  StyleSheet,
-  Text,
-  View,
-  AsyncStorage,
-  Picker
-} from "react-native";
+import { Alert, AsyncStorage, Picker } from "react-native";
 import {
   createSwitchNavigator,
   createStackNavigator,
@@ -15,6 +7,7 @@ import {
 } from "react-navigation";
 import { Overlay } from "react-native-elements";
 import { Font } from "expo";
+import { Location, Permissions, TaskManager } from "expo";
 
 import Splash from "./components/auth/Splash";
 import LoginSplash from "./components/auth/LoginSplash";
@@ -163,6 +156,30 @@ const AppNavigation = createSwitchNavigator(
 
 const Navigation = createAppContainer(AppNavigation);
 
+TaskManager.defineTask(
+  "MONITOR_GEOFENCE",
+  ({ data: { eventType, region }, error }) => {
+    if (error) {
+      console.log(error.message);
+      // check `error.message` for more details.
+      return;
+    }
+    if (eventType === Location.GeofencingEventType.Enter) {
+      console.log("You've entered region:", region);
+    } else if (eventType === Location.GeofencingEventType.Exit) {
+      console.log("You've left region:", region);
+    }
+  }
+);
+
+TaskManager.defineTask("MONITOR_LOCATION", ({ data: { locations }, error }) => {
+  if (error) {
+    // check `error.message` for more details.
+    return;
+  }
+  console.log("Received new locations", locations);
+});
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -172,23 +189,28 @@ export default class App extends React.Component {
       firebaseLoaded: false,
       userLoaded: false,
       user: undefined,
-      meals: []
+      meals: [],
+      locationID: 0
     };
 
-    // navigator.geolocation.getCurrentPosition(
-    //   position => {
-    //     const location = JSON.stringify(position);
-    //     console.log(location);
-    //   },
-    //   error => console.log(error.message),
-    //   { enableHighAccuracy: true, maximumAge: 1000 }
-    // );
+    this.enableLocation();
 
-    navigator.geolocation.watchPosition(
-      position => console.log(position),
-      error => console.log(error.message),
-      { enableHighAccuracy: true, maximumAge: 1000 }
-    );
+    Location.startLocationUpdatesAsync("MONITOR_LOCATION", {
+      accuracy: Location.Accuracy.High,
+      timeInterval: 10000,
+      showBackgroundLocationIndicator: true
+    });
+
+    Location.startGeofencingAsync("MONITOR_GEOFENCE", [
+      {
+        identifier: "HILLY",
+        latitude: 40.4269,
+        longitude: -86.9264,
+        radius: 200,
+        notifyOnEnter: true,
+        notifyOnExit: true
+      }
+    ]);
   }
 
   busynessMessage = [
@@ -200,6 +222,16 @@ export default class App extends React.Component {
   ];
 
   statusMessage = ["Not Eating", "Available", "Busy"];
+
+  _getLocationAsync = async () => {
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    if (status !== "granted") {
+      Alert.alert("No Location Permissions");
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    console.log(location);
+  };
 
   _storeData = async (key, value) => {
     try {
@@ -398,6 +430,42 @@ export default class App extends React.Component {
       );
     });
 
+    if (callback) callback();
+  };
+
+  enableLocation = async callback => {
+    // await BackgroundGeolocation.addGeofence(
+    //   {
+    //     identifier: "Hilly",
+    //     radius: 200,
+    //     latitude: 40.4269,
+    //     longitude: -86.9264,
+    //     notifyOnEntry: true
+    //   },
+    //   () => console.log("Add geofence success"),
+    //   () => console.log("error adding geofence")
+    // );
+
+    // await BackgroundGeolocation.onGeofence(function(geofence, taskId) {
+    //   try {
+    //     var identifier = geofence.identifier;
+    //     var action = geofence.action;
+    //     var location = geofence.location;
+
+    //     console.log("- A Geofence transition occurred");
+    //     console.log("  identifier: ", identifier);
+    //     console.log("  action: ", action);
+    //     console.log("  location: ", JSON.stringify(location));
+    //   } catch (e) {
+    //     console.error("An error occurred in my code!", e);
+    //   }
+    //   // Be sure to call #finish!!
+    //   BackgroundGeolocation.finish(taskId);
+    // });
+    if (callback) callback();
+  };
+
+  disableLocation = async callback => {
     if (callback) callback();
   };
 
