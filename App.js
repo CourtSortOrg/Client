@@ -1648,6 +1648,29 @@ export default class App extends React.Component {
     // group poll vote.
   };
 
+  createPoll = (expirationTime, groupID, timeOptions, meal) => {
+    //userHandle, expirationTime, groupID, timeOptions, meal
+    // time options is a list of date objects.
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/createPoll",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          expirationTime,
+          groupID,
+          timeOptions,
+          meal
+        })
+      }
+    )
+      .catch(error => console.error(`createPoll: ${error}`));
+  };
+
   render = () => {
     /*console.log("render:")
     console.log(this.state.user);

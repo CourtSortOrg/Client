@@ -38,11 +38,11 @@ export default class Group extends React.Component {
   componentDidMount = () => {
     this.props.navigation.addListener("willFocus", payload => {
       let nav = this.props.navigation.getParam("NAVIGATE", undefined);
-      if (nav != undefined) {
+      /*if (nav != undefined) {
         this.props.navigation.navigate(nav, {
           ID: this.state.groupID
         });
-      }
+      }*/
 
       this.setState({
         group: this.props.screenProps.user.groups.find(
