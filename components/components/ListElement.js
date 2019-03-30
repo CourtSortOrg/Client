@@ -49,7 +49,7 @@ export default class ListElement extends React.Component {
         <TouchableOpacity
           style={this.styles.dropDownHeader}
           onPress={() => {
-            if (this.props.onPress) this.props.onPress();
+            if (this.props.onPress) this.props.nPress();
             this.toggleExpansion();
           }}
         >

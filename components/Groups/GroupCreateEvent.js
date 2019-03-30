@@ -23,22 +23,11 @@ export default class GroupCreateEvent extends React.Component {
 
       ...this.props.screenProps.user
     };
-    let mealNames = ["Breakfast", "Lunch", "Late Lunch", "Dinner"];
-
-    let dayNames = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday"
-    ];
 
     let date = new Date();
-    for(let i = 0; i < 7; i++) {
+    for (let i = 0; i < 7; i++) {
       this.state.days.push({
-        Name: dayNames[date.getDay()],
+        Name: this.props.screenProps.globals.dayNames[date.getDay()],
         type: "element",
         index: i
       });
@@ -46,7 +35,7 @@ export default class GroupCreateEvent extends React.Component {
       date.setDate(date.getDate() + 1);
     }
 
-    this.state.meals = mealNames.map((meal, index) => ({
+    this.state.meals = this.props.screenProps.globals.mealNames.map((meal, index) => ({
       Name: meal,
       type: "element",
       index: index
@@ -64,141 +53,145 @@ export default class GroupCreateEvent extends React.Component {
 }
 this.state.group = { ...groups[0] };
 */
-}
-
-voteDay = selected => {
-  if (selected.length == 0) {
-    this.setState({
-      date: undefined
-    });
-  } else {
-    this.setState({
-      date: selected[0].item.index
-    });
   }
-};
 
-voteMeal = selected => {
-  if (selected.length == 0) {
-    this.setState({
-      meal: undefined
-    });
-  } else {
-    this.setState({
-      meal: selected[0].item.Name
-    });
-  }
-};
-
-vote = () => {
-  let date = new Date();
-  date.setDate(date.getDate() + this.state.date)
-
-  let times = {
-    breakfast: [
-      {hr: 7, min: 0},
-      {hr: 7, min: 30},
-      {hr: 8, min: 0},
-      {hr: 8, min: 30},
-      {hr: 9, min: 0},
-      {hr: 9, min: 30},
-      {hr: 10, min: 0},
-      {hr: 10, min: 30},
-      {hr: 11, min: 0},
-    ],
-    lunch: [
-      { hr: 11, min: 0},
-      { hr: 11, min: 30},
-      { hr: 12, min: 0},
-      { hr: 12, min: 30},
-      { hr: 1, min: 0},
-      { hr: 1, min: 30},
-      { hr: 2, min: 0},
-      { hr: 2, min: 30},
-      { hr: 3, min: 0},
-    ],
-    dinner: [
-      { hr: 5, min: 0},
-      { hr: 5, min: 30},
-      { hr: 6, min: 0},
-      { hr: 6, min: 30},
-      { hr: 7, min: 0},
-      { hr: 7, min: 30},
-      { hr: 8, min: 0}
-    ]
+  voteDay = selected => {
+    if (selected.length == 0) {
+      this.setState({
+        date: undefined
+      });
+    } else {
+      this.setState({
+        date: selected[0].item.index
+      });
+    }
   };
 
-  let dateTimes = times[this.state.meal].map(time => {
-    date.setHours(time.hr, time.min);
-    return date.getDate();
-  });
+  voteMeal = selected => {
+    if (selected.length == 0) {
+      this.setState({
+        meal: undefined
+      });
+    } else {
+      this.setState({
+        meal: selected[0].item.Name
+      });
+    }
+  };
 
-  let expirationTime = new Date();
-  expirationTime.setHours(expirationTime.getHours() + 24);
+  vote = () => {
+    let date = new Date();
+    date.setDate(date.getDate() + this.state.date);
 
-  this.props.screenProps.functions.createPoll(
-    expirationTime,
-    this.state.groupID,
-    dateTimes,
-    this.state.meal
-  );
+    let times = {
+      Breakfast: [
+        { hr: 7, min: 0 },
+        { hr: 7, min: 30 },
+        { hr: 8, min: 0 },
+        { hr: 8, min: 30 },
+        { hr: 9, min: 0 },
+        { hr: 9, min: 30 },
+      ],
+      Lunch: [
+        { hr: 11, min: 0 },
+        { hr: 11, min: 30 },
+        { hr: 12, min: 0 },
+        { hr: 12, min: 30 },
+        { hr: 1, min: 0 },
+        { hr: 1, min: 30 },
+        { hr: 2, min: 0 },
+        { hr: 2, min: 30 },
+        { hr: 3, min: 0 }
+      ],
+      "Late Lunch": [
+        { hr: 2, min: 0 },
+        { hr: 2, min: 30 },
+        { hr: 3, min: 0 },
+        { hr: 3, min: 30 },
+      ],
+      Dinner: [
+        { hr: 5, min: 0 },
+        { hr: 5, min: 30 },
+        { hr: 6, min: 0 },
+        { hr: 6, min: 30 },
+        { hr: 7, min: 0 },
+        { hr: 7, min: 30 },
+        { hr: 8, min: 0 },
+        { hr: 8, min: 30 }
+      ]
+    };
 
-  console.log("Created Event!");
-  this.props.navigation.navigate("Group", {
-    ID: this.state.groupID,
-    NAVIGATE: "GroupPoll"
-  });
-}
+    let dateTimes = times[this.state.meal].map(time => {
+      date.setHours(time.hr, time.min);
+      return date.toISOString();
+    });
 
-render() {
-  return (
-    <Screen
-    title="Group Poll"
-    navigation={this.props.navigation}
-    screenProps={this.props.screenProps}
-    backButton={true}
-    >
-    <Card header="Day">
-    <SelectList
-    navigation={this.props.navigation}
-    list={{
-      list: this.state.days,
-      type: "element",
-      selectable: true,
-      radio: true
-    }}
-    updateSelectedList={this.voteDay}
-    />
-    </Card>
-    <Card header="Meal">
-    <SelectList
-    navigation={this.props.navigation}
-    list={{
-      list: this.state.meals,
-      type: "element",
-      selectable: true,
-      radio: true
-    }}
-    updateSelectedList={this.voteMeal}
-    />
-    </Card>
-    <Card
-    footer={[
-      {
-        text: "Create!",
-        onPress: () => {
-          if (this.state.date == undefined) {
-            Alert.alert("Error!", "Please choose a date!");
-          } else if (this.state.meal == undefined) {
-            Alert.alert("Error!", "Please choose a meal to eat!");
-          } else {
-            this.vote();
-          }
-        }
-      }
-    ]}
-    />
-    </Screen>
-  );
-}
+    let expirationTime = new Date();
+    expirationTime.setHours(expirationTime.getHours() + 24);
+
+    this.props.screenProps.functions.createPoll(
+      expirationTime,
+      this.state.groupID,
+      dateTimes,
+      this.state.meal
+    );
+
+    console.log("Created Event!");
+    this.props.navigation.navigate("Group", {
+      ID: this.state.groupID,
+      NAVIGATE: "GroupPoll"
+    });
+  };
+
+  render() {
+    return (
+      <Screen
+        title="Group Poll"
+        navigation={this.props.navigation}
+        screenProps={this.props.screenProps}
+        backButton={true}
+      >
+        <Card header="Day">
+          <SelectList
+            navigation={this.props.navigation}
+            list={{
+              list: this.state.days,
+              type: "element",
+              selectable: true,
+              radio: true
+            }}
+            updateSelectedList={this.voteDay}
+          />
+        </Card>
+        <Card header="Meal">
+          <SelectList
+            navigation={this.props.navigation}
+            list={{
+              list: this.state.meals,
+              type: "element",
+              selectable: true,
+              radio: true
+            }}
+            updateSelectedList={this.voteMeal}
+          />
+        </Card>
+        <Card
+          footer={[
+            {
+              text: "Create!",
+              onPress: () => {
+                if (this.state.date == undefined) {
+                  Alert.alert("Error!", "Please choose a date!");
+                } else if (this.state.meal == undefined) {
+                  Alert.alert("Error!", "Please choose a meal to eat!");
+                } else {
+                  this.vote();
+                }
+              }
+            }
+          ]}
+        />
+      </Screen>
+    );
+  }
 }

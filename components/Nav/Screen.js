@@ -26,7 +26,12 @@ export default class Screen extends React.Component {
           active={this.props.title}
           {...this.props.header}
         />
-        <Body refreshControl={this.props.refreshControl}>
+        <Body
+          refreshControl={() => {
+            this.props.screenProops.functions.updateNotifications();
+            if (this.props.refreshControl) this.props.refreshControl();
+          }}
+        >
           {this.props.children}
         </Body>
         <Footer

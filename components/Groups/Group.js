@@ -4,6 +4,7 @@ import { View } from "react-native";
 import Screen from "../Nav/Screen";
 import Card from "../components/Card";
 import Text from "../components/Text";
+import List from "../components/List";
 import ProfileList from "../components/ProfileList";
 import Separator from "../components/Separator";
 
@@ -60,6 +61,7 @@ export default class Group extends React.Component {
         screenProps={this.props.screenProps}
         backButton={true}
       >
+        <Text>{JSON.stringify(this.state.group)}</Text>
         <Card
           header={this.state.group.groupName}
           footer={[
@@ -73,7 +75,22 @@ export default class Group extends React.Component {
             }
           ]}
         >
-          <Text>{JSON.stringify(this.state.group)}</Text>
+          <List
+            navigation={this.props.navigation}
+            list={this.state.group.messages.map((msg, index) => {
+              let d = new Date(msg.timeOptions[0]);
+              return {
+                Name: `Vote on time for ${msg.meal} on ${this.props.screenProps.globals.dayNames[d.getDay()]}`,
+                ...msg,
+                index: index,
+                onPress: () => this.props.navigation.navigate("GroupPoll", {
+                  ID: this.state.groupID,
+                  MESSAGEID: msg.messageID
+                })
+              };
+            })}
+            type="element"
+          />
         </Card>
         <Card
           header="Members"
