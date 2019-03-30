@@ -19,11 +19,24 @@ export default class Card extends React.Component {
           ...this.props.style
         }}
       >
-        {this.props.header != undefined && (
-          <View style={styles.header}>
-            <Text type="header">{this.props.header}</Text>
-          </View>
-        )}
+        {this.props.header != undefined &&
+          (Array.isArray(this.props.footer) ? (
+            <View style={styles.header}>
+              {this.props.header.map((button, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={button.onPress}
+                  style={styles.button}
+                >
+                  <Text type="header">{button.text}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.header}>
+              <Text type="header">{this.props.header}</Text>
+            </View>
+          ))}
         {this.props.children}
         {this.props.footer != undefined && Array.isArray(this.props.footer) ? (
           <View
