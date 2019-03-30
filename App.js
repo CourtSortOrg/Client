@@ -1545,6 +1545,9 @@ export default class App extends React.Component {
   };
 
   acceptFriendRequest = id => {
+    this.removeNotification(id);
+    this.updateFriend(id.friendHandle, true);
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptFriendRequest",
       {
@@ -1562,8 +1565,6 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification(id);
-          this.updateFriend(id.friendHandle, true);
         } catch (error) {
           console.error(`acceptFriendRequest: ${error} -- ${data._bodyText}`);
         }
@@ -1572,6 +1573,8 @@ export default class App extends React.Component {
   };
 
   denyFriendRequest = id => {
+    this.removeNotification(id);
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/denyFriendRequest",
       {
@@ -1589,7 +1592,6 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification(id);
         } catch (error) {
           console.error(`denyFriendRequest: ${error}: ${data._bodyText}`);
         }
@@ -1598,6 +1600,9 @@ export default class App extends React.Component {
   };
 
   acceptGroupInvitation = id => {
+    this.removeNotification(id);
+    this.updateGroup(id.groupID, true);
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptGroupInvitation",
       {
@@ -1616,8 +1621,6 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification(id);
-          this.updateGroup(id.groupID, true);
         } catch (error) {
           console.error(`acceptGroupInvitation: ${error}- ${data._bodyText}`);
         }
@@ -1626,6 +1629,8 @@ export default class App extends React.Component {
   };
 
   denyGroupInvitation = id => {
+    this.removeNotification(id);
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/denyGroupInvitation",
       {
@@ -1644,7 +1649,6 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification(id);
         } catch (error) {
           console.error(`denyGroupInvitation: ${error}- ${data._bodyText}`);
         }
@@ -1657,13 +1661,13 @@ export default class App extends React.Component {
   };
 
   voteGroup = id => {
-    this.removeNotification(id)
+    this.removeNotification(id);
 
     this.props.navigation.navigate("GroupPoll", {
       ID: id.groupID,
       MESSAGEID: id.messageID
     });
-  }
+  };
 
   vote = (choiceIndex, groupID, messageID) => {
     fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/vote", {
