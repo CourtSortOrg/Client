@@ -851,6 +851,73 @@ exports.getUserHandle = functions.https.onRequest((request, response) => {
   }
 });
 
+//change user's location tracking preference
+//PARAMETERS: userHandle
+exports.toggleLocationTracking = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if (userHandle == null) {
+    throw new Error("must pass 'userHandle' in body of request");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        var locationTracking = doc.data().locationTracking;
+        if (locationTracking == null) {
+          locationTracking = true;
+        }
+        else {
+          locationTracking = !locationTracking;
+        }
+        userRef.update({"locationTracking":locationTracking}).then(function() {
+          response.send({
+            "success":true
+          });
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+      else {
+        throw new Error("user does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
+//get a user's location tracking preference
+//PARAMETERS: userHandle
+exports.getLocationTracking = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if (userHandle == null) {
+    throw new Error("Must pass 'userHandle' in body of request");
+  }
+  else {
+    db.collection("User").doc(userHandle).get().then(function(doc) {
+      if (doc.exists) {
+        var locationTracking = doc.data().locationTracking;
+        if (locationTracking == null) {
+          locationTracking = false;
+        }
+        response.send({
+          "locationTracking":locationTracking
+        });
+      }
+      else {
+        throw new Error("user does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
 //add user to database
 //PARAMETERS: uid, userHandle, userName
 exports.addUserToDatabase = functions.https.onRequest((request, response) => {
