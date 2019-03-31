@@ -208,8 +208,21 @@ export default class Friend extends React.Component {
       .catch(error => console.error(`blockUserFirebaseFunction: ${error}`));
   }
 
+  // Method to change the user's current status
+  // TODO: Firebase call
+  inviteOrJoin = status => {
+    if(status == 0) {
+      // Invite them to eat
+      console.log("Invite to eat");
+    } else {
+      // Join them
+      console.log("Join friend");
+    }
+  };
+
   render() {
     const statusColor = ["#0F0", "#FF0", "#F00"];
+    const eatingButtons = ["Invite", "Join"];
     return (
       <Screen
         screenProps={this.props.screenProps}
@@ -242,6 +255,13 @@ export default class Friend extends React.Component {
               ? this.state.otherUser.location
               : " Not Currently Eating"}
           </Text>
+          <Separator />
+          {/* Button group for joining a friend already eating or inviting a friend to eat with the user*/}
+          <ButtonGroup
+            onPress={this.updateStatus}
+            buttons={eatingButtons}
+            containerStyle={{ height: 60 }}
+          />
           <Separator />
           <List
             navigation={this.props.navigation}
