@@ -129,34 +129,134 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
 
 // adds current location
 // requires userHandle and Location
-exports.checkInLocation = functions.https.onRequest(async (request, response) => {
+exports.checkInLocation = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
   var location = request.body.location;
 
-  if(userHandle == null || location == null)
+  if(userHandle == null || location == null) {
     throw new Error("Input data not valid!");
-
-  var userRef = await db.collection("User").doc(userHandle).get().then(async doc =>{
-    if(!doc.exists)
-      throw new Error("no such user");
-    await db.collection("User").doc(userHandle).update({location: location});
-  });
-  response.send({success: true});
-})
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(async doc =>{
+      if(!doc.exists) {
+        throw new Error("no such user");
+      }
+      else {
+        var currTime = new Date();
+        userRef.update({
+          location: location,
+          "checkInTime": currTime.getTime(),
+        }).then(async function() {
+          var userObj = {
+            "friendHandle":doc.data().userHandle,
+            "friendName":doc.data().userName
+          };
+          var notification = {
+            "type":"joinedDiningCourt",
+            "id":userObj
+          }
+          var friendsArr = doc.data().friends;
+          console.log("friendsArr: " + friendsArr);
+          var buddiesArr = [];
+          for(var i = 0; i < friendsArr.length; i++) {
+            var friendObj = friendsArr[i]
+            console.log("friendObj: " + friendObj)
+            var friendHandle = friendObj.friendHandle;
+            var friendRef = db.collection("User").doc(friendHandle);
+            await friendRef.get().then(async function(doc) {
+              var friendLocation = doc.data().location;
+              console.log("friendHandle: " + friendHandle + " friendLocation: " + friendLocation);
+              if (friendLocation == location) {
+                console.log("MATCH");
+                buddiesArr.push(friendObj);
+                await friendRef.update({
+                  "notifications": admin.firestore.FieldValue.arrayUnion(notification)
+                })
+                .catch(function(error) {
+                  throw new Error(error);
+                });
+              }
+            })
+            .catch(function(error) {
+              throw new Error(error);
+            });
+          }
+          response.send(buddiesArr);
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
 
 // removes location
-exports.removeLocation = functions.https.onRequest(async (request, response) => {
+//PARAMETERS: userHandle
+exports.removeLocation = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
 
-  if(userHandle == null)
+  if(userHandle == null) {
     throw new Error("Input data not valid!");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle)
+    userRef.get().then(doc => {
+      if(!doc.exists) {
+        throw new Error("No such user");
+      }
+      else if (doc.data().location == null) {
+        throw new Error("User not checked in");
+      }
+      else {
+        var docJSON = doc.data();
+        var location = doc.data().location;
+        var checkInTime = doc.data().checkInTime;
+        var currTime = new Date();
+        var diff = Math.abs(currTime.getTime() - checkInTime);
+        if (checkInTime == null) {
+          diff = 0;
+        }
+        console.log("Diff: " + diff);
 
-  var userRef = await db.collection("User").doc(userHandle).get().then(async doc =>{
-    if(!doc.exists)
-      throw new Error("no such user");
-    await db.collection("User").doc(userHandle).update({location: null});
-  });
-  response.send({success: true});
+        var locationNum = location + "Num";
+        var locationNumVal = docJSON[locationNum];
+        if (locationNumVal == null) {
+          locationNumVal = 0;
+        }
+        console.log("locationNumVal: " + locationNumVal);
+
+        var locationAvg = location + "Avg";
+        var locationAvgVal = docJSON[locationAvg];
+        if (locationAvgVal == null) {
+          locationAvgVal = 0;
+        }
+        console.log("locationAvgVal: " + locationAvgVal);
+
+        locationAvgVal = (locationAvgVal * locationNumVal + diff) / (++locationNumVal);
+        console.log("NewLoc")
+        userRef.update({
+          "location": null,
+          [locationAvg]: locationAvgVal,
+          [locationNum]: locationNumVal
+        }).then(function() {
+          response.send({
+            "elapsedTime": diff
+          })
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
 })
 
 // gets location
