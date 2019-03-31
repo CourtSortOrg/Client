@@ -35,24 +35,13 @@ export default class GroupCreateEvent extends React.Component {
       date.setDate(date.getDate() + 1);
     }
 
-    this.state.meals = this.props.screenProps.globals.mealNames.map((meal, index) => ({
-      Name: meal,
-      type: "element",
-      index: index
-    }));
-
-    //if (this.state.groupID !== "NO-ID") {
-    /*let groups = this.props.screenProps.user.groups.filter(
-    group => group.groupID === this.state.groupID
-  );
-  if (groups.length === 0) {
-  this.props.screenProps.functions.updateGroup(this.state.groupID, true);
-  groups = this.props.screenProps.user.groups.filter(
-  group => group.groupID === this.state.groupID
-);
-}
-this.state.group = { ...groups[0] };
-*/
+    this.state.meals = this.props.screenProps.globals.mealNames.map(
+      (meal, index) => ({
+        Name: meal,
+        type: "element",
+        index: index
+      })
+    );
   }
 
   voteDay = selected => {
@@ -90,7 +79,7 @@ this.state.group = { ...groups[0] };
         { hr: 8, min: 0 },
         { hr: 8, min: 30 },
         { hr: 9, min: 0 },
-        { hr: 9, min: 30 },
+        { hr: 9, min: 30 }
       ],
       Lunch: [
         { hr: 11, min: 0 },
@@ -107,7 +96,7 @@ this.state.group = { ...groups[0] };
         { hr: 2, min: 0 },
         { hr: 2, min: 30 },
         { hr: 3, min: 0 },
-        { hr: 3, min: 30 },
+        { hr: 3, min: 30 }
       ],
       Dinner: [
         { hr: 5, min: 0 },

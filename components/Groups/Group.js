@@ -23,16 +23,14 @@ export default class Group extends React.Component {
     };
 
     if (this.state.groupID !== "NO-ID") {
-      let groups = this.props.screenProps.user.groups.filter(
+      this.props.screenProps.functions.updateGroup(this.state.groupID, true);
+      groups = this.props.screenProps.user.groups.filter(
         group => group.groupID === this.state.groupID
       );
-      if (groups.length === 0) {
-        this.props.screenProps.functions.updateGroup(this.state.groupID, true);
-        groups = this.props.screenProps.user.groups.filter(
-          group => group.groupID === this.state.groupID
-        );
-      }
-      this.state.group = { ...groups[0] };
+
+      this.state.group = this.props.screenProps.user.groups.find(
+        g => g.groupID === this.state.groupID
+      );
     }
   }
 
@@ -44,6 +42,10 @@ export default class Group extends React.Component {
           ID: this.state.groupID
         });
       }*/
+      this.props.screenProps.functions.updateGroup(this.state.groupID, true);
+      groups = this.props.screenProps.user.groups.filter(
+        group => group.groupID === this.state.groupID
+      );
 
       this.setState({
         group: this.props.screenProps.user.groups.find(
@@ -80,13 +82,16 @@ export default class Group extends React.Component {
             list={this.state.group.messages.map((msg, index) => {
               let d = new Date(msg.timeOptions[0]);
               return {
-                Name: `Vote on time for ${msg.meal} on ${this.props.screenProps.globals.dayNames[d.getDay()]}`,
+                Name: `Vote on time for ${msg.meal} on ${
+                  this.props.screenProps.globals.dayNames[d.getDay()]
+                }`,
                 ...msg,
                 index: index,
-                onPress: () => this.props.navigation.navigate("GroupPoll", {
-                  ID: this.state.groupID,
-                  MESSAGEID: msg.messageID
-                })
+                onPress: () =>
+                  this.props.navigation.navigate("GroupPoll", {
+                    ID: this.state.groupID,
+                    MESSAGEID: msg.messageID
+                  })
               };
             })}
             type="element"

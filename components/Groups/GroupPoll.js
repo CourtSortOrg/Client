@@ -26,17 +26,9 @@ export default class GroupPoll extends React.Component {
     };
 
     if (this.state.groupID !== "NO-ID") {
-      let groups = this.props.screenProps.user.groups.filter(
-        group => group.groupID === this.state.groupID
+      this.state.group = this.props.screenProps.user.groups.find(
+        g => g.groupID === this.state.groupID
       );
-      if (groups.length === 0) {
-        this.props.screenProps.functions.updateGroup(this.state.groupID, true);
-        groups = this.props.screenProps.user.groups.filter(
-          group => group.groupID === this.state.groupID
-        );
-      }
-      this.state.group = { ...groups[0] };
-
       this.state.poll = this.state.group.messages.find(
         msg => msg.messageID == this.state.messageID
       );
