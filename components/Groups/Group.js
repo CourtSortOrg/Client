@@ -1,5 +1,7 @@
 import React from "react";
-import { View } from "react-native";
+import { View, TouchableOpacity } from "react-native";
+
+import { MaterialIcons } from "@expo/vector-icons";
 
 import Screen from "../Nav/Screen";
 import Card from "../components/Card";
@@ -58,6 +60,49 @@ export default class Group extends React.Component {
     });
   };
 
+  renderElement = item => {
+    let d = new Date(item.props.timeOptions[0]);
+
+    return (
+      <View style={{ padding: 8 }}>
+        <TouchableOpacity
+          style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+          onPress={() => {
+            item.props.navigation.navigate("GroupPoll", {
+              ID: item.props.groupID,
+              MESSAGEID: item.props.messageID
+            });
+          }}
+        >
+          <View style={{ flex: 1, paddingLeft: 8 }}>
+            <Text type="header" style={{ padding: 0 }}>
+              {`Vote on a time`}
+            </Text>
+            <Text type="bold">
+              {`${item.props.meal} on ${
+                this.props.screenProps.globals.dayNames[d.getDay()]
+              }`}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={{ padding: 0 }}
+            onPress={() => {
+              item.props.navigation.navigate("Friend", {
+                ID: item.props.userHandle
+              });
+            }}
+          >
+            <MaterialIcons
+              size={32}
+              name="keyboard-arrow-right"
+              color="#E86515"
+            />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   render() {
     return (
       <Screen
@@ -80,31 +125,16 @@ export default class Group extends React.Component {
             }
           ]}
         >
-          {this.state.group.messages.length > 0 ?
-          <List
-            navigation={this.props.navigation}
-            list={this.state.group.messages.map((msg, index) => {
-              let d = new Date(msg.timeOptions[0]);
-              return {
-                Name: `Vote on time for ${msg.meal} on ${
-                  this.props.screenProps.globals.dayNames[d.getDay()]
-                }`,
-                ...msg,
-                index: index,
-                onPress: () =>
-                  this.props.navigation.navigate("GroupPoll", {
-                    ID: this.state.groupID,
-                    MESSAGEID: msg.messageID
-                  })
-              };
-            })}
-            type="element"
-          /> :
-          <ListElement
-            Name="No Events"
-            type="expandable"
-          />
-        }
+          {this.state.group.messages.length > 0 ? (
+            <List
+              navigation={this.props.navigation}
+              list={this.state.group.messages}
+              renderElement={this.renderElement}
+              type="element"
+            />
+          ) : (
+            <ListElement Name="No Events" type="expandable" />
+          )}
         </Card>
         <Card
           header="Members"
