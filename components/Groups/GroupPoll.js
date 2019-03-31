@@ -58,6 +58,7 @@ export default class GroupPoll extends React.Component {
   };
 
   render() {
+    let d = new Date(this.state.poll.timeOptions[0]);
     return (
       <Screen
         title="Group Poll"
@@ -66,7 +67,9 @@ export default class GroupPoll extends React.Component {
         backButton={true}
       >
         <Card
-          header={`Vote on a time for $MEAL on $DATE`}
+          header={`${this.state.poll.meal} on ${
+            this.props.screenProps.globals.dayNames[d.getDay()]
+          }`}
           footer={[
             {
               text: "Vote",
