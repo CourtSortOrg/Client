@@ -27,10 +27,8 @@ export default class Screen extends React.Component {
           {...this.props.header}
         />
         <Body
-          refreshControl={() => {
-            this.props.screenProops.functions.updateNotifications();
-            if (this.props.refreshControl) this.props.refreshControl();
-          }}
+          screenProps={this.props.screenProps}
+          refreshControl={this.props.refreshControl}
         >
           {this.props.children}
         </Body>
@@ -43,6 +41,10 @@ export default class Screen extends React.Component {
         />
       </View>
     );
+  }
+
+  componentDidMount= () => {
+    this.props.screenProps.functions.updateNotifications();
   }
 }
 

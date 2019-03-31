@@ -15,36 +15,248 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
+// returns the best dining court for a user
+// PARAMETERS: userHandle, date, meal
+exports.getBestDiningCourtUser = functions.https.onRequest(async (request, response)=>{
+  var userHandle = request.body.userHandle;
+  var date = request.body.date;
+  var meal = request.body.meal;
+  if(userHandle == null || date == null || meal == null)
+    throw new Error("incorrect parameters!");
+
+  var userDishRatings = [];
+  
+  var userRef = db.collection("User").doc(userHandle);
+  await userRef.get().then(async function(doc) {
+    if (doc.exists) {
+      await userRef.collection("ItemRatings").get().then(function(querySnapshot) {
+        querySnapshot.forEach(async function(itemRatingDoc) {
+          await userDishRatings.push(itemRatingDoc.data());
+        });
+        console.log("all dish ratings: " +userDishRatings);
+      })
+      .catch(function(error) {
+        throw new Error(error);
+      });
+    }
+    else {
+      throw new Error("user does not exist");
+    }
+  })
+  .catch(function(error) {
+    throw new Error(error);
+  });
+  
+  var ratedDishOfferings = [];
+  for(var i=0; i<userDishRatings.length; i++){
+    var ratingObj = userDishRatings[i];
+    console.log(i+"th rating: "+ratingObj['dish']);
+    var dishRef = db.collection("Dish").doc(ratingObj['dish']);
+    await dishRef.get().then(function(doc){
+      var dishOffering = [];
+      try{
+        var dishOffering = doc.data().offered;
+      } catch(error){
+        console.log("no offered array for this!");
+      }
+      ratedDishOfferings.push({dish: ratingObj['dish'], offered: dishOffering, rating: ratingObj['rating']});
+    })
+  }
+
+  var matches = [];
+  for(var i = 0; i<ratedDishOfferings.length; i++){
+    var currDish = ratedDishOfferings[i];
+    for(var j = 0; j<currDish['offered'].length; j++){
+      var offeredObj = currDish['offered'][j];
+      if(offeredObj['date'] == date && offeredObj['meal'] == meal){
+        matches.push({dish: currDish['dish'], location: offeredObj['location'], rating: currDish['rating']});
+      }
+    }
+  }
+  var courts = {
+    "Hillenbrand" : {
+      dishes: [],
+      aggregate: 0,
+      total: 0
+    },
+    "Earhart" : {
+      dishes: [],
+      aggregate: 0,
+      total: 0
+    },
+    "Wiley" : {
+      dishes: [],
+      aggregate: 0,
+      total: 0
+    },
+    "Windsor" : {
+      dishes: [],
+      aggregate: 0,
+      total: 0
+    },
+    "Ford" : {
+      dishes: [],
+      aggregate: 0,
+      total: 0
+    }
+  }
+  var courtNames = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
+  for(var i=0; i<matches.length; i++){
+    var currLoc = matches[i]['location'];
+    courts[currLoc]['dishes'].push(matches[i]);
+    courts[currLoc]['aggregate'] += matches[i]['rating'];
+    courts[currLoc]['total']++;
+  }
+
+  var best = {};
+  var maxRating = 0;
+  for(var i=0; i<courtNames.length; i++){
+    if(courts[courtNames[i]]['total']>0){
+      var currRating = courts[courtNames[i]]['aggregate'] / courts[courtNames[i]]['total'];
+    }else{
+      currRating = -1;
+    }
+    if(currRating>maxRating){
+      maxRating = currRating;
+      best['location'] = courtNames[i];
+      best['dishes'] = courts[courtNames[i]]['dishes'];
+      best['rating'] = currRating;
+    }
+  }
+  //response.send(courts);
+  response.send(best);
+})
+
 // adds current location
 // requires userHandle and Location
-exports.checkInLocation = functions.https.onRequest(async (request, response) => {
+exports.checkInLocation = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
   var location = request.body.location;
 
-  if(userHandle == null || location == null)
+  if(userHandle == null || location == null) {
     throw new Error("Input data not valid!");
-
-  var userRef = await db.collection("User").doc(userHandle).get().then(async doc =>{
-    if(!doc.exists)
-      throw new Error("no such user");
-    await db.collection("User").doc(userHandle).update({location: location});
-  });
-  response.send({success: true});
-})
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(async doc =>{
+      if(!doc.exists) {
+        throw new Error("no such user");
+      }
+      else {
+        var currTime = new Date();
+        userRef.update({
+          location: location,
+          "checkInTime": currTime.getTime(),
+        }).then(async function() {
+          var userObj = {
+            "friendHandle":doc.data().userHandle,
+            "friendName":doc.data().userName
+          };
+          var notification = {
+            "type":"joinedDiningCourt",
+            "id":userObj
+          }
+          var friendsArr = doc.data().friends;
+          console.log("friendsArr: " + friendsArr);
+          var buddiesArr = [];
+          for(var i = 0; i < friendsArr.length; i++) {
+            var friendObj = friendsArr[i]
+            console.log("friendObj: " + friendObj)
+            var friendHandle = friendObj.friendHandle;
+            var friendRef = db.collection("User").doc(friendHandle);
+            await friendRef.get().then(async function(doc) {
+              var friendLocation = doc.data().location;
+              console.log("friendHandle: " + friendHandle + " friendLocation: " + friendLocation);
+              if (friendLocation == location) {
+                console.log("MATCH");
+                buddiesArr.push(friendObj);
+                await friendRef.update({
+                  "notifications": admin.firestore.FieldValue.arrayUnion(notification)
+                })
+                .catch(function(error) {
+                  throw new Error(error);
+                });
+              }
+            })
+            .catch(function(error) {
+              throw new Error(error);
+            });
+          }
+          response.send(buddiesArr);
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
 
 // removes location
-exports.removeLocation = functions.https.onRequest(async (request, response) => {
+//PARAMETERS: userHandle
+exports.removeLocation = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
 
-  if(userHandle == null)
+  if(userHandle == null) {
     throw new Error("Input data not valid!");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle)
+    userRef.get().then(doc => {
+      if(!doc.exists) {
+        throw new Error("No such user");
+      }
+      else if (doc.data().location == null) {
+        throw new Error("User not checked in");
+      }
+      else {
+        var docJSON = doc.data();
+        var location = doc.data().location;
+        var checkInTime = doc.data().checkInTime;
+        var currTime = new Date();
+        var diff = Math.abs(currTime.getTime() - checkInTime);
+        if (checkInTime == null) {
+          diff = 0;
+        }
+        console.log("Diff: " + diff);
 
-  var userRef = await db.collection("User").doc(userHandle).get().then(async doc =>{
-    if(!doc.exists)
-      throw new Error("no such user");
-    await db.collection("User").doc(userHandle).update({location: null});
-  });
-  response.send({success: true});
+        var locationNum = location + "Num";
+        var locationNumVal = docJSON[locationNum];
+        if (locationNumVal == null) {
+          locationNumVal = 0;
+        }
+        console.log("locationNumVal: " + locationNumVal);
+
+        var locationAvg = location + "Avg";
+        var locationAvgVal = docJSON[locationAvg];
+        if (locationAvgVal == null) {
+          locationAvgVal = 0;
+        }
+        console.log("locationAvgVal: " + locationAvgVal);
+
+        locationAvgVal = (locationAvgVal * locationNumVal + diff) / (++locationNumVal);
+        console.log("NewLoc")
+        userRef.update({
+          "location": null,
+          [locationAvg]: locationAvgVal,
+          [locationNum]: locationNumVal
+        }).then(function() {
+          response.send({
+            "elapsedTime": diff
+          })
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
 })
 
 // gets location
@@ -108,7 +320,7 @@ exports.getRating = functions.https.onRequest(async (request, resopnse) => {
 //get the list of dish court ratings from a user
 //PARAMETERS: userHandle
 exports.getUserDishRatings = functions.https.onRequest((request, response) => {
-  var userHandle = request.body.userHandle
+  var userHandle = request.body.userHandle;
 
   if (userHandle == null) {
     throw new Error("incorrect parameters");
@@ -122,6 +334,7 @@ exports.getUserDishRatings = functions.https.onRequest((request, response) => {
           querySnapshot.forEach(function(itemRatingDoc) {
             ItemRatingsArray.push(itemRatingDoc.data());
           });
+          console.log("inf func: "+ItemRatingsArray);
           response.send(ItemRatingsArray);
         })
         .catch(function(error) {
@@ -843,6 +1056,73 @@ exports.getUserHandle = functions.https.onRequest((request, response) => {
             "userHandle":doc.data().userHandle
           });
         });
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
+//change user's location tracking preference
+//PARAMETERS: userHandle
+exports.toggleLocationTracking = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if (userHandle == null) {
+    throw new Error("must pass 'userHandle' in body of request");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        var locationTracking = doc.data().locationTracking;
+        if (locationTracking == null) {
+          locationTracking = true;
+        }
+        else {
+          locationTracking = !locationTracking;
+        }
+        userRef.update({"locationTracking":locationTracking}).then(function() {
+          response.send({
+            "success":true
+          });
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+      else {
+        throw new Error("user does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
+//get a user's location tracking preference
+//PARAMETERS: userHandle
+exports.getLocationTracking = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if (userHandle == null) {
+    throw new Error("Must pass 'userHandle' in body of request");
+  }
+  else {
+    db.collection("User").doc(userHandle).get().then(function(doc) {
+      if (doc.exists) {
+        var locationTracking = doc.data().locationTracking;
+        if (locationTracking == null) {
+          locationTracking = false;
+        }
+        response.send({
+          "locationTracking":locationTracking
+        });
+      }
+      else {
+        throw new Error("user does not exist");
       }
     })
     .catch(function(error) {
