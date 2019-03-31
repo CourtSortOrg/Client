@@ -5,6 +5,7 @@ import Screen from "../Nav/Screen";
 import Card from "../components/Card";
 import Text from "../components/Text";
 import List from "../components/List";
+import ListElement from "../components/ListElement";
 import ProfileList from "../components/ProfileList";
 import Separator from "../components/Separator";
 
@@ -79,6 +80,7 @@ export default class Group extends React.Component {
             }
           ]}
         >
+          {this.state.group.messages.length > 0 ?
           <List
             navigation={this.props.navigation}
             list={this.state.group.messages.map((msg, index) => {
@@ -97,7 +99,12 @@ export default class Group extends React.Component {
               };
             })}
             type="element"
+          /> :
+          <ListElement
+            Name="No Events"
+            type="expandable"
           />
+        }
         </Card>
         <Card
           header="Members"
