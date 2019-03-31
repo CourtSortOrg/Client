@@ -1529,6 +1529,8 @@ export default class App extends React.Component {
   };
 
   voteGroupAlert = id => {
+    this.updateGroup(id.groupID, true);
+
     Alert.alert(`Group Poll in ${id.groupName}`, `Would you like to vote?`, [
       {
         text: "Cancel"
@@ -1546,7 +1548,6 @@ export default class App extends React.Component {
 
   acceptFriendRequest = id => {
     this.removeNotification(id);
-    this.updateFriend(id.friendHandle, true);
 
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptFriendRequest",
@@ -1565,6 +1566,7 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
+          this.updateFriend(id.friendHandle, true);
         } catch (error) {
           console.error(`acceptFriendRequest: ${error} -- ${data._bodyText}`);
         }
@@ -1601,7 +1603,6 @@ export default class App extends React.Component {
 
   acceptGroupInvitation = id => {
     this.removeNotification(id);
-    this.updateGroup(id.groupID, true);
 
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptGroupInvitation",
@@ -1621,6 +1622,7 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
+          this.updateGroup(id.groupID, true);
         } catch (error) {
           console.error(`acceptGroupInvitation: ${error}- ${data._bodyText}`);
         }

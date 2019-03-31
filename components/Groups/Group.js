@@ -42,6 +42,8 @@ export default class Group extends React.Component {
           ID: this.state.groupID
         });
       }*/
+
+      /*
       this.props.screenProps.functions.updateGroup(this.state.groupID, true);
       groups = this.props.screenProps.user.groups.filter(
         group => group.groupID === this.state.groupID
@@ -51,7 +53,7 @@ export default class Group extends React.Component {
         group: this.props.screenProps.user.groups.find(
           g => g.groupID === this.state.groupID
         )
-      });
+      });*/
     });
   };
 
