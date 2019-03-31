@@ -16,20 +16,6 @@ import SearchList from "../components/SearchList";
 import ListElement from "../components/ListElement";
 
 export default class ProfileList extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      list: props.list
-    };
-
-    if (this.props.selectable) {
-      this.state.list = this.props.list.map(item => {
-        return { ...item, Name: item.userHandle };
-      });
-    }
-  }
-
   filter(list, text) {
     return list.filter(item => {
       try {
@@ -41,7 +27,7 @@ export default class ProfileList extends React.Component {
     });
   }
 
-  renderElement(item) {
+  renderElement = item => {
     const statusMessage = ["Not Eating", "Available", "Busy"];
     return (
       <View style={{ padding: 8 }}>
@@ -75,8 +61,13 @@ export default class ProfileList extends React.Component {
               {item.props.userName}
             </Text>
             <Text type="bold">
-              {`@${item.props.userHandle} | Status: `}
-              <Text>{statusMessage[item.props.status]}</Text>
+              {`@${item.props.userHandle} `}
+              {this.props.showStatus !== false && (
+                <Text type="bold">
+                  {`| Status: `}
+                  <Text>{statusMessage[item.props.status]}</Text>
+                </Text>
+              )}
             </Text>
           </View>
           <TouchableOpacity
@@ -96,7 +87,7 @@ export default class ProfileList extends React.Component {
         </TouchableOpacity>
       </View>
     );
-  }
+  };
 
   render() {
     return (
@@ -106,13 +97,14 @@ export default class ProfileList extends React.Component {
         extendedSearch={this.props.extendedSearch}
         updateSelectedList={this.props.updateSelectedList}
         noElementFound={
-          <ListElement
-            type={"expandable"}
-            Name="No friends found"
-          />
+          <ListElement type={"expandable"} Name="No friends found" />
         }
         list={{
-          list: this.state.list,
+          list: this.props.selectable
+            ? this.props.list.map(item => {
+                return { ...item, Name: item.userHandle };
+              })
+            : this.props.list,
           type: "element",
           subList: false,
           rank: 1,
