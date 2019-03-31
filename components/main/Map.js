@@ -229,8 +229,16 @@ export default class Map extends React.Component {
           {
             text: item.name,
             onPress: () => {
+              this.props.navigation.navigate("DiningCourt", {
+                name: item.name,
+                location: {
+                  latitude: locations[item.name].latitude,
+                  longitude: locations[item.name].longitude
+                },
+                meals: this.state.diningLocations.locations[index].meals,
+                busyness: this.state.diningLocations.locations[index].busyness
+              });
               console.log(item.name);
-              console.log(index);
             }
           }
         ]}

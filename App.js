@@ -15,7 +15,7 @@ import SignIn from "./components/auth/SignIn";
 import CreateAccount from "./components/auth/CreateAccount";
 import CreateThirdParty from "./components/auth/CreateThirdParty";
 import ResetPassword from "./components/auth/ResetPassword";
-import DiningCourt from "./components/main/DiningCourt";
+import DiningCourt from "./components/main/DiningInfo";
 import Friend from "./components/main/Friend";
 import Home from "./components/main/Home";
 import Map from "./components/main/Map";
