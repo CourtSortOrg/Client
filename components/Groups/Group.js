@@ -60,7 +60,41 @@ export default class Group extends React.Component {
     });
   };
 
-  renderElement = item => {
+  renderEvent = item => {
+    let d = new Date(item.props.timeOptions[0]);
+
+    return (
+      <View style={{ padding: 8 }}>
+        <TouchableOpacity
+          style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+          onPress={() => {
+            item.props.navigation.navigate("GroupResults", {
+              ID: item.props.groupID,
+              MESSAGEID: item.props.messageID
+            });
+          }}
+        >
+          <View style={{ flex: 1, paddingLeft: 8 }}>
+            <Text type="header" style={{ padding: 0 }}>
+              {`Upcoming Event`}
+            </Text>
+            <Text type="bold">
+              {`${item.props.meal} on ${
+                this.props.screenProps.globals.dayNames[d.getDay()]
+              }`}
+            </Text>
+          </View>
+          <MaterialIcons
+            size={32}
+            name="keyboard-arrow-right"
+            color="#E86515"
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  renderVote = item => {
     let d = new Date(item.props.timeOptions[0]);
 
     return (
@@ -84,20 +118,11 @@ export default class Group extends React.Component {
               }`}
             </Text>
           </View>
-          <TouchableOpacity
-            style={{ padding: 0 }}
-            onPress={() => {
-              item.props.navigation.navigate("Friend", {
-                ID: item.props.userHandle
-              });
-            }}
-          >
-            <MaterialIcons
-              size={32}
-              name="keyboard-arrow-right"
-              color="#E86515"
-            />
-          </TouchableOpacity>
+          <MaterialIcons
+            size={32}
+            name="keyboard-arrow-right"
+            color="#E86515"
+          />
         </TouchableOpacity>
       </View>
     );
@@ -129,11 +154,22 @@ export default class Group extends React.Component {
             <List
               navigation={this.props.navigation}
               list={this.state.group.messages}
-              renderElement={this.renderElement}
+              renderElement={this.renderEvent}
               type="element"
             />
           ) : (
             <ListElement Name="No Events" type="expandable" />
+          )}
+            <Separator />
+          {this.state.group.messages.length > 0 ? (
+            <List
+              navigation={this.props.navigation}
+              list={this.state.group.messages}
+              renderElement={this.renderVote}
+              type="element"
+            />
+          ) : (
+            <ListElement Name="No Active Polls" type="expandable" />
           )}
         </Card>
         <Card

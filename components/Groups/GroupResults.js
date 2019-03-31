@@ -13,40 +13,41 @@ export default class GroupResults extends React.Component {
 
     this.state = {
       groupID: this.props.navigation.getParam("ID", "NO-ID"),
+      messageID: this.props.navigation.getParam("MESSAGEID", "NO-ID"),
       group: {
         groupName: "",
         memberObjects: []
       },
-      options: [],
-      date: undefined,
-      time: undefined,
+      poll: undefined,
 
       ...this.props.screenProps.user
     };
 
-    //if (this.state.groupID !== "NO-ID") {
-    /*let groups = this.props.screenProps.user.groups.filter(
-        group => group.groupID === this.state.groupID
+    if (this.state.groupID !== "NO-ID") {
+      this.state.group = this.props.screenProps.user.groups.find(
+        g => g.groupID === this.state.groupID
       );
-      if (groups.length === 0) {
-        this.props.screenProps.functions.updateGroup(this.state.groupID, true);
-        groups = this.props.screenProps.user.groups.filter(
-          group => group.groupID === this.state.groupID
-        );
-      }
-      this.state.group = { ...groups[0] };
-      */
+      this.state.poll = this.state.group.messages.find(
+        msg => msg.messageID == this.state.messageID
+      );
+    }
   }
-  
+
   render() {
+    let d = new Date(this.state.poll.timeOptions[0]);
+
     return (
       <Screen
-        title="Group Poll"
+        title="Poll Results"
         navigation={this.props.navigation}
         screenProps={this.props.screenProps}
         backButton={true}
       >
-        <Card header={`Results for time for $MEAL on $DATE`}>
+        <Card
+          header={`${this.state.poll.meal} on ${
+            this.props.screenProps.globals.dayNames[d.getDay()]
+          }`}
+        >
           <Text>GROUP RESULTS</Text>
         </Card>
       </Screen>

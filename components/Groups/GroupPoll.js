@@ -61,7 +61,7 @@ export default class GroupPoll extends React.Component {
     let d = new Date(this.state.poll.timeOptions[0]);
     return (
       <Screen
-        title="Group Poll"
+        title="Poll"
         navigation={this.props.navigation}
         screenProps={this.props.screenProps}
         backButton={true}

@@ -41,6 +41,7 @@ import BlockedUsers from "./components/Settings/BlockedUsers";
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
 import GroupPoll from "./components/Groups/GroupPoll";
+import GroupResults from "./components/Groups/GroupResults";
 //import GroupEvent from "./components/Groups/GroupEvent";
 import GroupCreateEvent from "./components/Groups/GroupCreateEvent";
 
@@ -116,9 +117,9 @@ const MainNavigation = createStackNavigator(
     GroupCreateEvent: {
       screen: GroupCreateEvent
     },
-    /*GroupEvent: {
-      screen: GroupEvent
-    },*/
+    GroupResults: {
+      screen: GroupResults
+    },
     GroupPoll: {
       screen: GroupPoll
     },

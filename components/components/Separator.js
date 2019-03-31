@@ -8,8 +8,8 @@ export default class Separator extends React.Component {
         style={{
           borderTopWidth: 3,
           borderColor: "black",
-          marginTop: 10,
-          marginBottom: 10
+          //marginTop: 10,
+          //marginBottom: 10
         }}
       />
     );
