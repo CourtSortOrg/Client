@@ -196,7 +196,7 @@ export default class App extends React.Component {
       meals: []
     };
 
-    this.enableLocation();
+    //this.enableLocation();
   }
 
   busynessMessage = [

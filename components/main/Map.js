@@ -222,10 +222,18 @@ export default class Map extends React.Component {
     });
   };
 
-  renderDiningCard = ({ item }) => {
+  renderDiningCard = ({ item, index }) => {
     return (
       <Card
-        header={item.name}
+        header={[
+          {
+            text: item.name,
+            onPress: () => {
+              console.log(item.name);
+              console.log(index);
+            }
+          }
+        ]}
         footer={[
           {
             text: "Check In",
