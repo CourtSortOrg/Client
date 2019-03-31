@@ -13,133 +13,92 @@ export default class GroupPoll extends React.Component {
 
     this.state = {
       groupID: this.props.navigation.getParam("ID", "NO-ID"),
+      messageID: this.props.navigation.getParam("MESSAGEID", "NO-ID"),
       group: {
         groupName: "",
         memberObjects: []
       },
       options: [],
-      date: undefined,
+      poll: undefined,
       time: undefined,
 
       ...this.props.screenProps.user
     };
 
-    //if (this.state.groupID !== "NO-ID") {
-    /*let groups = this.props.screenProps.user.groups.filter(
-        group => group.groupID === this.state.groupID
+    if (this.state.groupID !== "NO-ID") {
+      this.state.group = this.props.screenProps.user.groups.find(
+        g => g.groupID === this.state.groupID
       );
-      if (groups.length === 0) {
-        this.props.screenProps.functions.updateGroup(this.state.groupID, true);
-        groups = this.props.screenProps.user.groups.filter(
-          group => group.groupID === this.state.groupID
-        );
-      }
-      this.state.group = { ...groups[0] };
-      */
+      this.state.poll = this.state.group.messages.find(
+        msg => msg.messageID == this.state.messageID
+      );
 
-    let date = new Date();
-    let times = {
-      breakfast: [
-        "7:00",
-        "7:30",
-        "8:00",
-        "8:30",
-        "9:00",
-        "9:30",
-        "10:00",
-        "10:30",
-        "11:00"
-      ],
-      lunch: [
-        "11:00",
-        "11:30",
-        "12:00",
-        "12:30",
-        "1:00",
-        "1:30",
-        "2:00",
-        "2:30",
-        "3:00"
-      ],
-      dinner: ["5:00", "5:30", "6:00", "6:30", "7:00", "7:30", "8:00"]
-    };
-    let dayNames = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday"
-    ];
-
-    for (let i = 0; i < 7; i++) {
-      this.state.options.push({
-        Name: dayNames[date.getDay()],
-        type: "expandable",
-        times: times["lunch"].map(time => ({
-          Name: time,
-          date: date,
-          time: time
-        }))
+      this.state.options = this.state.poll.timeOptions.map((time, index) => {
+        let d = new Date(time);
+        return {
+          Name: `${d.getHours()}:${
+            d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
+          }`,
+          time: index
+        };
       });
-      date.setDate(date.getDate() + 1);
     }
   }
-  //}
 
   vote = selected => {
     if (selected.length == 0) {
       this.setState({
-        date: undefined,
         time: undefined
       });
     } else {
-      this.setState(
-        {
-          date: selected[0].item.date,
-          time: selected[0].item.time
-        },
-      );
+      this.setState({
+        time: selected[0].item.time
+      });
     }
   };
 
   render() {
+    let d = new Date(this.state.poll.timeOptions[0]);
     return (
       <Screen
-        title="Group Poll"
-        navigation={{ ...this.props.navigation }}
+        title="Poll"
+        navigation={this.props.navigation}
         screenProps={this.props.screenProps}
         backButton={true}
       >
-        <SelectList
-          navigation={this.props.navigation}
-          list={{
-            list: this.state.options,
-            type: "expandable",
-            subList: {
-              list: "times",
-              type: "element",
-              selectable: true,
-              radio: true
-            }
-          }}
-          updateSelectedList={this.vote}
-        />
         <Card
+          header={`${this.state.poll.meal} on ${
+            this.props.screenProps.globals.dayNames[d.getDay()]
+          }`}
           footer={[
             {
               text: "Vote",
               onPress: () => {
-                console.log("voted!");
-                /*this.props.screenProps.functions.vote(
-                  this.state.date,
-                  this.state.time
-                );*/
+                if (this.state.time == undefined) {
+                  Alert.alert("Error", "Please pick a time!");
+                } else {
+                  this.props.screenProps.functions.vote(
+                    this.state.time,
+                    this.state.groupID,
+                    this.state.poll.messageID
+                  );
+                  this.props.navigation.goBack();
+                }
               }
             }
           ]}
-        />
+        >
+          <SelectList
+            navigation={this.props.navigation}
+            list={{
+              list: this.state.options,
+              type: "element",
+              selectable: true,
+              radio: true
+            }}
+            updateSelectedList={this.vote}
+          />
+        </Card>
       </Screen>
     );
   }

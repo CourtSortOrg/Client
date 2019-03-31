@@ -41,6 +41,9 @@ import BlockedUsers from "./components/Settings/BlockedUsers";
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
 import GroupPoll from "./components/Groups/GroupPoll";
+import GroupResults from "./components/Groups/GroupResults";
+//import GroupEvent from "./components/Groups/GroupEvent";
+import GroupCreateEvent from "./components/Groups/GroupCreateEvent";
 
 import Card from "./components/components/Card";
 import List from "./components/components/List";
@@ -110,6 +113,12 @@ const MainNavigation = createStackNavigator(
     },
     Group: {
       screen: Group
+    },
+    GroupCreateEvent: {
+      screen: GroupCreateEvent
+    },
+    GroupResults: {
+      screen: GroupResults
     },
     GroupPoll: {
       screen: GroupPoll
@@ -201,6 +210,18 @@ export default class App extends React.Component {
   ];
 
   statusMessage = ["Not Eating", "Available", "Busy"];
+
+  dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+  ];
+
+  mealNames = ["Breakfast", "Lunch", "Late Lunch", "Dinner"];
 
   _storeData = async (key, value) => {
     try {
@@ -1509,6 +1530,8 @@ export default class App extends React.Component {
   };
 
   voteGroupAlert = id => {
+    this.updateGroup(id.groupID, true);
+
     Alert.alert(`Group Poll in ${id.groupName}`, `Would you like to vote?`, [
       {
         text: "Cancel"
@@ -1525,6 +1548,8 @@ export default class App extends React.Component {
   };
 
   acceptFriendRequest = id => {
+    this.removeNotification(id);
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptFriendRequest",
       {
@@ -1542,7 +1567,6 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification(id);
           this.updateFriend(id.friendHandle, true);
         } catch (error) {
           console.error(`acceptFriendRequest: ${error} -- ${data._bodyText}`);
@@ -1552,6 +1576,8 @@ export default class App extends React.Component {
   };
 
   denyFriendRequest = id => {
+    this.removeNotification(id);
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/denyFriendRequest",
       {
@@ -1569,7 +1595,6 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification(id);
         } catch (error) {
           console.error(`denyFriendRequest: ${error}: ${data._bodyText}`);
         }
@@ -1578,6 +1603,8 @@ export default class App extends React.Component {
   };
 
   acceptGroupInvitation = id => {
+    this.removeNotification(id);
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptGroupInvitation",
       {
@@ -1596,7 +1623,6 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification(id);
           this.updateGroup(id.groupID, true);
         } catch (error) {
           console.error(`acceptGroupInvitation: ${error}- ${data._bodyText}`);
@@ -1606,6 +1632,8 @@ export default class App extends React.Component {
   };
 
   denyGroupInvitation = id => {
+    this.removeNotification(id);
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/denyGroupInvitation",
       {
@@ -1624,7 +1652,6 @@ export default class App extends React.Component {
       .then(data => {
         try {
           //JSON.parse(data._bodyText);
-          this.removeNotification(id);
         } catch (error) {
           console.error(`denyGroupInvitation: ${error}- ${data._bodyText}`);
         }
@@ -1637,7 +1664,47 @@ export default class App extends React.Component {
   };
 
   voteGroup = id => {
-    // group poll vote.
+    this.removeNotification(id);
+
+    this.props.navigation.navigate("GroupPoll", {
+      ID: id.groupID,
+      MESSAGEID: id.messageID
+    });
+  };
+
+  vote = (choiceIndex, groupID, messageID) => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/vote", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userHandle: this.state.user.userHandle,
+        choiceIndex,
+        groupID,
+        messageID
+      })
+    }).catch(error => console.error(`vote: ${error}`));
+  };
+
+  createPoll = (expirationTime, groupID, timeOptions, meal) => {
+    //userHandle, expirationTime, groupID, timeOptions, meal
+    // time options is a list of date objects.
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/createPoll", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userHandle: this.state.user.userHandle,
+        expirationTime,
+        groupID,
+        timeOptions,
+        meal
+      })
+    }).catch(error => console.error(`createPoll: ${error}`));
   };
 
   render = () => {
@@ -1671,11 +1738,15 @@ export default class App extends React.Component {
               updateRatings: this.updateRatings,
               changeGroupName: this.changeGroupName,
               updateBlockedUsers: this.updateBlockedUsers,
-              unblockUser: this.unblockUser
+              unblockUser: this.unblockUser,
+              createPoll: this.createPoll,
+              vote: this.vote
             },
             globals: {
               statusMessage: this.statusMessage,
-              busynessMessage: this.busynessMessage
+              busynessMessage: this.busynessMessage,
+              dayNames: this.dayNames,
+              mealNames: this.mealNames
             },
             user: this.state.user,
             meals: this.state.meals
