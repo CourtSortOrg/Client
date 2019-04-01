@@ -46,12 +46,16 @@ export default class DiningInfo extends React.Component {
 
   renderMealTime = ({ item }) => {
     console.log(item);
+    let subtitle = "Not Serving";
+    if (item.hours) {
+      subtitle = convertToTwelveHour(item.hours.StartTime);
+      subtitle += " - ";
+      subtitle += convertToTwelveHour(item.hours.EndTime);
+    }
     return (
       <ListItem
         title={item.name}
-        subtitle={`${convertToTwelveHour(
-          item.hours.StartTime
-        )} - ${convertToTwelveHour(item.hours.EndTime)}`}
+        subtitle={subtitle}
         bottomDivider
         topDivider
       />
