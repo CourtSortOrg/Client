@@ -9,7 +9,7 @@ import Text from "./Text";
  Card expects:
  header: string
  expand: start the card expanded or collapsed.
- buttonList: array of button objects { text, onPress }
+ buttonList: array of button objects { text, onPress }. If single, rendering is different. 
  footer: string || array of button objects: { text, onPress }
  nested elements
  */
