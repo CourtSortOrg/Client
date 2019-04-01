@@ -1,11 +1,13 @@
 import React from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 
+import { MaterialIcons } from "@expo/vector-icons";
+
 import Text from "./Text";
 
 /*
  Card expects:
- header: string.
+ header: string || array of button objects: { text, onPress }
  footer: string || array of button objects: { text, onPress }
  nested elements
  */
@@ -19,24 +21,28 @@ export default class Card extends React.Component {
           ...this.props.style
         }}
       >
-        {this.props.header != undefined &&
-          (Array.isArray(this.props.footer) ? (
-            <View style={styles.header}>
-              {this.props.header.map((button, index) => (
+        {this.props.header != undefined && (
+          <View style={styles.header}>
+            {Array.isArray(this.props.header) ? (
+              this.props.header.map((button, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={button.onPress}
-                  style={styles.button}
+                  style={styles.buttonHeader}
                 >
                   <Text type="header">{button.text}</Text>
+                  <MaterialIcons
+                    size={32}
+                    name="keyboard-arrow-right"
+                    color="black"
+                  />
                 </TouchableOpacity>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.header}>
+              ))
+            ) : (
               <Text type="header">{this.props.header}</Text>
-            </View>
-          ))}
+            )}
+          </View>
+        )}
         {this.props.children}
         {this.props.footer != undefined && Array.isArray(this.props.footer) ? (
           <View
@@ -48,14 +54,14 @@ export default class Card extends React.Component {
               <TouchableOpacity
                 key={index}
                 onPress={button.onPress}
-                style={styles.button}
+                style={styles.buttonFooter}
               >
                 <Text type="header">{button.text}</Text>
               </TouchableOpacity>
             ))}
           </View>
         ) : (
-          <View style={{ height: 10 }} />
+          <View style={{ height: 0}} />
         )}
       </View>
     );
@@ -70,6 +76,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderColor: "black"
   },
+  buttonHeader: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
   buttonList: {
     backgroundColor: "#E86515",
     flex: 1,
@@ -82,7 +94,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row"
   },
-  button: {
+  buttonFooter: {
     flex: 1,
     borderLeftWidth: StyleSheet.hairlineWidth,
     borderRightWidth: StyleSheet.hairlineWidth,
