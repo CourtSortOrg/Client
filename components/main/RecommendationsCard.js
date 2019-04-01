@@ -56,9 +56,10 @@ export default class Recommendations extends React.Component {
   render() {
     return (
       <Card
-        header={[
+        header="Dining Court name"
+        buttonList={[
           {
-            text: "Dining court name",
+            text: "go to dining court",
             onPress: () => console.log("take me to the dining court")
           }
         ]}
@@ -109,7 +110,7 @@ export default class Recommendations extends React.Component {
           />
         </Card>
 
-        <Card header="Reports">
+        <Card header="Reports" expand={this.state.reports != undefined}>
           {this.state.reports != undefined ? (
             <List
               list={this.state.reports.map(item => {
