@@ -26,12 +26,7 @@ export default class Card extends React.Component {
 
   render() {
     return (
-      <View
-        style={{
-          ...styles.card,
-          ...this.props.style
-        }}
-      >
+      <View style={styles.card}>
         {this.props.header != undefined && (
           <TouchableOpacity
             onPress={() => this.setState({ expand: !this.state.expand })}
@@ -58,7 +53,7 @@ export default class Card extends React.Component {
           </TouchableOpacity>
         )}
         {this.state.expand && (
-          <View>
+          <View style={this.props.style}>
             {this.props.buttonList != undefined && (
               <View style={{ ...styles.header, ...styles.buttonHeader }}>
                 {this.props.buttonList.length == 1 ? (
