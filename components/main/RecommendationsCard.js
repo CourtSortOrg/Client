@@ -56,6 +56,7 @@ export default class Recommendations extends React.Component {
   render() {
     return (
       <Card
+        expand={this.props.expand}
         header="Dining Court name"
         buttonList={[
           {

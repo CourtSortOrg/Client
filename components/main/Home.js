@@ -10,6 +10,8 @@ import Text from "../components/Text";
 
 export default class Home extends React.Component {
   render() {
+    let diningCourt = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
+
     return (
       <Screen
         title="Home"
@@ -19,9 +21,16 @@ export default class Home extends React.Component {
       >
         {this.props.screenProps.user == undefined ? (
           <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 100 }}
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingTop: 100
+            }}
           >
-            <Text style={{ paddingLeft: 50, paddingRight: 50, paddingBottom: 10 }}>
+            <Text
+              style={{ paddingLeft: 50, paddingRight: 50, paddingBottom: 10 }}
+            >
               Please Sign in to use account functionality.
             </Text>
             <TouchableOpacity
@@ -43,10 +52,13 @@ export default class Home extends React.Component {
             screenProps={this.props.screenProps}
           />
         ) : (
-          <RecommendationsCard
-            navigation={this.props.navigation}
-            screenProps={this.props.screenProps}
-          />
+          diningCourt.map((court, index) => (
+            <RecommendationsCard
+              navigation={this.props.navigation}
+              screenProps={this.props.screenProps}
+              expand={index == 0}
+            />
+          ))
         )}
       </Screen>
     );
