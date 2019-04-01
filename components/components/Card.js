@@ -65,7 +65,8 @@ export default class Card extends React.Component {
                       borderLeftWidth: 0,
                       flex: 1,
                       flexDirection: "row",
-                      justifyContent: "space-between"
+                      justifyContent: "space-between",
+                      paddingLeft: 16
                     }}
                   >
                     <Text type="header">{this.props.buttonList[0].text}</Text>
