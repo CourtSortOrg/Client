@@ -347,19 +347,22 @@ export default class MealItem extends React.Component {
     return (
       <Screen
         screenProps={this.props.screenProps}
-        title={this.state.name}
+        title={"Dish"}
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >
-        <ButtonGroup
-          onPress={selectedIndex => this.updateIndex(selectedIndex)}
-          selectedIndex={this.state.selectedIndex}
-          buttons={buttons}
-          containerStyle={{ height: 40 }}
-        />
+        <Card
+          header={this.state.name}
+          buttonList={[
+            { text: "Nutrition", style:{fontSize: 16}, onPress: this.updateIndex },
+            { text: "Serving",  style:{fontSize: 16}, onPress: this.updateIndex },
+            { text: "Ratings",  style:{fontSize: 16}, onPress: this.updateIndex }
+          ]}
+        >
         {this.renderNutrition()}
         {this.renderServing()}
         {this.renderRatings()}
+        </Card>
       </Screen>
     );
   }
