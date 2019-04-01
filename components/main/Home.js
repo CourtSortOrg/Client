@@ -54,6 +54,33 @@ export default class Home extends React.Component {
         ) : (
           diningCourt.map((court, index) => (
             <RecommendationsCard
+              diningCourt={{
+                name: court,
+                dishes: [
+                  {
+                    dish: "Cauliflower",
+                    location: "Ford",
+                    rating: 1.9
+                  },
+                  {
+                    dish: "Creole Jambalaya",
+                    location: "Ford",
+                    rating: 4.3
+                  },
+                  {
+                    dish: "Four Cheese Pizza",
+                    location: "Ford",
+                    rating: 3.2
+                  },
+                  {
+                    dish: "Spicy Red Beans and Rice",
+                    location: "Ford",
+                    rating: 1.8
+                  }
+                ],
+                aggregate: 11.2,
+                total: 4
+              }}
               navigation={this.props.navigation}
               screenProps={this.props.screenProps}
               expand={index == 0}

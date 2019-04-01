@@ -2,6 +2,8 @@ import React from "react";
 import { View, TouchableOpacity } from "react-native";
 import { Rating } from "react-native-elements";
 
+import { MaterialIcons } from "@expo/vector-icons";
+
 import Card from "../components/Card";
 import Separator from "../components/Separator";
 import Text from "../components/Text";
@@ -53,6 +55,40 @@ export default class Recommendations extends React.Component {
       .catch(error => console.error(`getMalfunctions: ${error}`));
   };
 
+  renderDish = item => {
+    console.log(item);
+    return (
+      <TouchableOpacity
+        onPress={() =>
+          this.props.navigation.navigate("MealItem", {
+            ID: item.props.dish
+          })
+        }
+        style={{
+          padding: 8,
+          flex: 1,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          backgroundColor: item.props.backgroundIndex % 2 == 0 ? "white" : "#ccc"
+        }}
+      >
+        <Text type="bold">{item.props.dish}</Text>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "flex-end"
+          }}
+        >
+          <Text>{item.props.rating}</Text>
+          <MaterialIcons size={32} name="keyboard-arrow-right" color="black" />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   render() {
     return (
       <Card
@@ -100,7 +136,16 @@ export default class Recommendations extends React.Component {
           </View>
         </View>
 
-        <Card header="Dishes" />
+        <Card header="Dishes">
+          <List
+            list={this.props.diningCourt.dishes.map((d, index) => ({
+              ...d,
+              backgroundIndex: index
+            }))}
+            renderElement={this.renderDish}
+            type="element"
+          />
+        </Card>
 
         <Card header="Friends Checked In">
           <ProfileList
