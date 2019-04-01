@@ -51,7 +51,7 @@ export default class Profile extends React.Component {
 
     this.props.navigation.addListener("willFocus", payload => {
       if (this.state.user) {
-        console.log("update")
+        console.log("update");
         this.setState({
           restrictions: this.props.screenProps.user.dietaryRestrictions,
           friends: this.props.screenProps.user.friends,
@@ -193,14 +193,13 @@ export default class Profile extends React.Component {
 
         {/* Card to show user ratings, friends, and groups */}
         <KeyboardAvoidingView behavior="position" enabled>
-          <Card>
-            {/* ButtonGroup to choose tab */}
-            <ButtonGroup
-              buttons={buttons}
-              onPress={this.updateIndex}
-              selectedIndex={selectedIndex}
-            />
-
+          <Card
+            buttonList={[
+              { text: "Ratings", onPress: this.updateIndex },
+              { text: "Friends", onPress: this.updateIndex },
+              { text: "Groups", onPress: this.updateIndex }
+            ]}
+          >
             {/* Render the ratings list if on the ratings tab */}
             {this.shouldRender(
               selectedIndex == 0,

@@ -19,7 +19,8 @@ export default class Card extends React.Component {
     super(props);
 
     this.state = {
-      expand: this.props.expand != undefined ? this.props.expand : true
+      expand: this.props.expand != undefined ? this.props.expand : true,
+      selected: 0
     };
   }
 
@@ -32,53 +33,80 @@ export default class Card extends React.Component {
         }}
       >
         {this.props.header != undefined && (
-          <View
+          <TouchableOpacity
+            onPress={() => this.setState({ expand: !this.state.expand })}
             style={
               this.state.expand
                 ? styles.header
                 : { ...styles.header, borderBottomWidth: 0 }
             }
           >
-            <TouchableOpacity
-              onPress={() => this.setState({ expand: !this.state.expand })}
-              style={styles.buttonHeader}
-            >
-              <Text type="header">{this.props.header}</Text>
-              {this.state.expand ? (
-                <MaterialIcons
-                  size={32}
-                  name="keyboard-arrow-down"
-                  color="black"
-                />
-              ) : (
-                <MaterialIcons
-                  size={32}
-                  name="keyboard-arrow-right"
-                  color="black"
-                />
-              )}
-            </TouchableOpacity>
-          </View>
+            <Text type="header">{this.props.header}</Text>
+            {this.state.expand ? (
+              <MaterialIcons
+                size={32}
+                name="keyboard-arrow-down"
+                color="black"
+              />
+            ) : (
+              <MaterialIcons
+                size={32}
+                name="keyboard-arrow-right"
+                color="black"
+              />
+            )}
+          </TouchableOpacity>
         )}
         {this.state.expand && (
           <View>
-            {this.props.buttonList != undefined &&
-              this.props.buttonList.map((button, index) => (
-                <View style={styles.header}>
+            {this.props.buttonList != undefined && (
+              <View style={{ ...styles.header, ...styles.buttonHeader }}>
+                {this.props.buttonList.length == 1 ? (
                   <TouchableOpacity
-                    key={index}
-                    onPress={button.onPress}
-                    style={styles.buttonHeader}
+                    onPress={this.props.buttonList[0].onPress}
+                    style={{
+                      ...styles.button,
+                      borderRightWidth: 0,
+                      borderLeftWidth: 0,
+                      flex: 1,
+                      flexDirection: "row",
+                      justifyContent: "space-between"
+                    }}
                   >
-                    <Text type="header">{button.text}</Text>
+                    <Text type="header">{this.props.buttonList[0].text}</Text>
                     <MaterialIcons
                       size={32}
                       name="keyboard-arrow-right"
                       color="black"
                     />
                   </TouchableOpacity>
-                </View>
-              ))}
+                ) : (
+                  this.props.buttonList.map((button, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => {
+                        this.setState({ selected: index });
+                        button.onPress(index);
+                      }}
+                      style={
+                        this.state.selected == index
+                          ? { ...styles.button, ...styles.buttonActive }
+                          : styles.button
+                      }
+                    >
+                      <Text
+                        type="header"
+                        style={
+                          this.state.selected == index && { color: "white" }
+                        }
+                      >
+                        {button.text}
+                      </Text>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </View>
+            )}
             {this.props.children}
             {this.props.footer != undefined &&
             Array.isArray(this.props.footer) ? (
@@ -93,7 +121,7 @@ export default class Card extends React.Component {
                   <TouchableOpacity
                     key={index}
                     onPress={button.onPress}
-                    style={styles.buttonFooter}
+                    style={styles.button}
                   >
                     <Text type="header">{button.text}</Text>
                   </TouchableOpacity>
@@ -115,13 +143,14 @@ const styles = StyleSheet.create({
     padding: 8,
     paddingLeft: 16,
     borderBottomWidth: 3,
-    borderColor: "black"
-  },
-  buttonHeader: {
+    borderColor: "black",
     flex: 1,
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center"
+    justifyContent: "space-between"
+  },
+  buttonHeader: {
+    padding: 0,
+    paddingLeft: 0
   },
   buttonList: {
     backgroundColor: "#E86515",
@@ -135,13 +164,16 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row"
   },
-  buttonFooter: {
+  button: {
     flex: 1,
     borderLeftWidth: StyleSheet.hairlineWidth,
     borderRightWidth: StyleSheet.hairlineWidth,
     justifyContent: "center",
     alignItems: "center",
     padding: 8
+  },
+  buttonActive: {
+    backgroundColor: "#000"
   },
   card: {
     flex: 1,
