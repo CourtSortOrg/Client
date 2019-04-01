@@ -7,12 +7,22 @@ import Text from "./Text";
 
 /*
  Card expects:
- header: string || array of button objects: { text, onPress }
+ header: string
+ expand: start the card expanded or collapsed.
+ buttonList: array of button objects { text, onPress }
  footer: string || array of button objects: { text, onPress }
  nested elements
  */
 
 export default class Card extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      expand: this.props.expand != undefined ? this.props.expand : true
+    };
+  }
+
   render() {
     return (
       <View
@@ -23,45 +33,70 @@ export default class Card extends React.Component {
       >
         {this.props.header != undefined && (
           <View style={styles.header}>
-            {Array.isArray(this.props.header) ? (
-              this.props.header.map((button, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={button.onPress}
-                  style={styles.buttonHeader}
-                >
-                  <Text type="header">{button.text}</Text>
-                  <MaterialIcons
-                    size={32}
-                    name="keyboard-arrow-right"
-                    color="black"
-                  />
-                </TouchableOpacity>
-              ))
-            ) : (
+            <TouchableOpacity
+              onPress={() => this.setState({ expand: !this.state.expand })}
+              style={styles.buttonHeader}
+            >
               <Text type="header">{this.props.header}</Text>
-            )}
+              {this.state.expand ? (
+                <MaterialIcons
+                  size={32}
+                  name="keyboard-arrow-down"
+                  color="black"
+                />
+              ) : (
+                <MaterialIcons
+                  size={32}
+                  name="keyboard-arrow-right"
+                  color="black"
+                />
+              )}
+            </TouchableOpacity>
           </View>
         )}
-        {this.props.children}
-        {this.props.footer != undefined && Array.isArray(this.props.footer) ? (
-          <View
-            style={
-              this.props.header == undefined ? styles.buttonList : styles.footer
-            }
-          >
-            {this.props.footer.map((button, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={button.onPress}
-                style={styles.buttonFooter}
+        {this.state.expand && (
+          <View>
+            {this.props.buttonList != undefined &&
+              this.props.buttonList.map((button, index) => (
+                <View style={styles.header}>
+                  <TouchableOpacity
+                    key={index}
+                    onPress={button.onPress}
+                    style={styles.buttonHeader}
+                  >
+                    <Text type="header">{button.text}</Text>
+                    <MaterialIcons
+                      size={32}
+                      name="keyboard-arrow-right"
+                      color="black"
+                    />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            {this.props.children}
+            {this.props.footer != undefined &&
+            Array.isArray(this.props.footer) ? (
+              <View
+                style={
+                  this.props.header == undefined
+                    ? styles.buttonList
+                    : styles.footer
+                }
               >
-                <Text type="header">{button.text}</Text>
-              </TouchableOpacity>
-            ))}
+                {this.props.footer.map((button, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={button.onPress}
+                    style={styles.buttonFooter}
+                  >
+                    <Text type="header">{button.text}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <View style={{ height: 0 }} />
+            )}
           </View>
-        ) : (
-          <View style={{ height: 0}} />
         )}
       </View>
     );
