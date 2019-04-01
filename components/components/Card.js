@@ -9,7 +9,7 @@ import Text from "./Text";
  Card expects:
  header: string
  expand: start the card expanded or collapsed.
- buttonList: array of button objects { text, onPress }. If single, rendering is different. 
+ buttonList: array of button objects { text, style (optional text styling), onPress }. If single, rendering is different.
  footer: string || array of button objects: { text, onPress }
  nested elements
  */
@@ -93,7 +93,9 @@ export default class Card extends React.Component {
                       <Text
                         type="header"
                         style={
-                          this.state.selected == index && { color: "white" }
+                          this.state.selected == index
+                            ? { ...button.style, color: "white" }
+                            : button.style
                         }
                       >
                         {button.text}
