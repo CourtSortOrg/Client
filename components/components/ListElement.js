@@ -127,7 +127,7 @@ export default class ListElement extends React.Component {
     return (
       <View
         style={
-          this.props.id % 2 == 0
+          this.props.id % 2 != 0
             ? {
                 ...this.styles.listElement,
                 ...this.styles.element,
