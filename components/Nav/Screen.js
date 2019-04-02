@@ -1,9 +1,12 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
+
+import { Overlay } from "react-native-elements";
 
 import Header from "./Header";
 import Footer from "./Footer";
 import Body from "./Body";
+import Text from "../components/Text";
 
 export default class Screen extends React.Component {
   render() {
@@ -39,13 +42,27 @@ export default class Screen extends React.Component {
           navigation={{ ...this.props.navigation }}
           active={this.props.title}
         />
+        <Overlay
+          borderRadius={8}
+          isVisible={this.props.loading == undefined ? false : this.props.loading}
+          overlayBackgroundColor="#E86515"
+          overlayStyle={{
+            borderWidth: 3,
+            borderColor: "black",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
+          <ActivityIndicator size="large" color="black" />
+          <Text type="header" style={{margin: 20}}>Loading</Text>
+        </Overlay>
       </View>
     );
   }
 
-  componentDidMount= () => {
+  componentDidMount = () => {
     this.props.screenProps.functions.updateNotifications();
-  }
+  };
 }
 
 const styles = StyleSheet.create({
