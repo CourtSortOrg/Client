@@ -1153,11 +1153,15 @@ export default class App extends React.Component {
         }
       },
       () => {
-        let arr = [];
-        n.forEach(list =>
-          list.items.forEach(e => this.parseNotifications(arr, e.type, e))
-        );
-        this.addNotifications(arr, callback);
+        if (n != undefined) {
+          let arr = [];
+          n.forEach(list =>
+            list.items.forEach(e => this.parseNotifications(arr, e.type, e))
+          );
+          this.addNotifications(arr, callback);
+        } else {
+          if (callback) callback();
+        }
       }
     );
   };
