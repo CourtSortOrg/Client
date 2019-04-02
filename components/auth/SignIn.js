@@ -35,12 +35,19 @@ export default class SignIn extends React.Component {
 
   handleAuthenticationUpdate = async signInNative => {
     const user = firebase.auth().currentUser;
-    this.props.screenProps.functions.updateUser(
-      true,
-      firebase.auth().currentUser,
-      () => this.props.navigation.navigate("Home"),
-      this.handleNoUserHandle
-    );
+    if (signInNative)
+      this.props.screenProps.functions.updateUser(
+        true,
+        firebase.auth().currentUser,
+        () => this.props.navigation.navigate("Home")
+      );
+    else
+      this.props.screenProps.functions.updateUser(
+        true,
+        firebase.auth().currentUser,
+        () => this.props.navigation.navigate("Home"),
+        this.handleNoUserHandle
+      );
   };
 
   handleNoUserHandle = () => {

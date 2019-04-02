@@ -4,11 +4,14 @@ import { Button } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import CheckInCard from "./CheckInCard";
+import RecommendationsCard from "./RecommendationsCard";
 import Card from "../components/Card";
 import Text from "../components/Text";
 
 export default class Home extends React.Component {
   render() {
+    let diningCourt = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
+
     return (
       <Screen
         title="Home"
@@ -18,9 +21,16 @@ export default class Home extends React.Component {
       >
         {this.props.screenProps.user == undefined ? (
           <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 100 }}
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingTop: 100
+            }}
           >
-            <Text style={{ paddingLeft: 50, paddingRight: 50, paddingBottom: 10 }}>
+            <Text
+              style={{ paddingLeft: 50, paddingRight: 50, paddingBottom: 10 }}
+            >
               Please Sign in to use account functionality.
             </Text>
             <TouchableOpacity
@@ -42,53 +52,40 @@ export default class Home extends React.Component {
             screenProps={this.props.screenProps}
           />
         ) : (
-          <Card header="Check into a Dining Court!">
-            <Card
-              footer={[
-                {
-                  text: "Hillenbrand",
-                  onPress: () =>
-                    this.props.screenProps.functions.checkIn("Hillenbrand")
-                }
-              ]}
+          diningCourt.map((court, index) => (
+            <RecommendationsCard
+              diningCourt={{
+                name: court,
+                dishes: [
+                  {
+                    dish: "Cauliflower",
+                    location: "Ford",
+                    rating: 1.9
+                  },
+                  {
+                    dish: "Creole Jambalaya",
+                    location: "Ford",
+                    rating: 4.3
+                  },
+                  {
+                    dish: "Four Cheese Pizza",
+                    location: "Ford",
+                    rating: 3.2
+                  },
+                  {
+                    dish: "Spicy Red Beans and Rice",
+                    location: "Ford",
+                    rating: 1.8
+                  }
+                ],
+                aggregate: 11.2,
+                total: 4
+              }}
+              navigation={this.props.navigation}
+              screenProps={this.props.screenProps}
+              expand={index == 0}
             />
-            <Card
-              footer={[
-                {
-                  text: "Ford",
-                  onPress: () =>
-                    this.props.screenProps.functions.checkIn("Ford")
-                }
-              ]}
-            />
-            <Card
-              footer={[
-                {
-                  text: "Wiley",
-                  onPress: () =>
-                    this.props.screenProps.functions.checkIn("Wiley")
-                }
-              ]}
-            />
-            <Card
-              footer={[
-                {
-                  text: "Windsor",
-                  onPress: () =>
-                    this.props.screenProps.functions.checkIn("Windsor")
-                }
-              ]}
-            />
-            <Card
-              footer={[
-                {
-                  text: "Earhart",
-                  onPress: () =>
-                    this.props.screenProps.functions.checkIn("Earhart")
-                }
-              ]}
-            />
-          </Card>
+          ))
         )}
       </Screen>
     );
