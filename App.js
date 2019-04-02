@@ -605,8 +605,6 @@ export default class App extends React.Component {
     Alert.alert("Change Status", `What status would you like to have?`, [
       {
         text: "Cancel",
-        onPress: () =>
-          this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
       },
       {
         text: this.statusMessage[1],
@@ -728,26 +726,10 @@ export default class App extends React.Component {
         chosen: 0,
         visible: true,
         options: [
-          {
-            text: "Cancel",
-            onPress: 0
-          },
-          {
-            text: "Ice cream machine is nonfunctional.",
-            onPress: 1
-          },
-          {
-            text: "Menu is inaccurate.",
-            onPress: 1
-          },
-          {
-            text: "Inadequate utensils.",
-            onPress: 1
-          },
-          {
-            text: "All dishes are paper and plastic.",
-            onPress: 1
-          }
+          "Cancel",
+          "Ice cream machine is nonfunctional.",
+          "Menu is inaccurate.",
+          "Inadequate utensils.",
         ]
       };
 
@@ -758,44 +740,29 @@ export default class App extends React.Component {
             containerStyle={{ padding: 0, margin: 0 }}
             isVisible={this.state.visible}
           >
-            <Card
-              style={{ margin: -20 }}
-              header={`Report at ${diningCourt}?`}
-              footer={[
-                {
-                  text: "Submit",
-                  onPress: () => {
-                    switch (this.state.options[this.state.chosen].onPress) {
-                      case 0:
-                        break;
-                      case 1:
-                        reportMalfunction(
-                          diningCourt,
-                          this.state.options[this.state.chosen].text
-                        );
-                        break;
-                      case 2:
-                        busynessAlert();
-                        break;
-                    }
-                    this.setState({
-                      visible: false
-                    });
-                    if (callback) callback();
-                  }
-                }
-              ]}
-            >
-              <Picker
-                selectedValue={this.state.chosen}
-                onValueChange={(itemValue, itemIndex) => {
-                  this.setState({ chosen: itemValue });
-                }}
-              >
-                {this.state.options.map((o, index) => {
-                  return <Picker.Item label={o.text} value={index} />;
-                })}
-              </Picker>
+            <Card overlay={true} header={`Report at ${diningCourt}?`}>
+              {this.state.options.map((o, index) => {
+                return (
+                  <Card
+                    footer={[
+                      {
+                        text: o,
+                        onPress: () => {
+                          if (index != 0)
+                            reportMalfunction(
+                              diningCourt,
+                              this.state.options[index]
+                            );
+                          this.setState({
+                            visible: false
+                          });
+                          if (callback) callback();
+                        }
+                      }
+                    ]}
+                  />
+                );
+              })}
             </Card>
           </Overlay>
         );
@@ -824,32 +791,25 @@ export default class App extends React.Component {
             containerStyle={{ padding: 0, margin: 0 }}
             isVisible={this.state.visible}
           >
-            <Card
-              style={{ margin: -20 }}
-              header={`Busyness at ${diningCourt}?`}
-              footer={[
-                {
-                  text: "Submit",
-                  onPress: () => {
-                    reportBusyness(diningCourt, this.state.chosen);
-                    this.setState({
-                      visible: false
-                    });
-                    if (callback) callback();
-                  }
-                }
-              ]}
-            >
-              <Picker
-                selectedValue={this.state.chosen}
-                onValueChange={(itemValue, itemIndex) => {
-                  this.setState({ chosen: itemValue });
-                }}
-              >
-                {this.state.options.map((o, index) => {
-                  return <Picker.Item label={o} value={index} />;
-                })}
-              </Picker>
+            <Card overlay={true} header={`Busyness at ${diningCourt}?`}>
+              {this.state.options.map((o, index) => {
+                return (
+                  <Card
+                    footer={[
+                      {
+                        text: o,
+                        onPress: () => {
+                          if (index != 0) reportBusyness(diningCourt, index);
+                          this.setState({
+                            visible: false
+                          });
+                          if (callback) callback();
+                        }
+                      }
+                    ]}
+                  />
+                );
+              })}
             </Card>
           </Overlay>
         );

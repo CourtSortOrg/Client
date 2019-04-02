@@ -26,7 +26,13 @@ export default class Card extends React.Component {
 
   render() {
     return (
-      <View style={styles.card}>
+      <View
+        style={
+          this.props.overlay === true
+            ? { ...styles.card, ...styles.overlay }
+            : styles.card
+        }
+      >
         {this.props.header != undefined && (
           <TouchableOpacity
             onPress={() => this.setState({ expand: !this.state.expand })}
@@ -53,7 +59,7 @@ export default class Card extends React.Component {
           </TouchableOpacity>
         )}
         {this.state.expand && (
-          <View style={this.props.style}>
+          <View style={{ flex: 1, ...this.props.style }}>
             {this.props.buttonList != undefined && (
               <View style={{ ...styles.header, ...styles.buttonHeader }}>
                 {this.props.buttonList.length == 1 ? (
@@ -107,27 +113,25 @@ export default class Card extends React.Component {
             )}
             {this.props.children}
             {this.props.footer != undefined &&
-            Array.isArray(this.props.footer) ? (
-              <View
-                style={
-                  this.props.header == undefined
-                    ? styles.buttonList
-                    : styles.footer
-                }
-              >
-                {this.props.footer.map((button, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={button.onPress}
-                    style={styles.button}
-                  >
-                    <Text type="header">{button.text}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ) : (
-              <View style={{ height: 0 }} />
-            )}
+              Array.isArray(this.props.footer) && (
+                <View
+                  style={
+                    this.props.header == undefined
+                      ? styles.buttonList
+                      : styles.footer
+                  }
+                >
+                  {this.props.footer.map((button, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={button.onPress}
+                      style={styles.button}
+                    >
+                      <Text type="header">{button.text}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
           </View>
         )}
       </View>
@@ -142,7 +146,6 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     borderBottomWidth: 3,
     borderColor: "black",
-    flex: 1,
     flexDirection: "row",
     justifyContent: "space-between"
   },
@@ -181,5 +184,9 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     margin: 10,
     borderRadius: 10
+  },
+  overlay: {
+    margin: -20,
+    borderRadius: 0
   }
 });
