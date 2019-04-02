@@ -11,30 +11,64 @@ import Text from "../components/Text";
 
 export default class Home extends React.Component {
   state = {
+    loading: false,
     meal: this.props.screenProps.functions.getNextMeal(),
     date: this.props.screenProps.functions.getDay(),
     showDate: false,
-    showMeal: false
+    showMeal: false,
+
+    recommendation: []
   };
 
-  updateDate = () => {};
-
-  updateMeal = () => {};
+  updateRecommendations = () => {
+    this.getBestDiningCourtUser(this.state.date, this.state.meal);
+  };
 
   componentDidMount = () => {
     this.props.navigation.addListener("willFocus", () => {
-      this.setState({
-        meal: this.props.screenProps.functions.getNextMeal(),
-        date: this.props.screenProps.functions.getDay(),
-      })
+      if (this.props.screenProps.user != undefined) {
+        this.setState({
+          meal: this.props.screenProps.functions.getNextMeal(),
+          date: this.props.screenProps.functions.getDay()
+        });
 
-      this.updateDate();
-      this.updateMeal();
+        this.updateRecommendations();
+      }
     });
-  }
+  };
+
+  getBestDiningCourtUser = (day, meal) => {
+    let date = new Date();
+    date.setDate(date.getDate() + day);
+
+    this.setState({ loading: true });
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getBestDiningCourtUser",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.props.screenProps.user.userHandle,
+          date: this.props.screenProps.functions.generateDateString(date),
+          meal: this.state.meal,
+          returnAll: true
+        })
+      }
+    )
+      .then(data => {
+        this.setState({
+          recommendation: JSON.parse(data._bodyText),
+          loading: false
+        });
+      })
+      .catch(error => console.error(`getBestDiningCourtUser: ${error}`));
+  };
 
   render() {
-    let diningCourt = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
     let days = [];
     let day = new Date();
 
@@ -45,6 +79,7 @@ export default class Home extends React.Component {
     return (
       <Screen
         title="Home"
+        loading={this.state.loading}
         navigation={this.props.navigation}
         screenProps={this.props.screenProps}
         backButton={false}
@@ -128,35 +163,10 @@ export default class Home extends React.Component {
                 <Text>{this.state.meal}</Text>
               </TouchableOpacity>
             </View>
-            {diningCourt.map((court, index) => (
+            {this.state.recommendation.map((court, index) => (
               <RecommendationsCard
-                diningCourt={{
-                  name: court,
-                  dishes: [
-                    {
-                      dish: "Cauliflower",
-                      location: "Ford",
-                      rating: 1.9
-                    },
-                    {
-                      dish: "Creole Jambalaya",
-                      location: "Ford",
-                      rating: 4.3
-                    },
-                    {
-                      dish: "Four Cheese Pizza",
-                      location: "Ford",
-                      rating: 3.2
-                    },
-                    {
-                      dish: "Spicy Red Beans and Rice",
-                      location: "Ford",
-                      rating: 1.8
-                    }
-                  ],
-                  aggregate: 11.2,
-                  total: 4
-                }}
+                court={court}
+                index={index}
                 navigation={this.props.navigation}
                 screenProps={this.props.screenProps}
                 expand={index == 0}
@@ -168,20 +178,27 @@ export default class Home extends React.Component {
               isVisible={this.state.showMeal}
             >
               <Card header="Choose a meal" overlay={true}>
-                {this.props.screenProps.globals.mealNames.map(m => (
-                  <Card
-                    footer={[
-                      {
-                        text: m,
-                        onPress: () =>
-                          this.setState({
-                            showMeal: false,
-                            meal: m
-                          })
-                      }
-                    ]}
-                  />
-                ))}
+                {["Cancel", ...this.props.screenProps.globals.mealNames].map(
+                  m => (
+                    <Card
+                      footer={[
+                        {
+                          text: m,
+                          onPress: () =>
+                            m != "Cancel"
+                              ? this.setState(
+                                  {
+                                    showMeal: false,
+                                    meal: m
+                                  },
+                                  this.updateRecommendations
+                                )
+                              : this.setState({ showMeal: false })
+                        }
+                      ]}
+                    />
+                  )
+                )}
               </Card>
             </Overlay>
             <Overlay
@@ -191,17 +208,20 @@ export default class Home extends React.Component {
             >
               <Card header="Choose a day" overlay={true}>
                 <ScrollView>
-                {days.map(d => (
-                  <Card
-                    footer={[
-                      {
-                        text: this.props.screenProps.globals.dayNames[d],
-                        onPress: () =>
-                          this.setState({ showDate: false, date: d })
-                      }
-                    ]}
-                  />
-                ))}
+                  {days.map(d => (
+                    <Card
+                      footer={[
+                        {
+                          text: this.props.screenProps.globals.dayNames[d],
+                          onPress: () =>
+                            this.setState(
+                              { showDate: false, date: d },
+                              this.updateRecommendations
+                            )
+                        }
+                      ]}
+                    />
+                  ))}
                 </ScrollView>
               </Card>
             </Overlay>
