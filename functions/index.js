@@ -16,12 +16,14 @@ exports.test = functions.https.onRequest((request, response) => {
 });
 
 // returns the best dining court for a user
-// PARAMETERS: userHandle, date, meal
+// PARAMETERS: userHandle, date, meal, returnAll
 exports.getBestDiningCourtUser = functions.https.onRequest(async (request, response)=>{
   var userHandle = request.body.userHandle;
   var date = request.body.date;
   var meal = request.body.meal;
-  if(userHandle == null || date == null || meal == null)
+  var returnAll = request.body.returnAll;
+
+  if(userHandle == null || date == null || meal == null || returnAll == null)
     throw new Error("incorrect parameters!");
 
   var userDishRatings = [];
@@ -63,68 +65,98 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
     })
   }
 
+  function addToMatches(currDish, offeredObj){
+    return offeredObj['date'] == date && offeredObj['meal'] == meal && currDish['rating'] > 3;
+  };
+  
   var matches = [];
   for(var i = 0; i<ratedDishOfferings.length; i++){
     var currDish = ratedDishOfferings[i];
     for(var j = 0; j<currDish['offered'].length; j++){
       var offeredObj = currDish['offered'][j];
-      if(offeredObj['date'] == date && offeredObj['meal'] == meal){
+      if(addToMatches(currDish, offeredObj)){
         matches.push({dish: currDish['dish'], location: offeredObj['location'], rating: currDish['rating']});
       }
     }
   }
-  var courts = {
-    "Hillenbrand" : {
+  var courts = [
+    {
+      court: "Hillenbrand",
       dishes: [],
       aggregate: 0,
       total: 0
     },
-    "Earhart" : {
+    {
+      court: "Earhart",
       dishes: [],
       aggregate: 0,
       total: 0
     },
-    "Wiley" : {
+    {
+      court: "Wiley",
       dishes: [],
       aggregate: 0,
       total: 0
     },
-    "Windsor" : {
+    {
+      court: "Windsor",
       dishes: [],
       aggregate: 0,
       total: 0
     },
-    "Ford" : {
+    {
+      court: "Ford",
       dishes: [],
       aggregate: 0,
       total: 0
     }
+  ];
+
+  function getCourt(courtName){
+    for(var i=0; i<courts.length; i++){
+      if(courts[i]['court'] == courtName)
+        return courts[i];
+    }
+    return null;
   }
+
   var courtNames = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
   for(var i=0; i<matches.length; i++){
-    var currLoc = matches[i]['location'];
-    courts[currLoc]['dishes'].push(matches[i]);
-    courts[currLoc]['aggregate'] += matches[i]['rating'];
-    courts[currLoc]['total']++;
+    var currLoc = getCourt(matches[i]['location']);
+
+    currLoc['dishes'].push(matches[i]);
+    currLoc['aggregate'] += matches[i]['rating'];
+    currLoc['total']++;
   }
+
+
 
   var best = {};
   var maxRating = 0;
   for(var i=0; i<courtNames.length; i++){
-    if(courts[courtNames[i]]['total']>0){
-      var currRating = courts[courtNames[i]]['aggregate'] / courts[courtNames[i]]['total'];
+    var currLoc = getCourt(courtNames[i]);
+    if(currLoc['total']>0){
+      var currRating = currLoc['aggregate'] / currLoc['total'];
     }else{
       currRating = -1;
     }
+    currLoc['rating'] = currRating;
     if(currRating>maxRating){
       maxRating = currRating;
       best['location'] = courtNames[i];
-      best['dishes'] = courts[courtNames[i]]['dishes'];
+      best['dishes'] = currLoc['dishes'];
       best['rating'] = currRating;
     }
   }
-  //response.send(courts);
-  response.send(best);
+
+  if(!returnAll){
+    response.send(best);
+    return;
+  }
+
+  courts.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+  response.send(courts);
+  
 })
 
 // adds current location
