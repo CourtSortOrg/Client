@@ -56,7 +56,6 @@ export default class Recommendations extends React.Component {
   };
 
   renderDish = item => {
-    console.log(item);
     return (
       <TouchableOpacity
         onPress={() =>

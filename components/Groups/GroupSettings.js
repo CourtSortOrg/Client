@@ -89,7 +89,6 @@ export default class GroupSettings extends React.Component {
         })
       }
     )
-      .then(data => console.log(`Invited ${id} to group`))
       .catch(error => console.error(`inviteToGroup: ${error}`));
   };
 

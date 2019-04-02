@@ -1712,9 +1712,6 @@ export default class App extends React.Component {
   };
 
   render = () => {
-    /*console.log("render:")
-    console.log(this.state.user);
-    console.log(":render")*/
     if (
       this.state.mealsLoaded &&
       this.state.fontLoaded &&

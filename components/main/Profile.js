@@ -155,7 +155,6 @@ export default class Profile extends React.Component {
           {/* Icon that displays the user's status*/}
           <TouchableOpacity
             onPress={() => {
-              console.log("Press status button");
               this.setState({ changeStatus: true });
             }}
             style={{
@@ -211,7 +210,6 @@ export default class Profile extends React.Component {
             )}
 
             {/* Render the friends list if on the friends tab */}
-            {console.log(this.state.friends)}
             {this.shouldRender(
               selectedIndex == 1,
               <ProfileList
