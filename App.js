@@ -223,6 +223,24 @@ export default class App extends React.Component {
 
   mealNames = ["Breakfast", "Lunch", "Late Lunch", "Dinner"];
 
+  generateDateString = date => {
+    return `${date.getFullYear()}-${
+      date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
+    }-${date.getDate() < 10 ? `0${date.getDate()}` : date.getDate()}`;
+  };
+
+  getDay = () => {
+    return this.dayNames[this.date.getDay()];
+  };
+
+  getNextMeal = () => {
+    if (this.date.getHours() < 10) return this.mealNames[0];
+    else if (this.date.getHours() < 2) return this.mealNames[1];
+    else if (this.date.getHours() < 4 && this.date.getMinutes() < 15)
+      return this.mealNames[2];
+    else if (this.date.getHours() < 10) return this.mealNames[3];
+  };
+
   _storeData = async (key, value) => {
     try {
       if (value != "") {
@@ -1701,7 +1719,10 @@ export default class App extends React.Component {
               updateBlockedUsers: this.updateBlockedUsers,
               unblockUser: this.unblockUser,
               createPoll: this.createPoll,
-              vote: this.vote
+              vote: this.vote,
+              generateDateString: this.generateDateString,
+              getNextMeal: this.getNextMeal,
+              getDay: this.getDay
             },
             globals: {
               statusMessage: this.statusMessage,
