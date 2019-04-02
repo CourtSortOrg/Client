@@ -21,6 +21,18 @@ export default class Home extends React.Component {
 
   updateMeal = () => {};
 
+  componentDidMount = () => {
+    this.props.navigation.addListener("willFocus", () => {
+      this.setState({
+        meal: this.props.screenProps.functions.getNextMeal(),
+        date: this.props.screenProps.functions.getDay(),
+      })
+
+      this.updateDate();
+      this.updateMeal();
+    });
+  }
+
   render() {
     let diningCourt = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
     let days = [];
