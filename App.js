@@ -230,7 +230,7 @@ export default class App extends React.Component {
   };
 
   getDay = () => {
-    return this.dayNames[this.date.getDay()];
+    return this.date.getDay();
   };
 
   getNextMeal = () => {
