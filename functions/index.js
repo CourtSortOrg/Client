@@ -15,6 +15,54 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
+// TESTING: groupID: 8bTOjeUrROflY5VDvZTP
+// returns the best dining court for a group
+// PARAMETERS: groupID, date, meal, returnAll
+exports.getBestDiningCourtGroup = functions.https.onRequest(async (request, response) => {
+  var groupID = request.body.groupID;
+  var date = request.body.date;
+  var meal = request.body.meal;
+  var returnAll = request.body.returnAll;
+
+  if(groupID == null || date == null || meal == null || returnAll == null)
+    throw new Error("incorrect parameters!");
+
+  var members;
+  await db.collection("Group").doc(groupID).get().then(doc => {
+    members = doc.data().memberObjects;
+  }).catch(function(error){
+    throw new Error(error);
+  });
+
+
+  var allRatings = [];
+  for(var i=0; i<members.length; i++){
+    var currHandle = members[i]['userHandle'];
+    var userRef = db.collection("User").doc(currHandle);
+    await userRef.get().then(async function(doc) {
+      if (doc.exists) {
+        await userRef.collection("ItemRatings").get().then(function(querySnapshot) {
+          querySnapshot.forEach(async function(itemRatingDoc) {
+            var docData = itemRatingDoc.data();
+            await allRatings.push({dishData: docData, userHandle: currHandle});
+          });
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+      else {
+        throw new Error("user does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+
+  response.send(allRatings);
+})
+
 // returns the best dining court for a user
 // PARAMETERS: userHandle, date, meal, returnAll
 exports.getBestDiningCourtUser = functions.https.onRequest(async (request, response)=>{
@@ -68,7 +116,7 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
   function addToMatches(currDish, offeredObj){
     return offeredObj['date'] == date && offeredObj['meal'] == meal && currDish['rating'] > 3;
   };
-  
+
   var matches = [];
   for(var i = 0; i<ratedDishOfferings.length; i++){
     var currDish = ratedDishOfferings[i];
@@ -120,6 +168,21 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
     return null;
   }
 
+  var dateDishRef = db.collection("DateDishes").doc(date);
+  await dateDishRef.get().then(function(doc){
+    var allCourtData = doc.data();
+    console.log(allCourtData);
+    for(var i = 0; i<allCourtData['Courts'].length; i++){
+      for(var j = 0; j<allCourtData.Courts[i].Meals.length; j++){
+        if(allCourtData.Courts[i].Meals[j].Name == meal){
+          var currMeal = allCourtData.Courts[i].Meals[j];
+          var currLoc = getCourt(allCourtData.Courts[i].Name);
+          currLoc.allDishes = currMeal;
+        }
+      }
+    }
+  });
+
   var courtNames = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
   for(var i=0; i<matches.length; i++){
     var currLoc = getCourt(matches[i]['location']);
@@ -127,9 +190,8 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
     currLoc['dishes'].push(matches[i]);
     currLoc['aggregate'] += matches[i]['rating'];
     currLoc['total']++;
+
   }
-
-
 
   var best = {};
   var maxRating = 0;
