@@ -238,11 +238,9 @@ export default class Map extends React.Component {
                 meals: this.state.diningLocations.locations[index].meals,
                 busyness: this.state.diningLocations.locations[index].busyness
               });
-              console.log(item.name);
             }
           }
         ]}
-        expand={false}
         footer={[
           {
             text: "Check In",
