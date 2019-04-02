@@ -184,16 +184,19 @@ export default class Home extends React.Component {
                       footer={[
                         {
                           text: m,
-                          onPress: () =>
-                            m != "Cancel"
-                              ? this.setState(
-                                  {
-                                    showMeal: false,
-                                    meal: m
-                                  },
-                                  this.updateRecommendations
-                                )
-                              : this.setState({ showMeal: false })
+                          onPress: () => {
+                            if (m != "Cancel" && m != this.state.meal) {
+                              this.setState(
+                                {
+                                  showMeal: false,
+                                  meal: m
+                                },
+                                this.updateRecommendations
+                              );
+                            } else {
+                              this.setState({showMeal: false})
+                            }
+                          }
                         }
                       ]}
                     />
@@ -208,16 +211,24 @@ export default class Home extends React.Component {
             >
               <Card header="Choose a day" overlay={true}>
                 <ScrollView>
-                  {days.map(d => (
+                  {["Cancel", ...days].map(d => (
                     <Card
                       footer={[
                         {
-                          text: this.props.screenProps.globals.dayNames[d],
-                          onPress: () =>
-                            this.setState(
-                              { showDate: false, date: d },
-                              this.updateRecommendations
-                            )
+                          text: d != "Cancel" ? this.props.screenProps.globals.dayNames[d] : "Cancel",
+                          onPress: () => {
+                            if (d != "Cancel" && d != this.state.date) {
+                              this.setState(
+                                {
+                                  showDate: false,
+                                  date: d
+                                },
+                                this.updateRecommendations
+                              );
+                            } else {
+                              this.setState({showDate: false})
+                            }
+                          }
                         }
                       ]}
                     />
