@@ -186,7 +186,6 @@ const styles = StyleSheet.create({
     borderRadius: 10
   },
   overlay: {
-    margin: -20,
-    borderRadius: 0
+    margin: -8,
   }
 });
