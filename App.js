@@ -235,10 +235,10 @@ export default class App extends React.Component {
 
   getNextMeal = () => {
     if (this.date.getHours() < 10) return this.mealNames[0];
-    else if (this.date.getHours() < 2) return this.mealNames[1];
-    else if (this.date.getHours() < 4 && this.date.getMinutes() < 15)
+    else if (this.date.getHours() < 14) return this.mealNames[1];
+    else if (this.date.getHours() < 16 && this.date.getMinutes() < 15)
       return this.mealNames[2];
-    else if (this.date.getHours() < 10) return this.mealNames[3];
+    else if (this.date.getHours() < 22) return this.mealNames[3];
   };
 
   _storeData = async (key, value) => {
