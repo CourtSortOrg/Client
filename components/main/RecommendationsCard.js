@@ -19,14 +19,14 @@ export default class Recommendations extends React.Component {
       renderReport: false,
       renderBusyness: false,
       hasRatedCourt: false,
-      userCourtRating: 0
+      userCourtRating: 0,
     };
   }
 
   componentDidMount = () => {
-    //this.getMalfunctions();
+    this.getMalfunctions();
     this.props.navigation.addListener("willFocus", payload => {
-      //this.getMalfunctions();
+      this.getMalfunctions();
     });
   };
 
@@ -40,7 +40,7 @@ export default class Recommendations extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          diningCourt: this.props.screenProps.user.location
+          diningCourt: this.props.court.court
         })
       }
     )
@@ -69,7 +69,8 @@ export default class Recommendations extends React.Component {
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
-          backgroundColor: item.props.backgroundIndex % 2 == 0 ? "white" : "#ccc"
+          backgroundColor:
+            item.props.backgroundIndex % 2 == 0 ? "white" : "#ccc"
         }}
       >
         <Text type="bold">{item.props.dish}</Text>
@@ -92,18 +93,21 @@ export default class Recommendations extends React.Component {
     return (
       <Card
         expand={this.props.expand}
-        header="Dining Court name"
+        header={`${this.props.index + 1}. ${this.props.court.court}`}
         buttonList={[
           {
-            text: "go to dining court",
-            onPress: () => console.log("take me to the dining court")
+            text: "Go to dining court page",
+            onPress: () =>
+              this.props.navigation.navigate("Map", {
+                ID: this.props.court.court
+              })
           }
         ]}
         footer={[
           {
             text: "Check In",
             onPress: () =>
-              this.props.screenProps.functions.checkIn("Hillenbrand")
+              this.props.screenProps.functions.checkIn(this.props.court.court)
           }
         ]}
       >
@@ -137,7 +141,7 @@ export default class Recommendations extends React.Component {
 
         <Card header="Dishes">
           <List
-            list={this.props.diningCourt.dishes.map((d, index) => ({
+            list={this.props.court.dishes.map((d, index) => ({
               ...d,
               backgroundIndex: index
             }))}

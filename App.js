@@ -256,6 +256,24 @@ export default class App extends React.Component {
 
   mealNames = ["Breakfast", "Lunch", "Late Lunch", "Dinner"];
 
+  generateDateString = date => {
+    return `${date.getFullYear()}-${
+      date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
+    }-${date.getDate() < 10 ? `0${date.getDate()}` : date.getDate()}`;
+  };
+
+  getDay = () => {
+    return this.date.getDay();
+  };
+
+  getNextMeal = () => {
+    if (this.date.getHours() < 10) return this.mealNames[0];
+    else if (this.date.getHours() < 14) return this.mealNames[1];
+    else if (this.date.getHours() < 16 && this.date.getMinutes() < 15)
+      return this.mealNames[2];
+    else if (this.date.getHours() < 22) return this.mealNames[3];
+  };
+
   _storeData = async (key, value) => {
     try {
       if (value != "") {
@@ -663,8 +681,6 @@ export default class App extends React.Component {
     Alert.alert("Change Status", `What status would you like to have?`, [
       {
         text: "Cancel",
-        onPress: () =>
-          this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
       },
       {
         text: this.statusMessage[1],
@@ -786,26 +802,10 @@ export default class App extends React.Component {
         chosen: 0,
         visible: true,
         options: [
-          {
-            text: "Cancel",
-            onPress: 0
-          },
-          {
-            text: "Ice cream machine is nonfunctional.",
-            onPress: 1
-          },
-          {
-            text: "Menu is inaccurate.",
-            onPress: 1
-          },
-          {
-            text: "Inadequate utensils.",
-            onPress: 1
-          },
-          {
-            text: "All dishes are paper and plastic.",
-            onPress: 1
-          }
+          "Cancel",
+          "Ice cream machine is nonfunctional.",
+          "Menu is inaccurate.",
+          "Inadequate utensils.",
         ]
       };
 
@@ -816,44 +816,29 @@ export default class App extends React.Component {
             containerStyle={{ padding: 0, margin: 0 }}
             isVisible={this.state.visible}
           >
-            <Card
-              style={{ margin: -20 }}
-              header={`Report at ${diningCourt}?`}
-              footer={[
-                {
-                  text: "Submit",
-                  onPress: () => {
-                    switch (this.state.options[this.state.chosen].onPress) {
-                      case 0:
-                        break;
-                      case 1:
-                        reportMalfunction(
-                          diningCourt,
-                          this.state.options[this.state.chosen].text
-                        );
-                        break;
-                      case 2:
-                        busynessAlert();
-                        break;
-                    }
-                    this.setState({
-                      visible: false
-                    });
-                    if (callback) callback();
-                  }
-                }
-              ]}
-            >
-              <Picker
-                selectedValue={this.state.chosen}
-                onValueChange={(itemValue, itemIndex) => {
-                  this.setState({ chosen: itemValue });
-                }}
-              >
-                {this.state.options.map((o, index) => {
-                  return <Picker.Item label={o.text} value={index} />;
-                })}
-              </Picker>
+            <Card overlay={true} header={`Report at ${diningCourt}?`}>
+              {this.state.options.map((o, index) => {
+                return (
+                  <Card
+                    footer={[
+                      {
+                        text: o,
+                        onPress: () => {
+                          if (index != 0)
+                            reportMalfunction(
+                              diningCourt,
+                              this.state.options[index]
+                            );
+                          this.setState({
+                            visible: false
+                          });
+                          if (callback) callback();
+                        }
+                      }
+                    ]}
+                  />
+                );
+              })}
             </Card>
           </Overlay>
         );
@@ -882,32 +867,25 @@ export default class App extends React.Component {
             containerStyle={{ padding: 0, margin: 0 }}
             isVisible={this.state.visible}
           >
-            <Card
-              style={{ margin: -20 }}
-              header={`Busyness at ${diningCourt}?`}
-              footer={[
-                {
-                  text: "Submit",
-                  onPress: () => {
-                    reportBusyness(diningCourt, this.state.chosen);
-                    this.setState({
-                      visible: false
-                    });
-                    if (callback) callback();
-                  }
-                }
-              ]}
-            >
-              <Picker
-                selectedValue={this.state.chosen}
-                onValueChange={(itemValue, itemIndex) => {
-                  this.setState({ chosen: itemValue });
-                }}
-              >
-                {this.state.options.map((o, index) => {
-                  return <Picker.Item label={o} value={index} />;
-                })}
-              </Picker>
+            <Card overlay={true} header={`Busyness at ${diningCourt}?`}>
+              {this.state.options.map((o, index) => {
+                return (
+                  <Card
+                    footer={[
+                      {
+                        text: o,
+                        onPress: () => {
+                          if (index != 0) reportBusyness(diningCourt, index);
+                          this.setState({
+                            visible: false
+                          });
+                          if (callback) callback();
+                        }
+                      }
+                    ]}
+                  />
+                );
+              })}
             </Card>
           </Overlay>
         );
@@ -1799,7 +1777,10 @@ export default class App extends React.Component {
               updateBlockedUsers: this.updateBlockedUsers,
               unblockUser: this.unblockUser,
               createPoll: this.createPoll,
-              vote: this.vote
+              vote: this.vote,
+              generateDateString: this.generateDateString,
+              getNextMeal: this.getNextMeal,
+              getDay: this.getDay
             },
             globals: {
               statusMessage: this.statusMessage,
