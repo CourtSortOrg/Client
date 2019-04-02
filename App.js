@@ -7,7 +7,12 @@ import {
 } from "react-navigation";
 import { Overlay } from "react-native-elements";
 import { Font } from "expo";
-import { Location, Permissions, TaskManager } from "expo";
+import {
+  Location,
+  Notifications as Notification,
+  Permissions,
+  TaskManager
+} from "expo";
 
 import Splash from "./components/auth/Splash";
 import LoginSplash from "./components/auth/LoginSplash";
@@ -30,6 +35,7 @@ import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
 import BlockedUsers from "./components/Settings/BlockedUsers";
+import TestLocation from "./components/main/TestLocation";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
@@ -83,6 +89,9 @@ const SettingsNavigation = createStackNavigator(
     },
     BlockedUsers: {
       screen: BlockedUsers
+    },
+    TestLocation: {
+      screen: TestLocation
     }
   },
   {
@@ -171,32 +180,20 @@ const AppNavigation = createSwitchNavigator(
 
 const Navigation = createAppContainer(AppNavigation);
 
-TaskManager.defineTask(
-  "MONITOR_GEOFENCE",
-  ({ data: { eventType, region }, error }) => {
-    if (error) {
-      console.log(error.message);
-      // check `error.message` for more details.
-      return;
-    }
-    Alert.alert("GEOFENCE is reached");
+const GEOFENCING_TASK = "geofencing";
 
-    if (eventType === Location.GeofencingEventType.Enter) {
-      console.log("You've entered region:", region);
-    } else if (eventType === Location.GeofencingEventType.Exit) {
-      console.log("You've left region:", region);
-    }
-  }
-);
+TaskManager.defineTask(GEOFENCING_TASK, async ({ data: { region } }) => {
+  const stateString = Location.GeofencingRegionState[
+    region.state
+  ].toLowerCase();
 
-TaskManager.defineTask("MONITOR_LOCATION", ({ data: { locations }, error }) => {
-  if (error) {
-    console.log(error.message);
+  console.log(`${stateString} region ${region.identifier}`);
 
-    // check `error.message` for more details.
-    return;
-  }
-  console.log("Received new locations", locations);
+  await Notifications.presentLocalNotificationAsync({
+    title: "Expo Geofencing",
+    body: `You're ${stateString} a region ${region.identifier}`,
+    data: region
+  });
 });
 
 export default class App extends React.Component {
@@ -211,6 +208,10 @@ export default class App extends React.Component {
       meals: []
     };
 
+    // Notification.presentLocalNotificationAsync({
+    //   title: "Expo Notification",
+    //   body: "This is a test notifcation from the Notification API"
+    // });
     //this.enableLocation();
   }
 
@@ -461,28 +462,21 @@ export default class App extends React.Component {
 
   enableLocation = async callback => {
     let { status } = await Permissions.askAsync(Permissions.LOCATION);
-    await Location.startGeofencingAsync("MONITOR_GEOFENCE", [
+    console.log("LOCATION PERMISSIONS: ", status);
+    const { coords } = await Location.getCurrentPositionAsync();
+    console.log("CURRENT LOCATION: ", coords);
+    await Location.startGeofencingAsync(GEOFENCING_TASK, [
       {
-        identifier: "HILLY",
-        latitude: 40.4269,
-        longitude: -86.9264,
-        radius: 50,
-        notifyOnEnter: true,
-        notifyOnExit: true
+        identifier: "CurrLocation",
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        radius: 50
       }
     ]);
-    let response = await Location.hasStartedGeofencingAsync("MONITOR_GEOFENCE");
-    console.log(response);
-    response = await TaskManager.isTaskDefined("MONITOR_GEOFENCE");
-    console.log(response);
-
-    await Location.startLocationUpdatesAsync("MONITOR_LOCATION", {
-      accuracy: Location.Accuracy.High,
-      timeInterval: 10000,
-      distanceInterval: 1,
-      showBackgroundLocationIndicator: true
-    });
-
+    const isGeofencing = await Location.hasStartedGeofencingAsync(
+      GEOFENCING_TASK
+    );
+    console.log("IS GEOFENCING: ", isGeofencing);
     if (callback) callback();
   };
 
