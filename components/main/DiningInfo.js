@@ -1,23 +1,28 @@
 import React from "react";
-import { FlatList } from "react-native";
+import { FlatList, StyleSheet, View } from "react-native";
 import Screen from "../Nav/Screen";
 import Card from "../components/Card";
 import { Rating } from "react-native-ratings";
 import { MapView } from "expo";
 import Text from "../components/Text";
 import { ListItem } from "react-native-elements";
-const { Marker } = MapView;
+import Separator from "../components/Separator";
+//const { Marker } = MapView;
 
 export default class DiningInfo extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { rating: 0, ...this.props.navigation.state.params };
+    this.state = {
+      malfunctions: [],
+      rating: 0,
+      ...this.props.navigation.state.params
+    };
     console.log(this.state);
     this.getDiningInfo(this.state.name);
   }
 
   getDiningInfo = async name => {
-    let response = await fetch(
+    let data = await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getAggregateDiningCourtRatings",
       {
         method: "POST",
@@ -30,16 +35,55 @@ export default class DiningInfo extends React.Component {
         })
       }
     );
-    let parsedData = response._bodyText;
+    let parsedData = data._bodyText;
     if (parsedData > 0) {
       parsedData = (Math.round(parsedData * 2) / 2).toFixed(1);
     }
-    let date = new Date();
-    const dateStr = `${date.getFullYear()}-${
-      date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
-    }-${date.getDate() < 10 ? `0${date.getDate()}` : date.getDate()}`;
 
-    this.setState({ rating: parseFloat(parsedData) });
+    data = await fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctionReports",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          diningCourt: this.state.name
+        })
+      }
+    );
+    let malfunctions = await JSON.parse(data._bodyText);
+    console.log(malfunctions);
+
+    data = await fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getBusyness",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          diningCourt: this.state.name
+        })
+      }
+    );
+
+    let busyness;
+    if (data._bodyText != "No ratings") {
+      busyness = this.props.screenProps.globals.busynessMessage[data._bodyText];
+    } else {
+      busyness = data._bodyText;
+    }
+
+    console.log(busyness);
+
+    this.setState({
+      busyness: busyness,
+      malfunctions: malfunctions,
+      rating: parseFloat(parsedData)
+    });
   };
 
   mealKeyExtractor = meal => meal.name;
@@ -62,8 +106,23 @@ export default class DiningInfo extends React.Component {
     );
   };
 
+  malfunctionKeyExtractor = malfunction => malfunction.malfunction;
+
+  renderMalfunction = ({ item, index }) => {
+    let reportString = `Reported ${item.numOfReports} time`;
+    reportString += item.numOfReports > 1 ? "s" : "";
+    return (
+      <ListItem
+        title={item.malfunction}
+        subtitle={reportString}
+        bottomDivider
+        topDivider={index != 0}
+      />
+    );
+  };
+
   render() {
-    const { name, location, rating, meals } = this.state;
+    const { name, location, rating, malfunctions, meals } = this.state;
     return (
       <Screen
         title={name}
@@ -72,8 +131,24 @@ export default class DiningInfo extends React.Component {
         navigation={{ ...this.props.navigation }}
         backButton={true}
       >
-        <Card header={"Overall Rating"}>
-          <Rating readonly startingValue={rating} />
+        <Card header={"Important Information"}>
+          <View style={styles.ratingDiv}>
+            <Text type="sectionName" style={styles.subHeader}>
+              Rating
+            </Text>
+            <Rating readonly startingValue={rating} />
+            <Text style={styles.description}>{`${rating} out of 5 stars`}</Text>
+          </View>
+
+          <Separator />
+          <Text type="sectionName" style={styles.subHeader}>
+            Malfunctions
+          </Text>
+          <FlatList
+            keyExtractor={this.malfunctionKeyExtractor}
+            data={malfunctions}
+            renderItem={this.renderMalfunction}
+          />
         </Card>
         <Card header={"Today's Hours"}>
           <FlatList
@@ -95,7 +170,7 @@ export default class DiningInfo extends React.Component {
               longitudeDelta: 0.0025
             }}
           >
-            <Marker
+            <MapView.Marker
               coordinate={{
                 latitude: location.latitude,
                 longitude: location.longitude
@@ -115,3 +190,17 @@ function convertToTwelveHour(rawTime) {
     ((hour + 11) % 12) + 1 + ":" + rawTime.substring(3, 5) + " " + suffix;
   return rawTime;
 }
+
+const styles = StyleSheet.create({
+  ratingDiv: {
+    marginVertical: 15
+  },
+  subHeader: {
+    textAlign: "center",
+    fontSize: 20
+  },
+  description: {
+    textAlign: "center",
+    marginBottom: 15
+  }
+});

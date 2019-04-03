@@ -164,7 +164,7 @@ export default class Profile extends React.Component {
             }}
           >
             <Text>
-              Status:{" "}
+              Status:
               {
                 this.props.screenProps.globals.statusMessage[
                   this.props.screenProps.user.status
