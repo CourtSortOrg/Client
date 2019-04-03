@@ -622,7 +622,7 @@ export default class App extends React.Component {
 
     Alert.alert("Change Status", `What status would you like to have?`, [
       {
-        text: "Cancel",
+        text: "Cancel"
       },
       {
         text: this.statusMessage[1],
@@ -747,7 +747,7 @@ export default class App extends React.Component {
           "Cancel",
           "Ice cream machine is nonfunctional.",
           "Menu is inaccurate.",
-          "Inadequate utensils.",
+          "Inadequate utensils."
         ]
       };
 
@@ -1220,6 +1220,9 @@ export default class App extends React.Component {
       case "joinedDiningCourt":
         obj = this.newJoinedDiningCourtNotification(id);
         break;
+      case "eventStart":
+        obj = this.newEventStartNotification(id);
+        break;
       case "communicationResponse":
         obj = this.newCommunicationResponse(id);
         break;
@@ -1295,21 +1298,6 @@ export default class App extends React.Component {
         this._storeData("user", JSON.stringify(this.state.user));
       }
     );
-  };
-
-  dismissNotification = id => {
-    Alert.alert(`Dismiss notification?`, undefined, [
-      {
-        text: "Cancel"
-      },
-      {
-        text: "No"
-      },
-      {
-        text: "Yes",
-        onPress: () => this.removeNotification(id)
-      }
-    ]);
   };
 
   newFriendRequestNotification = id => {
@@ -1424,6 +1412,15 @@ export default class App extends React.Component {
     return obj;
   };
 
+  newEventStartNotification = id => {
+    id.Name = `${id.groupName}'s event at ${id.time} in ${
+      id.diningCourt
+    } is about to start.`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
   newCommunicationResponse = id => {
     id.Name = `${id.friendName}  @${id.friendHandle}  has responded with: \n${
       id.message
@@ -1431,6 +1428,21 @@ export default class App extends React.Component {
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
+  };
+
+  dismissNotification = id => {
+    Alert.alert(`Dismiss notification?`, undefined, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "No"
+      },
+      {
+        text: "Yes",
+        onPress: () => this.removeNotification(id)
+      }
+    ]);
   };
 
   friendAlert = id => {
