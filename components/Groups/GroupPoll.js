@@ -82,7 +82,10 @@ export default class GroupPoll extends React.Component {
                     this.state.groupID,
                     this.state.poll.messageID
                   );
-                  this.props.navigation.goBack();
+
+                  this.props.navigation.navigate("Group", {
+                    ID: this.state.groupID
+                  });
                 }
               }
             }
