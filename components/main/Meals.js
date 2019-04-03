@@ -26,6 +26,11 @@ export default class Meals extends React.Component {
       currentMeal: 0,
       resetSearch: false
     };
+
+    this.state.times.forEach((t, index) => {
+      if (t.Name == this.props.screenProps.functions.getNextMeal())
+        this.state.currentMeal = index;
+    });
   }
 
   componentDidMount() {
