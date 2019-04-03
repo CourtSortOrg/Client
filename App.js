@@ -244,6 +244,7 @@ export default class App extends React.Component {
     let location = await Location.getCurrentPositionAsync({});
     console.log(location);
   };
+  
   dayNames = [
     "Sunday",
     "Monday",

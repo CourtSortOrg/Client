@@ -1,13 +1,12 @@
 import React from "react";
 import { FlatList, StyleSheet, View } from "react-native";
-import Screen from "../Nav/Screen";
-import Card from "../components/Card";
-import { Rating } from "react-native-ratings";
+import { ListItem, Rating } from "react-native-elements";
 import { MapView } from "expo";
-import Text from "../components/Text";
-import { ListItem } from "react-native-elements";
+
+import Card from "../components/Card";
+import Screen from "../Nav/Screen";
 import Separator from "../components/Separator";
-//const { Marker } = MapView;
+import Text from "../components/Text";
 
 export default class DiningInfo extends React.Component {
   constructor(props) {
@@ -35,10 +34,7 @@ export default class DiningInfo extends React.Component {
         })
       }
     );
-    let parsedData = data._bodyText;
-    if (parsedData > 0) {
-      parsedData = (Math.round(parsedData * 2) / 2).toFixed(1);
-    }
+    let parsedData = parseFloat((Math.round(data._bodyText * 2) / 2).toFixed(1));
 
     data = await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctionReports",
@@ -54,7 +50,6 @@ export default class DiningInfo extends React.Component {
       }
     );
     let malfunctions = await JSON.parse(data._bodyText);
-    console.log(malfunctions);
 
     data = await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getBusyness",
