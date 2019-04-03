@@ -97,9 +97,10 @@ export default class EditProfile extends React.Component {
     });
     console.log(result);
      if (!result.cancelled) {
-       console.log(result.uri);
-       this.setState({ image: result.uri });
-       this.uploadImage(result.uri);
+       let downloadURL = this.uploadImage(result.uri);
+       this.setState({ image: downloadURL });
+
+       //TODO make a call setProfilePic firebase function
      }
   };
 
@@ -120,8 +121,8 @@ export default class EditProfile extends React.Component {
 
     const ref = firebase.storage().ref().child('ProfilePics/' + this.props.screenProps.user.userHandle);
     const snapshot = await ref.put(blob);
-    return ref.getDownloadURL();
-
+    const downloadURL = await ref.getDownloadURL();
+    return downloadURL;
     blob.close();
   }
 
