@@ -167,6 +167,7 @@ export default class Home extends React.Component {
               <RecommendationsCard
                 court={court}
                 index={index}
+                key={index}
                 navigation={this.props.navigation}
                 screenProps={this.props.screenProps}
                 expand={index == 0}
@@ -179,8 +180,9 @@ export default class Home extends React.Component {
             >
               <Card header="Choose a meal" overlay={true}>
                 {["Cancel", ...this.props.screenProps.globals.mealNames].map(
-                  m => (
+                  (m, index) => (
                     <Card
+                      key={index}
                       footer={[
                         {
                           text: m,
@@ -194,7 +196,7 @@ export default class Home extends React.Component {
                                 this.updateRecommendations
                               );
                             } else {
-                              this.setState({showMeal: false})
+                              this.setState({ showMeal: false });
                             }
                           }
                         }
@@ -211,11 +213,15 @@ export default class Home extends React.Component {
             >
               <Card header="Choose a day" overlay={true}>
                 <ScrollView>
-                  {["Cancel", ...days].map(d => (
+                  {["Cancel", ...days].map((d, index) => (
                     <Card
+                      key={index}
                       footer={[
                         {
-                          text: d != "Cancel" ? this.props.screenProps.globals.dayNames[d] : "Cancel",
+                          text:
+                            d != "Cancel"
+                              ? this.props.screenProps.globals.dayNames[d]
+                              : "Cancel",
                           onPress: () => {
                             if (d != "Cancel" && d != this.state.date) {
                               this.setState(
@@ -226,7 +232,7 @@ export default class Home extends React.Component {
                                 this.updateRecommendations
                               );
                             } else {
-                              this.setState({showDate: false})
+                              this.setState({ showDate: false });
                             }
                           }
                         }
