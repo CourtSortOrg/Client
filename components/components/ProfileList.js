@@ -27,7 +27,7 @@ export default class ProfileList extends React.Component {
     });
   }
 
-  renderElement(item) {
+  renderElement = item => {
     const statusMessage = ["Not Eating", "Available", "Busy"];
     return (
       <View style={{ padding: 8 }}>
@@ -61,8 +61,13 @@ export default class ProfileList extends React.Component {
               {item.props.userName}
             </Text>
             <Text type="bold">
-              {`@${item.props.userHandle} | Status: `}
-              <Text>{statusMessage[item.props.status]}</Text>
+              {`@${item.props.userHandle} `}
+              {this.props.showStatus !== false && (
+                <Text type="bold">
+                  {`| Status: `}
+                  <Text>{statusMessage[item.props.status]}</Text>
+                </Text>
+              )}
             </Text>
           </View>
           <TouchableOpacity
@@ -82,7 +87,7 @@ export default class ProfileList extends React.Component {
         </TouchableOpacity>
       </View>
     );
-  }
+  };
 
   render() {
     return (

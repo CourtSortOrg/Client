@@ -28,7 +28,6 @@ export default class RatingList extends React.Component {
   }
 
   renderElement(item) {
-    console.log(item);
     return (
       <View style={{ padding: 8 }}>
         <TouchableOpacity

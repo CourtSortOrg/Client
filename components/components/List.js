@@ -36,7 +36,7 @@ export default class List extends React.Component {
             expand={this.props.expand}
             navigation={this.props.navigation}
             renderElement={this.props.renderElement}
-            onPress={this.props.onPress}
+            //onPress={this.props.onPress}
             selectable={this.props.selectable}
             radio={this.props.radio}
             selectFunction={this.props.selectFunction}

@@ -26,6 +26,8 @@ export default class MealItem extends React.Component {
       }
 
     this.state = {
+      loading: false,
+
       name: name,
       selectedIndex: 0,
       nutrition: [],
@@ -46,7 +48,6 @@ export default class MealItem extends React.Component {
       rating: 0,
       userRating: rating
     };
-    this.getRating(this.state.name);
   }
 
   updateIndex = selectedIndex => {
@@ -95,7 +96,11 @@ export default class MealItem extends React.Component {
       .catch(error => console.error(`getRating: ${error}`));
   };
 
-  componentDidMount() {
+  componentDidMount = async () => {
+    this.setState({ loading: true });
+
+    await this.getRating(this.state.name);
+
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/fetchAllOffered",
       {
@@ -137,7 +142,8 @@ export default class MealItem extends React.Component {
                       ) != undefined
                   }));
                   this.setState({
-                    allergens
+                    allergens,
+                    loading: false
                   });
                 }
               );
@@ -150,7 +156,7 @@ export default class MealItem extends React.Component {
       .catch(error => console.error(`fetchAllOffered: ${error}`));
     //TODO: Call getRating on this item
     //TODO: Call getRating for user?
-  }
+  };
 
   renderElement(item) {
     return <NutritionFact {...item.props} />;
@@ -325,7 +331,6 @@ export default class MealItem extends React.Component {
       [
         {
           text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
           style: "cancel"
         },
         {
@@ -347,19 +352,35 @@ export default class MealItem extends React.Component {
     return (
       <Screen
         screenProps={this.props.screenProps}
-        title={this.state.name}
+        title={"Dish"}
         navigation={{ ...this.props.navigation }}
         backButton={true}
+        loading={this.state.loading}
       >
-        <ButtonGroup
-          onPress={selectedIndex => this.updateIndex(selectedIndex)}
-          selectedIndex={this.state.selectedIndex}
-          buttons={buttons}
-          containerStyle={{ height: 40 }}
-        />
-        {this.renderNutrition()}
-        {this.renderServing()}
-        {this.renderRatings()}
+        <Card
+          header={this.state.name}
+          buttonList={[
+            {
+              text: "Nutrition",
+              style: { fontSize: 16 },
+              onPress: this.updateIndex
+            },
+            {
+              text: "Serving",
+              style: { fontSize: 16 },
+              onPress: this.updateIndex
+            },
+            {
+              text: "Ratings",
+              style: { fontSize: 16 },
+              onPress: this.updateIndex
+            }
+          ]}
+        >
+          {this.renderNutrition()}
+          {this.renderServing()}
+          {this.renderRatings()}
+        </Card>
       </Screen>
     );
   }
