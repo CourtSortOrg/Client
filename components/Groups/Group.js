@@ -21,36 +21,34 @@ export default class Group extends React.Component {
         groupName: "",
         memberObjects: []
       },
+      loading: false,
 
       ...this.props.screenProps.user
     };
 
     if (this.state.groupID !== "NO-ID") {
-      this.props.screenProps.functions.updateGroup(this.state.groupID, true);
-      groups = this.props.screenProps.user.groups.filter(
-        group => group.groupID === this.state.groupID
-      );
-
       this.state.group = this.props.screenProps.user.groups.find(
         g => g.groupID === this.state.groupID
       );
     }
   }
 
+  updateGroup = () => {
+    this.setState({loading: true});
+    this.props.screenProps.functions.updateGroup(this.state.groupID, true, () =>
+      this.setState({
+        group: this.props.screenProps.user.groups.find(
+          g => g.groupID === this.state.groupID
+        )
+      }, () => this.setState({loading: false}))
+    );
+  };
+
   componentDidMount = () => {
-    this.props.navigation.addListener("willFocus", payload => {
-      this.props.screenProps.functions.updateGroup(
-        this.state.groupID,
-        true,
-        () =>
-          this.setState(
-            {
-              group: this.props.screenProps.user.groups.find(
-                g => g.groupID === this.state.groupID
-              )
-            },
-          )
-      );
+    this.updateGroup();
+
+    this.props.navigation.addListener("willFocus", () => {
+      this.updateGroup();
     });
   };
 
@@ -125,6 +123,7 @@ export default class Group extends React.Component {
   render() {
     return (
       <Screen
+        loading={this.state.loading}
         title="Group"
         navigation={{ ...this.props.navigation }}
         screenProps={this.props.screenProps}
