@@ -20,6 +20,7 @@ export default class GroupCreateEvent extends React.Component {
 
       meals: [],
       days: [],
+      loading: false,
 
       ...this.props.screenProps.user
     };
@@ -69,6 +70,7 @@ export default class GroupCreateEvent extends React.Component {
   };
 
   vote = () => {
+    this.setState({loading: true});
     let date = new Date();
     date.setDate(date.getDate() + this.state.date);
 
@@ -128,11 +130,13 @@ export default class GroupCreateEvent extends React.Component {
         this.props.screenProps.functions.updateGroup(
           this.state.groupID,
           true,
-          () =>
+          () => {
+            this.setState({loading: false});
             this.props.navigation.navigate("GroupPoll", {
               ID: this.state.groupID,
               MESSAGEID: messageID
             })
+          }
         );
       }
     );
@@ -142,6 +146,7 @@ export default class GroupCreateEvent extends React.Component {
     return (
       <Screen
         title="Group Poll"
+        loading={this.state.loading}
         navigation={this.props.navigation}
         screenProps={this.props.screenProps}
         backButton={true}
