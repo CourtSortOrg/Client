@@ -362,6 +362,11 @@ export default class App extends React.Component {
         () => console.log("notifications reset"),
         true
       );
+      await this.updateNotifications(
+        () => console.log("notifications loaded"),
+        false,
+        true
+      );
       await this.updateRatings(() => console.log("ratings loaded"));
       // TODO: Get the user's ratings here
 
@@ -1417,7 +1422,10 @@ export default class App extends React.Component {
   };
 
   newEventStartNotification = id => {
-    id.Name = `${id.groupName}'s event at ${id.time} in ${
+    let d = new Date(id.time);
+    id.Name = `${id.groupName}'s event on ${id.date} at in ${
+      d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
+    }:${d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()}
       id.diningCourt
     } is about to start.`;
     id.date = this.dateStr;
