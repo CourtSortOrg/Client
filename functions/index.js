@@ -912,7 +912,8 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
       incomingGroupInvites: [],
       ratings: [],
       status: 0,
-      notifications: []
+      notifications: [],
+      events: []
     }
     db.collection("User").doc(userHandle).set(updatedUser).then(function() {
       console.log("User successfully added!");
@@ -2371,23 +2372,23 @@ exports.clearBusyness = functions.https.onRequest((request, response) => {
   });
 });
 
-//Creates a poll for users to vote on a time
-//PARAMETERS: userHandle, diningCourt, expirationTime, groupID, timeOptions
+//Creates a poll for users to vote on a time and returns the messageID
+//PARAMETERS: userHandle, expirationTime, groupID, timeOptions, meal
 //expirationTime is a Date object               timeOptions is an array of times
 exports.createPoll = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
-  var diningCourt = request.body.diningCourt;
   var expirationTime = request.body.expirationTime;
   var groupID = request.body.groupID;
   var timeOptions = request.body.timeOptions;
+  var meal = request.body.meal;
 
   console.log(userHandle);
-  console.log(diningCourt);
   console.log(expirationTime);
   console.log(groupID);
   console.log(timeOptions);
+  console.log(meal);
 
-  if(userHandle == null || diningCourt == null || expirationTime == null || groupID == null || timeOptions == null){
+  if(userHandle == null || expirationTime == null || groupID == null || timeOptions == null || meal == null){
     throw new Error("incorrect parameters");
     return;
   }
@@ -2403,10 +2404,13 @@ exports.createPoll = functions.https.onRequest(async (request, response) => {
 
   await groupDoc.get().then(async doc => {
     var groupName = await doc.data().groupName;
-    var notification = {type: "newPoll", id: {groupName: groupName, userHandle: userHandle}};
+    numMessages = doc.data().numMessages;
+    if(numMessages == null){
+      numMessages = 0;
+    }
+    var notification = {type: "newPoll", id: {groupName: groupName, userHandle: userHandle, groupID: groupID, messageID: numMessages+1}};
     var userCol = db.collection("User");
     var members = doc.data().memberHandles;
-    numMessages = doc.data().numMessages;
 
     for(var i = 0; i < members.length; i++){
       if(members[i] == userHandle){
@@ -2424,25 +2428,24 @@ exports.createPoll = functions.https.onRequest(async (request, response) => {
 
   var votes = [];
   for(var i = 0; i < timeOptions.length; i++){
-    votes.push({time: timeOptions[i], numVotes: 0});
+    votes.push({time: new Date(timeOptions[i]), numVotes: 0});
   }
 
   var id = numMessages + 1;
 
-  var poll = {userHandle: userHandle, diningCourt: diningCourt, expirationTime: expirationTime, timeOptions: timeOptions, votes: votes, messageID: id, voters: []};
+  var poll = {userHandle: userHandle, expirationTime: new Date(expirationTime), timeOptions: timeOptions, votes: votes, messageID: id, voters: [], meal: meal, groupID: groupID};
 
   groupDoc.update({
     messages: admin.firestore.FieldValue.arrayUnion(poll),
     numMessages: id
   }).then(function(){
-    response.send({success: true});
+    console.log(id);
+    response.send({messageID: id});
   }).catch(function(error){
     console.log(error.message);
     throw new Error(error);
     return;
   });
-
-  //add the notification to the group's members
 });
 
 //Sends a users vote within a poll to the database
@@ -2518,7 +2521,8 @@ exports.getPolls = functions.https.onRequest((request, response) => {
   }).catch(function(error){
     throw new Error(error.message);
   });
-})
+});
+
 
 exports.closePolls = functions.https.onRequest((request, response) => {
   var date = new Date();
@@ -2540,14 +2544,31 @@ exports.closePolls = functions.https.onRequest((request, response) => {
               maxIndex = j;
             }
           }
+          var groupID = doc.id;
+          var messageID = message.messageID;
 
-          var notification = {type: "closePoll", id: {groupName: data.groupName, diningCourt: message.diningCourt, time: message.timeOptions[maxIndex]}};
+          var notification = {type: "closePoll", id: {groupName: data.groupName, time: new Date(message.timeOptions[maxIndex]), groupID: groupID, messageID: messageID}};
           var userCol = db.collection("User");
+          var eventCreated = {groupName: data.groupName, time: new Date(message.timeOptions[maxIndex]), groupID: groupID, messageID: messageID};
           for(var j = 0; j < data.memberHandles.length; j++){
             userCol.doc(data.memberHandles[j]).update({
-              notifications: admin.firestore.FieldValue.arrayUnion(notification)
-            })
+              notifications: admin.firestore.FieldValue.arrayUnion(notification),
+              events: admin.firestore.FieldValue.arrayUnion(eventCreated)
+            }).catch(function(error){
+              console.log(error.message);
+              throw new Error(error.message);
+            });
           }
+          groupDoc.doc(doc.id).update({
+            events: admin.firestore.FieldValue.arrayUnion(eventCreated)
+          });
+          db.collection("Event").add({
+            groupID: groupID,
+            messageID: messageID,
+            time: new Date(message.timeOptions[maxIndex]),
+            users: data.memberHandles,
+            event: eventCreated
+          });
 
           //remove the message from the array
           messages.splice(i, 1);
@@ -2557,28 +2578,88 @@ exports.closePolls = functions.https.onRequest((request, response) => {
       groupDoc.doc(doc.id).update({
         "messages": messages
       }).then(function(){
-        response.send("success");
+        //response.send("success");
+      }).catch(function(error){
+        throw new Error(error.message);
       });
     });
   });
 });
 
+//returns the list of events for a user
+//PARAMETERS: userHandle
+exports.getUserEvents = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  console.log(userHandle);
+
+  if(userHandle == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  db.collection("User").doc(userHandle).get().then(doc => {
+    response.send(doc.data().events);
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+});
+
+//removes events from the database when they need to be activated
+exports.activateEvents = functions.https.onRequest(async (request, response) => {
+  var eventsCol = db.collection("Event");
+  var groupsCol = db.collection("Group");
+  var userCol = db.collection("User");
+  var date = new Date();
+
+  await eventsCol.get().then( eCol =>{
+    eCol.forEach(function(doc){
+      var data = doc.data();
+      console.log(data);
+      var seconds = data.time._seconds;
+      if(date.getTime()/1000 >= seconds){
+        //remove the event from the group
+        var group = data.groupID;
+        groupsCol.doc(group).update({
+          events: admin.firestore.FieldValue.arrayRemove(data.event)
+        }).catch(function(error){
+          throw new Error(error.message);
+        });
+
+        //remove the event from the users
+        var users = data.users;
+        for(var i = 0; i < users.length; i++){
+          userCol.doc(users[i]).update({
+            events: admin.firestore.FieldValue.arrayRemove(data.event),
+            notifications: admin.firestore.FieldValue.arrayUnion({type: "eventStart", id: data.event})
+          });
+        }
+        eventsCol.doc(doc.id).delete();
+      }
+    });
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+
+  response.send("success");
+});
+
 //invites friends to eat with the user
-//PARAMETERS: userHandle, friendHandles, diningCourt, time
+//PARAMETERS: userHandle, friendHandles, diningCourt
 //                        friendHandles is an array of the friends
-//      If you give me time as a date object, the notification will be returned as an object with a field _seconds which contains the total number of seconds in the date object. you should be able to use this to create a new date object    ex: "time":{"_seconds":1553626800,"_nanoseconds":0}
+//      Disregard what follows: If you give me time as a date object, the notification will be returned as an object with a field _seconds which contains the total number of seconds in the date object. you should be able to use this to create a new date object    ex: "time":{"_seconds":1553626800,"_nanoseconds":0}
 exports.inviteToEat = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandles = request.body.friendHandles;
   var diningCourt = request.body.diningCourt;
-  var time = request.body.time;
+  //var time = request.body.time;
 
   console.log(userHandle);
   console.log(friendHandles);
   console.log(diningCourt);
-  console.log(time);
+  //console.log(time);
 
-  if(userHandle == null || friendHandles == null || diningCourt == null || time == null){
+  if(userHandle == null || friendHandles == null || diningCourt == null){// || time == null){
     throw new Error("incorrect parameters");
     return;
   }
@@ -2590,7 +2671,7 @@ exports.inviteToEat = functions.https.onRequest(async (request, response) => {
     userName = await doc.data().userName;
   });
 
-  var notification = {type: "inviteToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt, time: time}};
+  var notification = {type: "inviteToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};//, time: time}};
 
   for(var i = 0; i < friendHandles.length; i++){
     userCol.doc(friendHandles[i]).update({
@@ -2633,4 +2714,10 @@ exports.requestToEat = functions.https.onRequest(async (request, response) => {
   }).catch(function(error){
     throw new Error(error.message);
   });
+});
+
+//sends a user's response to an invite as a notification
+//PARAMETERS: userHandle, friendHandle
+exports.inviteToEatResponse = functions.https.onRequest(async (request, response) => {
+
 });
