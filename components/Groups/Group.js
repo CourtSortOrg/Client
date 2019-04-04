@@ -53,7 +53,7 @@ export default class Group extends React.Component {
   };
 
   renderEvent = item => {
-    let d = new Date(item.props.timeOptions[0]);
+    let d = new Date(item.props.time);
 
     return (
       <View style={{ padding: 8 }}>
@@ -142,10 +142,10 @@ export default class Group extends React.Component {
             }
           ]}
         >
-          {this.state.group.messages.length > 0 ? (
+          {this.state.group.events != undefined && this.state.group.events.length > 0 ? (
             <List
               navigation={this.props.navigation}
-              list={this.state.group.messages}
+              list={this.state.group.events}
               renderElement={this.renderEvent}
               type="element"
             />
@@ -153,7 +153,7 @@ export default class Group extends React.Component {
             <ListElement Name="No Events" type="expandable" />
           )}
           <Separator />
-          {this.state.group.messages.length > 0 ? (
+          {this.state.group.messages != undefined && this.state.group.messages.length > 0 ? (
             <List
               navigation={this.props.navigation}
               list={this.state.group.messages}
