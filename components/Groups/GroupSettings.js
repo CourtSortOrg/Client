@@ -17,7 +17,8 @@ export default class GroupSettings extends React.Component {
         memberObjects: [],
         groupName: ""
       },
-      newGroupName: ""
+      newGroupName: "",
+      loading: false
     };
   }
 
@@ -88,15 +89,15 @@ export default class GroupSettings extends React.Component {
           groupName: this.state.group.groupName
         })
       }
-    )
-      .catch(error => console.error(`inviteToGroup: ${error}`));
+    ).catch(error => console.error(`inviteToGroup: ${error}`));
   };
 
   createGroup = () => {
     if (
-      this.state.group.groupName !== "" &&
+      this.state.newGroupName !== "" &&
       this.state.selectedFriends.length > 0
     ) {
+      this.setState({ loading: true });
       fetch(
         "https://us-central1-courtsort-e1100.cloudfunctions.net/createGroup",
         {
@@ -107,7 +108,7 @@ export default class GroupSettings extends React.Component {
           },
           body: JSON.stringify({
             userHandle: this.props.screenProps.user.userHandle,
-            groupName: this.state.group.groupName
+            groupName: this.state.newGroupName
           })
         }
       )
@@ -121,16 +122,21 @@ export default class GroupSettings extends React.Component {
 
               this.props.screenProps.functions.updateGroup(
                 this.state.groupID,
-                true
+                true,
+                () => {
+                  this.setState({ loading: false });
+                  this.props.navigation.navigate("Profile");
+                  this.props.navigation.navigate("Group", {
+                    ID: this.state.groupID
+                  });
+                }
               );
-
-              this.props.navigation.goBack();
             }
           );
         })
         .catch(error => console.error(`createGroup: ${error}`));
     } else {
-      if (this.state.group.groupName === "") {
+      if (this.state.newGroupName === "") {
         Alert.alert(
           "Create Group",
           `Cannot create group. Please supply a name`,
@@ -197,6 +203,7 @@ export default class GroupSettings extends React.Component {
   render() {
     return (
       <Screen
+        loading={this.state.loading}
         title={this.state.groupID !== "NO-ID" ? "Edit Group" : "Create Group"}
         screenProps={this.props.screenProps}
         navigation={this.props.navigation}

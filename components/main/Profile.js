@@ -50,7 +50,7 @@ export default class Profile extends React.Component {
     }
 
     this.props.navigation.addListener("willFocus", payload => {
-      if (this.state.user) {
+      if (this.props.screenProps.user != undefined) {
         console.log("update");
         this.setState({
           restrictions: this.props.screenProps.user.dietaryRestrictions,
