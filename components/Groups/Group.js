@@ -129,7 +129,6 @@ export default class Group extends React.Component {
         screenProps={this.props.screenProps}
         backButton={true}
       >
-        <Text>{JSON.stringify(this.state.group)}</Text>
         <Card
           header={this.state.group.groupName}
           footer={[
