@@ -51,7 +51,7 @@ export default class Profile extends React.Component {
 
     this.props.navigation.addListener("willFocus", payload => {
       if (this.state.user) {
-        console.log("update")
+        console.log("update");
         this.setState({
           restrictions: this.props.screenProps.user.dietaryRestrictions,
           friends: this.props.screenProps.user.friends,
@@ -113,19 +113,6 @@ export default class Profile extends React.Component {
         screenProps={this.props.screenProps}
         title="Profile"
       >
-        {/* Overlay to let the user change their status */}
-        <Overlay isVisible={this.state.changeStatus} height="30%" width="90%">
-          <View>
-            <Text style={styles.changeStatusText}>Change your status</Text>
-            <ButtonGroup
-              onPress={this.updateStatus}
-              selectedIndex={this.props.screenProps.user.status}
-              buttons={this.props.screenProps.globals.statusMessage}
-              containerStyle={{ height: 60 }}
-            />
-          </View>
-        </Overlay>
-
         {/* Card that shows user information */}
         <Card style={styles.profileInformation}>
           {/* Avatar to show profile picture */}
@@ -152,27 +139,18 @@ export default class Profile extends React.Component {
             size={28}
             style={styles.settingsIcon}
           />
-          {/* Icon that displays the user's status*/}
-          <TouchableOpacity
-            onPress={() => {
-              console.log("Press status button");
-              this.setState({ changeStatus: true });
-            }}
-            style={{
-              backgroundColor: statusColor[this.props.screenProps.user.status],
-              padding: 8,
-              borderRadius: 8
-            }}
-          >
-            <Text>
+          <View style={{ padding: 8 }}>
+            <Text type="bold">
               Status:{" "}
-              {
-                this.props.screenProps.globals.statusMessage[
-                  this.props.screenProps.user.status
-                ]
-              }
+              <Text>
+                {
+                  this.props.screenProps.globals.statusMessage[
+                    this.props.screenProps.user.status
+                  ]
+                }
+              </Text>
             </Text>
-          </TouchableOpacity>
+          </View>
         </Card>
 
         {this.state.restrictions.length > 0 ? (
@@ -193,14 +171,13 @@ export default class Profile extends React.Component {
 
         {/* Card to show user ratings, friends, and groups */}
         <KeyboardAvoidingView behavior="position" enabled>
-          <Card>
-            {/* ButtonGroup to choose tab */}
-            <ButtonGroup
-              buttons={buttons}
-              onPress={this.updateIndex}
-              selectedIndex={selectedIndex}
-            />
-
+          <Card
+            buttonList={[
+              { text: "Ratings", onPress: this.updateIndex },
+              { text: "Friends", onPress: this.updateIndex },
+              { text: "Groups", onPress: this.updateIndex }
+            ]}
+          >
             {/* Render the ratings list if on the ratings tab */}
             {this.shouldRender(
               selectedIndex == 0,
@@ -212,7 +189,6 @@ export default class Profile extends React.Component {
             )}
 
             {/* Render the friends list if on the friends tab */}
-            {console.log(this.state.friends)}
             {this.shouldRender(
               selectedIndex == 1,
               <ProfileList

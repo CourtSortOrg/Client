@@ -71,7 +71,7 @@ export default class Map extends React.Component {
       diningLocations: { locations: [] },
       initialIndex: locations[initialCourt].index,
       region: {
-        latitude: locations[initialCourt].latitude - 0.001,
+        latitude: locations[initialCourt].latitude,
         longitude: locations[initialCourt].longitude,
         latitudeDelta: 0.004,
         longitudeDelta: 0.003
@@ -226,6 +226,7 @@ export default class Map extends React.Component {
     return (
       <Card
         header={item.name}
+        expand={false}
         footer={[
           {
             text: "Check In",
@@ -236,7 +237,7 @@ export default class Map extends React.Component {
           }
         ]}
       >
-        <ScrollView style={{ height: 100 }}>
+        <View>
           <View style={{ padding: 16, paddingBottom: 8 }}>
             <Text>
               {"Rating: "}
@@ -285,7 +286,7 @@ export default class Map extends React.Component {
             subList={false}
             rank={1}
           />
-        </ScrollView>
+        </View>
       </Card>
     );
   };
@@ -341,7 +342,7 @@ export default class Map extends React.Component {
                     locations[this.state.diningLocations.locations[index].name];
                   this.mapView.animateToRegion(
                     {
-                      latitude: latlng.latitude - 0.001,
+                      latitude: latlng.latitude,
                       longitude: latlng.longitude,
                       latitudeDelta: 0.004,
                       longitudeDelta: 0.003
