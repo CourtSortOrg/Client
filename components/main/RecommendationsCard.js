@@ -19,7 +19,7 @@ export default class Recommendations extends React.Component {
       renderReport: false,
       renderBusyness: false,
       hasRatedCourt: false,
-      userCourtRating: 0,
+      userCourtRating: 0
     };
   }
 
@@ -150,14 +150,16 @@ export default class Recommendations extends React.Component {
           />
         </Card>
 
-        <Card header="Friends Checked In">
-          <ProfileList
-            navigation={this.props.navigation}
-            list={this.props.screenProps.user.friends.filter(
-              f => f.location == "Hillenbrand" && f.status == 1
-            )}
-          />
-        </Card>
+        {this.props.friends === true && (
+          <Card header="Friends Checked In">
+            <ProfileList
+              navigation={this.props.navigation}
+              list={this.props.screenProps.user.friends.filter(
+                f => f.location == "Hillenbrand" && f.status == 1
+              )}
+            />
+          </Card>
+        )}
 
         <Card header="Reports" expand={this.state.reports != undefined}>
           {this.state.reports != undefined ? (
