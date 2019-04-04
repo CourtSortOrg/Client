@@ -12,6 +12,7 @@ export default class DiningInfo extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      busyness: "",
       malfunctions: [],
       rating: 0,
       ...this.props.navigation.state.params
@@ -34,7 +35,7 @@ export default class DiningInfo extends React.Component {
         })
       }
     );
-    let parsedData = parseFloat((Math.round(data._bodyText * 2) / 2).toFixed(1));
+    let rating = parseFloat((Math.round(data._bodyText * 2) / 2).toFixed(1));
 
     data = await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctionReports",
@@ -72,19 +73,16 @@ export default class DiningInfo extends React.Component {
       busyness = data._bodyText;
     }
 
-    console.log(busyness);
-
     this.setState({
       busyness: busyness,
       malfunctions: malfunctions,
-      rating: parseFloat(parsedData)
+      rating: rating
     });
   };
 
   mealKeyExtractor = meal => meal.name;
 
   renderMealTime = ({ item }) => {
-    console.log(item);
     let subtitle = "Not Serving";
     if (item.hours) {
       subtitle = convertToTwelveHour(item.hours.StartTime);
@@ -116,26 +114,42 @@ export default class DiningInfo extends React.Component {
     );
   };
 
-  render() {
-    const { name, location, rating, malfunctions, meals } = this.state;
+  renderBusynessBlock(busyness) {
     return (
-      <Screen
-        title={name}
-        screenProps={this.props.screenProps}
-        showNavigation={false}
-        navigation={{ ...this.props.navigation }}
-        backButton={true}
-      >
-        <Card header={"Important Information"}>
-          <View style={styles.ratingDiv}>
-            <Text type="sectionName" style={styles.subHeader}>
-              Rating
-            </Text>
-            <Rating readonly startingValue={rating} />
-            <Text style={styles.description}>{`${rating} out of 5 stars`}</Text>
-          </View>
+      <View style={styles.busynessBlock}>
+        <Text type="sectionName" style={styles.busynessHeader}>
+          Busyness:
+        </Text>
+        <Text style={styles.busynessSubHeader}>{busyness}</Text>
+      </View>
+    );
+  }
 
-          <Separator />
+  renderRatingBlock(rating) {
+    return (
+      <View style={styles.ratingBlock}>
+        <Text type="sectionName" style={styles.ratingHeader}>
+          Rating:
+        </Text>
+        <Rating
+          readonly
+          style={styles.ratingIcons}
+          startingValue={rating}
+          imageSize={25}
+        />
+        <Text style={styles.ratingSubHeader}>{`(${rating}/5)`}</Text>
+      </View>
+    );
+  }
+
+  renderMalfunctionsBlock(malfunctions) {
+    if (malfunctions.length == 0) {
+      return null;
+    }
+    return (
+      <View>
+        <Separator />
+        <View style={styles.malfunctionsBlock}>
           <Text type="sectionName" style={styles.subHeader}>
             Malfunctions
           </Text>
@@ -144,35 +158,73 @@ export default class DiningInfo extends React.Component {
             data={malfunctions}
             renderItem={this.renderMalfunction}
           />
+        </View>
+      </View>
+    );
+  }
+
+  renderHoursBlock(meals) {
+    return (
+      <FlatList
+        keyExtractor={this.mealKeyExtractor}
+        data={meals}
+        renderItem={this.renderMealTime}
+      />
+    );
+  }
+
+  renderMapBlock(location) {
+    return (
+      <MapView
+        rotateEnabled={false}
+        scrollEnabled={false}
+        style={styles.mapBlock}
+        initialRegion={{
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.0025,
+          longitudeDelta: 0.0025
+        }}
+      >
+        <MapView.Marker
+          coordinate={{
+            latitude: location.latitude,
+            longitude: location.longitude
+          }}
+        />
+      </MapView>
+    );
+  }
+
+  render() {
+    const {
+      busyness,
+      location,
+      malfunctions,
+      meals,
+      name,
+      rating
+    } = this.state;
+    return (
+      <Screen
+        title={name}
+        screenProps={this.props.screenProps}
+        showNavigation={false}
+        navigation={{ ...this.props.navigation }}
+        backButton={true}
+      >
+        {/* Card to display general dining court information */}
+        <Card header={"Important Information"}>
+          {this.renderBusynessBlock(busyness)}
+          {this.renderRatingBlock(rating)}
+          {this.renderMalfunctionsBlock(malfunctions)}
         </Card>
-        <Card header={"Today's Hours"}>
-          <FlatList
-            keyExtractor={this.mealKeyExtractor}
-            data={meals}
-            renderItem={this.renderMealTime}
-          />
-        </Card>
+        {/* Card to display dining court hours */}
+        <Card header={"Today's Hours"}>{this.renderHoursBlock(meals)}</Card>
+        {/* Card to display time spent by user in dining cours */}
         <Card header={"Time Spent"} />
-        <Card header={"Location"}>
-          <MapView
-            rotateEnabled={false}
-            scrollEnabled={false}
-            style={{ flex: 1, height: 200 }}
-            initialRegion={{
-              latitude: location.latitude,
-              longitude: location.longitude,
-              latitudeDelta: 0.0025,
-              longitudeDelta: 0.0025
-            }}
-          >
-            <MapView.Marker
-              coordinate={{
-                latitude: location.latitude,
-                longitude: location.longitude
-              }}
-            />
-          </MapView>
-        </Card>
+        {/* Card to display location of dining court */}
+        <Card header={"Location"}>{this.renderMapBlock(location)}</Card>
       </Screen>
     );
   }
@@ -187,15 +239,47 @@ function convertToTwelveHour(rawTime) {
 }
 
 const styles = StyleSheet.create({
-  ratingDiv: {
+  busynessBlock: {
+    marginTop: 5,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center"
+  },
+  busynessHeader: {
+    fontSize: 20,
+    marginHorizontal: 5
+  },
+  busynessSubHeader: {
+    marginHorizontal: 3
+  },
+  ratingBlock: {
+    marginVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start"
+  },
+  ratingIcons: {
+    marginHorizontal: 5
+  },
+  ratingHeader: {
+    fontSize: 20,
+    marginHorizontal: 5
+  },
+  ratingSubHeader: {
+    marginHorizontal: 3
+  },
+  malfunctionsBlock: {
     marginVertical: 15
+  },
+  mapBlock: {
+    flex: 1,
+    height: 200
   },
   subHeader: {
     textAlign: "center",
     fontSize: 20
   },
   description: {
-    textAlign: "center",
-    marginBottom: 15
+    textAlign: "center"
   }
 });

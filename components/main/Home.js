@@ -21,7 +21,7 @@ export default class Home extends React.Component {
   };
 
   updateRecommendations = () => {
-    this.getBestDiningCourtUser(this.state.date, this.state.meal);
+    //this.getBestDiningCourtUser(this.state.date, this.state.meal);
   };
 
   componentDidMount = () => {
