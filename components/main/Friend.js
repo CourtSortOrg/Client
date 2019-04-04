@@ -1,7 +1,7 @@
 import React from "react";
 import * as firebase from "firebase";
 import { View, Alert, TouchableOpacity } from "react-native";
-import { Icon } from "react-native-elements";
+import { Icon, ButtonGroup } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
 import List from "../components/List";
