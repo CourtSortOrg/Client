@@ -122,14 +122,20 @@ export default class GroupCreateEvent extends React.Component {
       expirationTime,
       this.state.groupID,
       dateTimes,
-      this.state.meal
+      this.state.meal,
+      messageID => {
+        console.log(messageID);
+        this.props.screenProps.functions.updateGroup(
+          this.state.groupID,
+          true,
+          () =>
+            this.props.navigation.navigate("GroupPoll", {
+              ID: this.state.groupID,
+              MESSAGEID: messageID
+            })
+        );
+      }
     );
-
-    console.log("Created Event!");
-    this.props.navigation.navigate("Group", {
-      ID: this.state.groupID,
-      NAVIGATE: "GroupPoll"
-    });
   };
 
   render() {

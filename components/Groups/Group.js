@@ -39,24 +39,18 @@ export default class Group extends React.Component {
 
   componentDidMount = () => {
     this.props.navigation.addListener("willFocus", payload => {
-      let nav = this.props.navigation.getParam("NAVIGATE", undefined);
-      /*if (nav != undefined) {
-        this.props.navigation.navigate(nav, {
-          ID: this.state.groupID
-        });
-      }*/
-
-      /*
-      this.props.screenProps.functions.updateGroup(this.state.groupID, true);
-      groups = this.props.screenProps.user.groups.filter(
-        group => group.groupID === this.state.groupID
+      this.props.screenProps.functions.updateGroup(
+        this.state.groupID,
+        true,
+        () =>
+          this.setState(
+            {
+              group: this.props.screenProps.user.groups.find(
+                g => g.groupID === this.state.groupID
+              )
+            },
+          )
       );
-
-      this.setState({
-        group: this.props.screenProps.user.groups.find(
-          g => g.groupID === this.state.groupID
-        )
-      });*/
     });
   };
 
@@ -160,7 +154,7 @@ export default class Group extends React.Component {
           ) : (
             <ListElement Name="No Events" type="expandable" />
           )}
-            <Separator />
+          <Separator />
           {this.state.group.messages.length > 0 ? (
             <List
               navigation={this.props.navigation}

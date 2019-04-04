@@ -44,7 +44,9 @@ export default class Screen extends React.Component {
         />
         <Overlay
           borderRadius={8}
-          isVisible={this.props.loading == undefined ? false : this.props.loading}
+          isVisible={
+            this.props.loading == undefined ? false : this.props.loading
+          }
           overlayBackgroundColor="#E86515"
           overlayStyle={{
             borderWidth: 3,
@@ -53,8 +55,12 @@ export default class Screen extends React.Component {
             justifyContent: "center"
           }}
         >
-          <ActivityIndicator size="large" color="black" />
-          <Text type="header" style={{margin: 20}}>Loading</Text>
+          <View>
+            <ActivityIndicator size="large" color="black" />
+            <Text type="header" style={{ margin: 20 }}>
+              Loading
+            </Text>
+          </View>
         </Overlay>
       </View>
     );
