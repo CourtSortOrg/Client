@@ -140,6 +140,8 @@ export default class Recommendations extends React.Component {
         </View>
 
         <Card header="Dishes">
+        {
+          this.props.court.dishes.length > 0 ?
           <List
             list={this.props.court.dishes.map((d, index) => ({
               ...d,
@@ -147,7 +149,12 @@ export default class Recommendations extends React.Component {
             }))}
             renderElement={this.renderDish}
             type="element"
+          /> :
+          <ListElement
+            Name={"Please rate dishes to receive personalized recommendations."}
+            type="element"
           />
+        }
         </Card>
 
         {this.props.friends === true && (
