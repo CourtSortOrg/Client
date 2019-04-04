@@ -25,25 +25,34 @@ export default class GroupCreate extends React.Component {
 
     return (
       <Card header={obj.header} footer={obj.footer}>
-        <View style={{ flex: 1, flexDirection: "row" }}>
-          <Text type="sectionName">Group Name: </Text>
-          <TextInput
-            autoCapitalize="none"
-            blurOnSubmit={false}
-            placeholder="set group name"
-            placeholderTextColor="#999"
-            onSubmitEditing={() => Keyboard.dismiss()}
-            onChangeText={this.props.updateGroupName}
-            underlineColorAndroid="transparent"
-          />
-        </View>
-
-        {this.props.groupID !== "NO-ID" && (
-          <View style={{ flex: 1, flexDirection: "row" }}>
-            <Text type="sectionName">Group ID: </Text>
-            <Text>{this.props.groupID}</Text>
+        <View style={{ paddingLeft: 16 }}>
+          <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
+            <Text type="sectionName">Group Name: </Text>
+            <TextInput
+              autoCapitalize="none"
+              blurOnSubmit={false}
+              placeholder="set group name"
+              placeholderTextColor="#999"
+              onSubmitEditing={() => Keyboard.dismiss()}
+              onChangeText={this.props.updateGroupName}
+              underlineColorAndroid="transparent"
+              style={{ padding: 8 }}
+            />
           </View>
-        )}
+
+          {this.props.groupID !== "NO-ID" && (
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "center"
+              }}
+            >
+              <Text type="sectionName">Group ID: </Text>
+              <Text style={{ padding: 8 }}>{this.props.groupID}</Text>
+            </View>
+          )}
+        </View>
       </Card>
     );
   }
