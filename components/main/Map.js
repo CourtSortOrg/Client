@@ -71,7 +71,7 @@ export default class Map extends React.Component {
       diningLocations: { locations: [] },
       initialIndex: locations[initialCourt].index,
       region: {
-        latitude: locations[initialCourt].latitude,
+        latitude: locations[initialCourt].latitude - .001,
         longitude: locations[initialCourt].longitude,
         latitudeDelta: 0.004,
         longitudeDelta: 0.003
@@ -90,137 +90,23 @@ export default class Map extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          date: dateStr //TODO: Don't hardcode this
+          date: this.props.screenProps.functions.generateDateString(new Date())
         })
       }
     )
       .then(data => {
         try {
           let parsedJSON = JSON.parse(data._bodyText);
-          this.setState(
-            {
-              diningLocations: parsedJSON,
-              loading: false
-            },
-            this.getBusyness
-          );
+          this.setState({
+            diningLocations: parsedJSON,
+            loading: false
+          });
         } catch (error) {
           console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
         }
       })
       .catch(error => console.error(`fetchDiningTimes: ${error}`));
   }
-
-  getBusyness = () => {
-    let locations = this.state.diningLocations.locations.slice();
-    locations.forEach((loc, index) => {
-      fetch(
-        "https://us-central1-courtsort-e1100.cloudfunctions.net/getBusyness",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            diningCourt: loc.name
-          })
-        }
-      )
-        .then(data => {
-          if (data._bodyText != "No ratings") {
-            locations[
-              index
-            ].busyness = this.props.screenProps.globals.busynessMessage[
-              data._bodyText
-            ];
-          } else {
-            locations[index].busyness = "No ratings";
-          }
-
-          this.setState({
-            diningLocations: {
-              ...this.state.diningLocations,
-              locations
-            }
-          });
-        })
-        .catch(error => console.error(`getBusyness ${loc.name}: ${error}`));
-    });
-
-    this.getRatings();
-  };
-
-  getRatings = () => {
-    let locations = this.state.diningLocations.locations.slice();
-    locations.forEach((loc, index) => {
-      fetch(
-        "https://us-central1-courtsort-e1100.cloudfunctions.net/getAggregateDiningCourtRatings",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            diningCourt: loc.name
-          })
-        }
-      )
-        .then(data => {
-          console.log("~~~RESPONSE FROM getAggregateDiningCourtRatings:");
-          let parsedData = data._bodyText;
-          if (parsedData > 0) {
-            parsedData = Math.round(parsedData * 100) / 100;
-          }
-
-          locations[index].rating = parsedData;
-
-          this.setState({
-            diningLocations: {
-              ...this.state.diningLocations,
-              locations
-            }
-          });
-        })
-        .catch(error => console.error(`getRatings: ${error}`));
-    });
-    this.getMalfunctions();
-  };
-
-  getMalfunctions = () => {
-    let locations = this.state.diningLocations.locations.slice();
-    locations.forEach((loc, index) => {
-      fetch(
-        "https://us-central1-courtsort-e1100.cloudfunctions.net/getMalfunctionReports",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            diningCourt: loc.name
-          })
-        }
-      )
-        .then(async data => {
-          let mal = await JSON.parse(data._bodyText);
-
-          if (mal.length != 0) locations[index].malfunctions = mal;
-
-          this.setState({
-            diningLocations: {
-              ...this.state.diningLocations,
-              locations
-            }
-          });
-        })
-        .catch(error =>
-          console.error(`getMalfunctions: ${loc.name}: ${error}`)
-        );
-    });
-  };
 
   renderDiningCard = ({ item, index }) => {
     return (
@@ -251,56 +137,24 @@ export default class Map extends React.Component {
           }
         ]}
       >
-        <View>
-          <View style={{ padding: 16, paddingBottom: 8 }}>
-            <Text>
-              {"Rating: "}
-              <Text>{item.rating}</Text>
-            </Text>
-          </View>
-          <Separator />
-          <View style={{ padding: 16, paddingBottom: 8 }}>
-            <Text type="bold">
-              {"Busyness:  "}
-              <Text>{item.busyness}</Text>
-            </Text>
-          </View>
-          <Separator />
-          {item.malfunctions != undefined && (
-            <View>
-              <List
-                list={item.malfunctions.map(item => {
-                  return {
-                    Name: `${item.malfunction} with ${
-                      item.numOfReports
-                    } reports`
-                  };
-                })}
-                type="element"
-                rank={1}
-              />
-              <Separator />
-            </View>
-          )}
-          <List
-            list={item.meals.map((meal, index) => {
-              if (meal.hours) {
-                return {
-                  Name: `${meal.name}: ${convertToTwelveHour(
-                    meal.hours.StartTime
-                  )}-${convertToTwelveHour(meal.hours.EndTime)}`
-                };
-              } else {
-                return {
-                  Name: `${meal.name}: Not serving`
-                };
-              }
-            })}
-            type="element"
-            subList={false}
-            rank={1}
-          />
-        </View>
+        <List
+          list={item.meals.map((meal, index) => {
+            if (meal.hours) {
+              return {
+                Name: `${meal.name}: ${convertToTwelveHour(
+                  meal.hours.StartTime
+                )}-${convertToTwelveHour(meal.hours.EndTime)}`
+              };
+            } else {
+              return {
+                Name: `${meal.name}: Not serving`
+              };
+            }
+          })}
+          type="element"
+          subList={false}
+          rank={1}
+        />
       </Card>
     );
   };
@@ -356,7 +210,7 @@ export default class Map extends React.Component {
                     locations[this.state.diningLocations.locations[index].name];
                   this.mapView.animateToRegion(
                     {
-                      latitude: latlng.latitude,
+                      latitude: latlng.latitude - .001,
                       longitude: latlng.longitude,
                       latitudeDelta: 0.004,
                       longitudeDelta: 0.003

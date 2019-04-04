@@ -20,7 +20,7 @@ export default class BlockedUsers extends React.Component {
 
   refreshBlockedUsers = () => {
     this.setState({ refreshing: true });
-    this.props.screenProps.functions.updateBlockedUsers(
+    this.props.screenProps.functions.updateBlockedUsers(() =>
       this.setState({ refreshing: false })
     );
   };

@@ -1,5 +1,5 @@
 import React from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { ListItem, Rating } from "react-native-elements";
 import { MapView } from "expo";
 
@@ -15,13 +15,24 @@ export default class DiningInfo extends React.Component {
       busyness: "",
       malfunctions: [],
       rating: 0,
+      refreshing: true,
       ...this.props.navigation.state.params
     };
     console.log(this.state);
-    this.getDiningInfo(this.state.name);
   }
 
-  getDiningInfo = async name => {
+  componentDidMount() {
+    this.refreshDiningInfo();
+  }
+
+  refreshDiningInfo = () => {
+    this.setState({ refreshing: true });
+    this.getDiningInfo(() => {
+      this.setState({ refreshing: false });
+    });
+  };
+
+  getDiningInfo = async callback => {
     let data = await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getAggregateDiningCourtRatings",
       {
@@ -31,7 +42,7 @@ export default class DiningInfo extends React.Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          diningCourt: name
+          diningCourt: this.state.name
         })
       }
     );
@@ -73,11 +84,12 @@ export default class DiningInfo extends React.Component {
       busyness = data._bodyText;
     }
 
-    this.setState({
+    await this.setState({
       busyness: busyness,
       malfunctions: malfunctions,
       rating: rating
     });
+    if (callback) callback();
   };
 
   mealKeyExtractor = meal => meal.name;
@@ -205,6 +217,13 @@ export default class DiningInfo extends React.Component {
       name,
       rating
     } = this.state;
+
+    let refreshController = (
+      <RefreshControl
+        refreshing={this.state.refreshing}
+        onRefresh={this.refreshDiningInfo}
+      />
+    );
     return (
       <Screen
         title={name}
@@ -212,6 +231,7 @@ export default class DiningInfo extends React.Component {
         showNavigation={false}
         navigation={{ ...this.props.navigation }}
         backButton={true}
+        refreshControl={refreshController}
       >
         {/* Card to display general dining court information */}
         <Card header={"Important Information"}>
