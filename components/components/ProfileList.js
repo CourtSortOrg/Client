@@ -32,7 +32,12 @@ export default class ProfileList extends React.Component {
     return (
       <View style={{ padding: 8 }}>
         <TouchableOpacity
-          style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between"
+          }}
           onPress={() => {
             if (item.props.selectable == true) {
               item.toggleSelect();
@@ -43,47 +48,70 @@ export default class ProfileList extends React.Component {
             }
           }}
         >
-          {item.props.selectable == true && (
-            <View style={{ padding: 0 }}>
-              {item.state.selected == false ? (
-                <MaterialIcons
-                  size={32}
-                  name="check-box-outline-blank"
-                  color="#E86515"
-                />
-              ) : (
-                <MaterialIcons size={32} name="check-box" color="#E86515" />
-              )}
-            </View>
-          )}
-          <View style={{ flex: 1, paddingLeft: 8 }}>
-            <Text type="header" style={{ padding: 0 }}>
-              {item.props.userName}
-            </Text>
-            <Text type="bold">
-              {`@${item.props.userHandle} `}
+          <View>
+            {item.props.selectable == true && (
+              <View style={{ padding: 0 }}>
+                {item.state.selected == false ? (
+                  <MaterialIcons
+                    size={32}
+                    name="check-box-outline-blank"
+                    color="#E86515"
+                  />
+                ) : (
+                  <MaterialIcons size={32} name="check-box" color="#E86515" />
+                )}
+              </View>
+            )}
+            <View style={{ flex: 1, paddingLeft: 8, flexWrap: "wrap" }}>
+              <Text type="header" style={{ padding: 0 }}>
+                {item.props.userName}
+              </Text>
+              <Text type="bold">{`@${item.props.userHandle} `}</Text>
               {this.props.showStatus !== false && (
                 <Text type="bold">
-                  {`| Status: `}
+                  {`Status: `}
                   <Text>{statusMessage[item.props.status]}</Text>
                 </Text>
               )}
-            </Text>
+            </View>
           </View>
-          <TouchableOpacity
-            style={{ padding: 0 }}
-            onPress={() => {
-              item.props.navigation.navigate("Friend", {
-                ID: item.props.userHandle
-              });
-            }}
-          >
-            <MaterialIcons
-              size={32}
-              name="keyboard-arrow-right"
-              color="#E86515"
-            />
-          </TouchableOpacity>
+          <View>
+            <View
+              style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+            >
+              {this.props.request === true && (
+                <TouchableOpacity
+                  onPress={() =>
+                    this.props.screenProps.functions.requestToJoinAlert()
+                  }
+                  style={{
+                    backgroundColor: "#E86515",
+                    padding: 8,
+                    borderWidth: 3,
+                    borderColor: "black",
+                    borderRadius: 8,
+                    margin: 8
+                  }}
+                >
+                  <Text type="bold">{"Join"}</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={{ padding: 0 }}
+                onPress={() => {
+                  item.props.navigation.navigate("Friend", {
+                    ID: item.props.userHandle
+                  });
+                }}
+              >
+                <MaterialIcons
+                  size={48}
+                  name="keyboard-arrow-right"
+                  color="#E86515"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
         </TouchableOpacity>
       </View>
     );
