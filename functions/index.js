@@ -1393,6 +1393,68 @@ exports.updateUserProfile = functions.https.onRequest((request, response) => {
   });
 });
 
+//set profile picture downloadURL
+//PARAMETERS: userHandle, downloadURL
+exports.setProfilePic = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var downloadURL = request.body.downloadURL;
+
+  //don't check downloadURL since it can be null
+  if (userHandle == null) {
+    throw new Error("Must pass 'userHandle' in body of request");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        userRef.update({
+          "profilePicDownloadURL":downloadURL
+        })
+        .then(function() {
+          response.send({
+            "success":true
+          });
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+      else {
+        throw new Error("User does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
+//get profile picture downloadURL
+//PARAMETERS: userHandle
+exports.getProfilePic = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if (userHandle == null) {
+    throw new Error("Must pass 'userHandle' in body of request");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        response.send({
+          "downloadURL":doc.data().profilePicDownloadURL
+        });
+      }
+      else {
+        throw new Error("User does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    })
+  }
+});
+
 //block a user
 //PARAMETERS: userHandle, blockedHandle
 exports.blockUser = functions.https.onRequest(async (request, response) => {
