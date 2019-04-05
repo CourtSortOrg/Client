@@ -846,19 +846,7 @@ export default class App extends React.Component {
     return <BusynessPicker />;
   };
 
-  notificationAlert = (id, callback) => {
-    Alert.alert("Notification", id.Name, [
-      {
-        text: "Dismiss"
-      },
-      {
-        text: "Handle",
-        onPress: () => id.onPress()
-      }
-    ]);
-  };
-
-  reportBusyness = (diningCourt, busyness) => {
+    reportBusyness = (diningCourt, busyness) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/reportBusyness",
       {
@@ -1158,7 +1146,7 @@ export default class App extends React.Component {
       let arr = [];
       data.forEach((e, index) => this.parseNotifications(arr, e.type, e.id));
       this.addNotifications(arr, () => {
-        if (alert !== false) arr.forEach(i => i.onPress());
+        if (alert !== false) arr.forEach(i => this.notificationAlert(i));
         if (noStore !== true && arr.length > 0) {
           console.log("storing ...");
           console.log(this.state.user.notifications);
@@ -1378,7 +1366,7 @@ export default class App extends React.Component {
   newNewPollNotification = id => {
     id.Name = `@${id.userHandle} has created a new event in ${
       id.groupName
-    }.\nVote on a time!`;
+    }.\nVote on a time! The poll will close an hour before dining courts begin serving that meal`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.voteGroupAlert(id) };
     return obj;
@@ -1398,9 +1386,10 @@ export default class App extends React.Component {
   };
 
   newInviteToEatNotification = id => {
+    console.log("Test newInviteToEatNotification");
     id.Name = `${id.friendName}  @${
       id.userHandle
-    }  has invited you to eat with them at ${id.diningCourt} at ${id.time}!
+    }  has invited you to eat with them at ${id.diningCourt} for ${id.time}!
     \nWould you like to join?`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
@@ -1408,6 +1397,7 @@ export default class App extends React.Component {
   };
 
   newRequestToEatNotification = id => {
+    console.log("Test newRequestToEatNotification");
     id.Name = `${id.friendName}  @${
       id.userHandle
     }  has asked to join you!\nAre you available?`;
@@ -1444,6 +1434,22 @@ export default class App extends React.Component {
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
+  };
+
+  notificationAlert = (id, callback) => {
+    Alert.alert("Notification", id.Name, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "Dismiss",
+        onPress: () => this.removeNotification(id)
+      },
+      {
+        text: "Handle",
+        onPress: () => id.onPress()
+      }
+    ]);
   };
 
   dismissNotification = id => {
