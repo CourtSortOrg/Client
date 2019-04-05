@@ -20,6 +20,7 @@ export default class GroupCreateEvent extends React.Component {
 
       meals: [],
       days: [],
+      expiration: [],
       loading: false,
 
       ...this.props.screenProps.user
@@ -43,6 +44,19 @@ export default class GroupCreateEvent extends React.Component {
         index: index
       })
     );
+
+    this.state.expiration.push({
+      Name: "Tonight at midnight",
+      type: "element"
+    });
+    this.state.expiration.push({
+      Name: "Tommorrow at midnight",
+      type: "element"
+    });
+    this.state.expiration.push({
+      Name: `Hour before dining courts open for that meal`,
+      type: "element"
+    });
   }
 
   voteDay = selected => {
@@ -69,56 +83,71 @@ export default class GroupCreateEvent extends React.Component {
     }
   };
 
+  voteTime = selected => {
+    if (selected.length == 0) {
+      this.setState({
+        expiration: undefined
+      });
+    } else {
+      this.setState({
+        time: selected[0].item.Name
+      });
+    }
+  };
+
   vote = () => {
-    this.setState({loading: true});
+    this.setState({ loading: true });
     let date = new Date();
     date.setDate(date.getDate() + this.state.date);
+    date.setSeconds(0);
 
     let times = {
       Breakfast: [
-        { hr: 7, min: 0 },
-        { hr: 7, min: 30 },
-        { hr: 8, min: 0 },
-        { hr: 8, min: 30 },
-        { hr: 9, min: 0 },
-        { hr: 9, min: 30 }
+        { long: 7, hr: 7, min: 0 },
+        { long: 7, hr: 7, min: 30 },
+        { long: 8, hr: 8, min: 0 },
+        { long: 8, hr: 8, min: 30 },
+        { long: 9, hr: 9, min: 0 },
+        { long: 9, hr: 9, min: 30 }
       ],
       Lunch: [
-        { hr: 11, min: 0 },
-        { hr: 11, min: 30 },
-        { hr: 12, min: 0 },
-        { hr: 12, min: 30 },
-        { hr: 1, min: 0 },
-        { hr: 1, min: 30 },
-        { hr: 2, min: 0 },
-        { hr: 2, min: 30 },
-        { hr: 3, min: 0 }
+        { long: 11, hr: 11, min: 0 },
+        { long: 11, hr: 11, min: 30 },
+        { long: 12, hr: 12, min: 0 },
+        { long: 12, hr: 12, min: 30 },
+        { long: 13, hr: 1, min: 0 },
+        { long: 13, hr: 1, min: 30 },
+        { long: 14, hr: 2, min: 0 },
+        { long: 14, hr: 2, min: 30 },
+        { long: 15, hr: 3, min: 0 }
       ],
       "Late Lunch": [
-        { hr: 2, min: 0 },
-        { hr: 2, min: 30 },
-        { hr: 3, min: 0 },
-        { hr: 3, min: 30 }
+        { long: 14, hr: 2, min: 0 },
+        { long: 14, hr: 2, min: 30 },
+        { long: 15, hr: 3, min: 0 },
+        { long: 15, hr: 3, min: 30 }
       ],
       Dinner: [
-        { hr: 5, min: 0 },
-        { hr: 5, min: 30 },
-        { hr: 6, min: 0 },
-        { hr: 6, min: 30 },
-        { hr: 7, min: 0 },
-        { hr: 7, min: 30 },
-        { hr: 8, min: 0 },
-        { hr: 8, min: 30 }
+        { long: 17, hr: 5, min: 0 },
+        { long: 17, hr: 5, min: 30 },
+        { long: 18, hr: 6, min: 0 },
+        { long: 18, hr: 6, min: 30 },
+        { long: 19, hr: 7, min: 0 },
+        { long: 19, hr: 7, min: 30 },
+        { long: 20, hr: 8, min: 0 },
+        { long: 20, hr: 8, min: 30 }
       ]
     };
 
     let dateTimes = times[this.state.meal].map(time => {
-      date.setHours(time.hr, time.min);
-      return date.toISOString();
+      date.setHours(time.long, time.min);
+      return date.toJSON();
     });
 
     let expirationTime = new Date();
-    expirationTime.setHours(expirationTime.getHours() + 24);
+    expirationTime.setDate(date.getDate() + this.state.date);
+    expirationTime.setHours(times[this.state.meal][0].long - 1, 0, 0);
+    //expirationTime.setMinutes(expirationTime.getMinutes() + 1, 0);
 
     this.props.screenProps.functions.createPoll(
       expirationTime,
@@ -131,11 +160,11 @@ export default class GroupCreateEvent extends React.Component {
           this.state.groupID,
           true,
           () => {
-            this.setState({loading: false});
+            this.setState({ loading: false });
             this.props.navigation.navigate("GroupPoll", {
               ID: this.state.groupID,
               MESSAGEID: messageID
-            })
+            });
           }
         );
       }
@@ -173,6 +202,18 @@ export default class GroupCreateEvent extends React.Component {
               radio: true
             }}
             updateSelectedList={this.voteMeal}
+          />
+        </Card>
+        <Card header="Expiration Time">
+          <SelectList
+            navigation={this.props.navigation}
+            list={{
+              list: this.state.expiration,
+              type: "element",
+              selectable: true,
+              radio: true
+            }}
+            updateSelectedList={this.voteTime}
           />
         </Card>
         <Card
