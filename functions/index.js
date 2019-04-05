@@ -1575,7 +1575,8 @@ exports.createGroup = functions.https.onRequest((request, response) => {
       memberObjects: [{userHandle: userHandle, userName: userName}],
       messages: [],
       groupName: groupName,
-      numMessages: 0
+      numMessages: 0,
+      events: []
     }).then(function(docRef){
       console.log("Document written with ID: ", docRef.id);
 
@@ -2428,12 +2429,12 @@ exports.createPoll = functions.https.onRequest(async (request, response) => {
 
   var votes = [];
   for(var i = 0; i < timeOptions.length; i++){
-    votes.push({time: new Date(timeOptions[i]), numVotes: 0});
+    votes.push({time: timeOptions[i], numVotes: 0});
   }
 
   var id = numMessages + 1;
 
-  var poll = {userHandle: userHandle, expirationTime: new Date(expirationTime), timeOptions: timeOptions, votes: votes, messageID: id, voters: [], meal: meal, groupID: groupID};
+  var poll = {userHandle: userHandle, expirationTime: expirationTime, timeOptions: timeOptions, votes: votes, messageID: id, voters: [], meal: meal, groupID: groupID};
 
   groupDoc.update({
     messages: admin.firestore.FieldValue.arrayUnion(poll),
@@ -2533,7 +2534,7 @@ exports.closePolls = functions.https.onRequest((request, response) => {
       var messages = doc.data().messages;
       for(var i = 0; i < messages.length; i++){
         var message = messages[i];
-        if(date.getTime()/1000 >= message.expirationTime._seconds){
+        if(date.getTime() >= new Date(message.expirationTime).getTime()){
           //send a notification to the group members and remove the message
           var data = doc.data();
           var max = message.votes[0];
@@ -2547,9 +2548,9 @@ exports.closePolls = functions.https.onRequest((request, response) => {
           var groupID = doc.id;
           var messageID = message.messageID;
 
-          var notification = {type: "closePoll", id: {groupName: data.groupName, time: new Date(message.timeOptions[maxIndex]), groupID: groupID, messageID: messageID, meal: message.meal, diningCourt: "Hillenbrand"}};
+          var notification = {type: "closePoll", id: {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, diningCourt: "Hillenbrand"}};
           var userCol = db.collection("User");
-          var eventCreated = {groupName: data.groupName, time: new Date(message.timeOptions[maxIndex]), groupID: groupID, messageID: messageID, meal: message.meal, votes: message.votes, diningCourt: "Hillenbrand"};
+          var eventCreated = {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, votes: message.votes, diningCourt: "Hillenbrand"};
           for(var j = 0; j < data.memberHandles.length; j++){
             userCol.doc(data.memberHandles[j]).update({
               notifications: admin.firestore.FieldValue.arrayUnion(notification),
@@ -2615,7 +2616,6 @@ exports.activateEvents = functions.https.onRequest(async (request, response) => 
   await eventsCol.get().then( eCol =>{
     eCol.forEach(function(doc){
       var data = doc.data();
-      console.log(data);
       var seconds = data.time._seconds;
       if(date.getTime()/1000 >= seconds){
         //remove the event from the group
