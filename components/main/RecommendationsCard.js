@@ -120,16 +120,6 @@ export default class Recommendations extends React.Component {
             style={{
               flex: 1,
               flexDirection: "row",
-              padding: 16
-            }}
-          >
-            <Text type="bold">{"Meal: "}</Text>
-            <Text>{this.props.screenProps.globals.mealNames[0]}</Text>
-          </View>
-          <View
-            style={{
-              flex: 1,
-              flexDirection: "row",
               padding: 16,
               paddingTop: 0
             }}
