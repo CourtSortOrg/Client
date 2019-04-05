@@ -258,7 +258,7 @@ export default class Friend extends React.Component {
           <Separator />
           {/* Button group for joining a friend already eating or inviting a friend to eat with the user*/}
           <ButtonGroup
-            onPress={this.updateStatus}
+            onPress={this.inviteOrJoin}
             buttons={eatingButtons}
             containerStyle={{ height: 60 }}
           />
