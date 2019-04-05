@@ -222,7 +222,7 @@ export default class Friend extends React.Component {
 
   render() {
     const statusColor = ["#0F0", "#FF0", "#F00"];
-    const eatingButtons = ["Invite", "Join"];
+    const eatingButtons = ["Invite to eat", "Join friend"];
     return (
       <Screen
         screenProps={this.props.screenProps}
