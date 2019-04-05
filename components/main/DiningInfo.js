@@ -8,6 +8,13 @@ import Screen from "../Nav/Screen";
 import Separator from "../components/Separator";
 import Text from "../components/Text";
 
+const mealIcons = {
+  Breakfast: require("../../assets/images/Breakfast.png"),
+  Lunch: require("../../assets/images/Lunch.png"),
+  LateLunch: require("../../assets/images/LateLunch.png"),
+  Dinner: require("../../assets/images/Dinner.png")
+};
+
 export default class DiningInfo extends React.Component {
   constructor(props) {
     super(props);
@@ -101,8 +108,10 @@ export default class DiningInfo extends React.Component {
       subtitle += " - ";
       subtitle += convertToTwelveHour(item.hours.EndTime);
     }
+    let mealName = item.name == "Late Lunch" ? "LateLunch" : item.name;
     return (
       <ListItem
+        leftAvatar={{ source: mealIcons[mealName] }}
         title={item.name}
         subtitle={subtitle}
         bottomDivider
