@@ -99,8 +99,6 @@ export default class EditProfile extends React.Component {
      if (!result.cancelled) {
        let downloadURL = this.uploadImage(result.uri);
        this.setState({ image: downloadURL });
-
-       //TODO make a call setProfilePic firebase function
      }
   };
 
