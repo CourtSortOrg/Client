@@ -2408,7 +2408,7 @@ exports.createPoll = functions.https.onRequest(async (request, response) => {
     if(numMessages == null){
       numMessages = 0;
     }
-    var notification = {type: "newPoll", id: {groupName: groupName, userHandle: userHandle, groupID: groupID, messageID: numMessages+1}};
+    var notification = {type: "newPoll", id: {groupName: groupName, userHandle: userHandle, groupID: groupID, messageID: numMessages+1, meal: meal}};
     var userCol = db.collection("User");
     var members = doc.data().memberHandles;
 
@@ -2547,9 +2547,9 @@ exports.closePolls = functions.https.onRequest((request, response) => {
           var groupID = doc.id;
           var messageID = message.messageID;
 
-          var notification = {type: "closePoll", id: {groupName: data.groupName, time: new Date(message.timeOptions[maxIndex]), groupID: groupID, messageID: messageID}};
+          var notification = {type: "closePoll", id: {groupName: data.groupName, time: new Date(message.timeOptions[maxIndex]), groupID: groupID, messageID: messageID, meal: message.meal, diningCourt: "Hillenbrand"}};
           var userCol = db.collection("User");
-          var eventCreated = {groupName: data.groupName, time: new Date(message.timeOptions[maxIndex]), groupID: groupID, messageID: messageID};
+          var eventCreated = {groupName: data.groupName, time: new Date(message.timeOptions[maxIndex]), groupID: groupID, messageID: messageID, meal: message.meal, votes: message.votes, diningCourt: "Hillenbrand"};
           for(var j = 0; j < data.memberHandles.length; j++){
             userCol.doc(data.memberHandles[j]).update({
               notifications: admin.firestore.FieldValue.arrayUnion(notification),
@@ -2717,7 +2717,81 @@ exports.requestToEat = functions.https.onRequest(async (request, response) => {
 });
 
 //sends a user's response to an invite as a notification
-//PARAMETERS: userHandle, friendHandle
+//PARAMETERS: userHandle, friendHandle, accepted
 exports.inviteToEatResponse = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandle = request.body.friendHandle;
+  var accepted = request.body.accepted;
 
+  console.log(userHandle);
+  console.log(friendHandle);
+  console.log(accepted);
+
+  if(userHandle == null || friendHandle == null || accepted == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var userCol = db.collection("User");
+
+  var userName;
+  await userCol.doc(userHandle).get().then(async doc => {
+    userName = await doc.data().userName;
+  });
+
+  var notification;
+  if(accepted){
+    notification = {type: "acceptedInvitationToEat", id: {friendHandle: userHandle, friendName: userName}};
+  }
+  else{
+    notification = {type: "deniedInvitationToEat", id: {friendHandle: userHandle, friendName: userName}};
+  }
+
+  userCol.doc(friendHandle).update({
+    notifications: admin.firestore.FieldValue.arrayUnion(notification)
+  }).then(function(){
+    response.send({success: true});
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+});
+
+//sends a user's response to an invite as a notification
+//PARAMETERS: userHandle, friendHandle, accepted
+exports.requestToEatResponse = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandle = request.body.friendHandle;
+  var accepted = request.body.accepted;
+
+  console.log(userHandle);
+  console.log(friendHandle);
+  console.log(accepted);
+
+  if(userHandle == null || friendHandle == null || accepted == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var userCol = db.collection("User");
+
+  var userName;
+  await userCol.doc(userHandle).get().then(async doc => {
+    userName = await doc.data().userName;
+  });
+
+  var notification;
+  if(accepted){
+    notification = {type: "acceptedRequestToEat", id: {friendHandle: userHandle, friendName: userName}};
+  }
+  else{
+    notification = {type: "deniedRequestToEat", id: {friendHandle: userHandle, friendName: userName}};
+  }
+
+  userCol.doc(friendHandle).update({
+    notifications: admin.firestore.FieldValue.arrayUnion(notification)
+  }).then(function(){
+    response.send({success: true});
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
 });
