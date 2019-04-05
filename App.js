@@ -1158,7 +1158,7 @@ export default class App extends React.Component {
       let arr = [];
       data.forEach((e, index) => this.parseNotifications(arr, e.type, e.id));
       this.addNotifications(arr, () => {
-        if (alert !== false) arr.forEach(i => this.notificationAlert(i));
+        if (alert !== false) arr.forEach(i => i.onPress());
         if (noStore !== true && arr.length > 0) {
           console.log("storing ...");
           console.log(this.state.user.notifications);
