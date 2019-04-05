@@ -149,26 +149,30 @@ export default class GroupCreateEvent extends React.Component {
     expirationTime.setHours(times[this.state.meal][0].long - 1, 0, 0);
     //expirationTime.setMinutes(expirationTime.getMinutes() + 1, 0);
 
-    this.props.screenProps.functions.createPoll(
-      expirationTime,
-      this.state.groupID,
-      dateTimes,
-      this.state.meal,
-      messageID => {
-        console.log(messageID);
-        this.props.screenProps.functions.updateGroup(
-          this.state.groupID,
-          true,
-          () => {
-            this.setState({ loading: false });
-            this.props.navigation.navigate("GroupPoll", {
-              ID: this.state.groupID,
-              MESSAGEID: messageID
-            });
-          }
-        );
-      }
-    );
+    if (expirationTime < new Date())
+      Alert.alert("Error", "This event has either already passed or is too close to give members enough time to vote! Try another day or meal time!");
+    else {
+      this.props.screenProps.functions.createPoll(
+        expirationTime,
+        this.state.groupID,
+        dateTimes,
+        this.state.meal,
+        messageID => {
+          console.log(messageID);
+          this.props.screenProps.functions.updateGroup(
+            this.state.groupID,
+            true,
+            () => {
+              this.setState({ loading: false });
+              this.props.navigation.navigate("GroupPoll", {
+                ID: this.state.groupID,
+                MESSAGEID: messageID
+              });
+            }
+          );
+        }
+      );
+    }
   };
 
   render() {
