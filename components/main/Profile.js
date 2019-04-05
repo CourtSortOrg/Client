@@ -192,6 +192,7 @@ export default class Profile extends React.Component {
               selectedIndex == 1,
               <ProfileList
                 navigation={this.props.navigation}
+                screenProps={this.props.screenProps}
                 extendedSearch={this.sendFriendRequest}
                 list={this.state.friends}
               />,

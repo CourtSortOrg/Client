@@ -1385,9 +1385,13 @@ export default class App extends React.Component {
   };
 
   newClosePollNotification = id => {
-    id.Name = `${id.groupName} has chosen to eat at ${id.diningCourt} at ${
-      id.time._seconds
-    }!`;
+    console.log(id);
+    let d = new Date(id.time);
+    id.Name = `Members of ${id.groupName} have chosen to eat at ${
+      id.diningCourt
+    } for ${id.meal} at ${
+      d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
+    }:${d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()}!`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
@@ -1423,10 +1427,10 @@ export default class App extends React.Component {
 
   newEventStartNotification = id => {
     let d = new Date(id.time);
-    id.Name = `${id.groupName}'s event on ${id.date} at in ${
+    id.Name = `${id.groupName}'s event on ${id.date} at ${id.diningCourt} in ${
       d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
-    }:${d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()}
-      id.diningCourt
+    }:${
+      d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
     } is about to start.`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
@@ -1493,22 +1497,60 @@ export default class App extends React.Component {
     );
   };
 
+  sendInvitationAlert = friend => {
+    Alert.alert(
+      "Send invitation",
+      `Would you like to invite ${friend.userName}  @${
+        friend.userHandle
+      }  to join you?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "No"
+        },
+        {
+          text: "Yes",
+          onPress: () => console.log("sendInvitation")
+        }
+      ]
+    );
+  };
+
+  sendRequestToJoinAlert = friend => {
+    Alert.alert(
+      "Send request to join",
+      `Would you like to ask ${friend.userName}  @${
+        friend.userHandle
+      }  if you could join?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "No"
+        },
+        {
+          text: "Yes",
+          onPress: () => this.requestToJoin(friend.userHandle)
+        }
+      ]
+    );
+  };
+
   requestToJoinAlert = id => {
     Alert.alert(
       "Request to Join",
       `Would you like to ask to join ${id.friendName}  @${id.friendHandle}?`,
       [
         {
-          text: "No, I'm leaving soon",
+          text: "No",
           onPress: () => this.removeNotification(id)
         },
         {
-          text: "No, I'm busy",
-          onPress: () => this.removeNotification(id)
-        },
-        {
-          text: "Yes, I would like to",
-          onPress: () => this.requestToJoin(id)
+          text: "Yes",
+          onPress: () => this.requestToJoin(id.friendHandle)
         }
       ]
     );
@@ -1529,7 +1571,7 @@ export default class App extends React.Component {
         },
         {
           text: "Yes, I would like to",
-          onPress: () => this.requestToJoin(id)
+          onPress: () => this.respondToJoin(id)
         }
       ]
     );
@@ -1665,7 +1707,8 @@ export default class App extends React.Component {
       .catch(error => console.error(`denyGroupInvitation: ${error}`));
   };
 
-  requestToJoin = id => {
+  requestToJoin = friendHandle => {
+    console.log(`request to join ${friendHandle}`);
     //firebase function to make a request to a user.
   };
 
@@ -1750,7 +1793,9 @@ export default class App extends React.Component {
               vote: this.vote,
               generateDateString: this.generateDateString,
               getNextMeal: this.getNextMeal,
-              getDay: this.getDay
+              getDay: this.getDay,
+              sendInvitationAlert: this.sendInvitationAlert,
+              sendRequestToJoinAlert: this.sendRequestToJoinAlert
             },
             globals: {
               statusMessage: this.statusMessage,

@@ -79,23 +79,35 @@ export default class ProfileList extends React.Component {
             <View
               style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
             >
-              {this.props.request === true && (
-                <TouchableOpacity
-                  onPress={() =>
-                    this.props.screenProps.functions.requestToJoinAlert()
+              <TouchableOpacity
+                onPress={() => {
+                  if (this.props.request) {
+                    console.log("Request to join");
+                    this.props.screenProps.functions.sendRequestToJoinAlert(
+                      item.props
+                    );
+                  } else {
+                    console.log("Invite them to join");
+                    this.props.screenProps.functions.sendInvitationAlert(
+                      item.props
+                    );
                   }
-                  style={{
-                    backgroundColor: "#E86515",
-                    padding: 8,
-                    borderWidth: 3,
-                    borderColor: "black",
-                    borderRadius: 8,
-                    margin: 8
-                  }}
-                >
+                }}
+                style={{
+                  backgroundColor: "#E86515",
+                  padding: 8,
+                  borderWidth: 3,
+                  borderColor: "black",
+                  borderRadius: 8,
+                  margin: 8
+                }}
+              >
+                {this.props.request === true ? (
                   <Text type="bold">{"Join"}</Text>
-                </TouchableOpacity>
-              )}
+                ) : (
+                  <Text type="bold">{"Invite"}</Text>
+                )}
+              </TouchableOpacity>
               <TouchableOpacity
                 style={{ padding: 0 }}
                 onPress={() => {
