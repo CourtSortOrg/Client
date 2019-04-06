@@ -5,7 +5,6 @@ import Screen from "../Nav/Screen";
 import SelectList from "../components/SelectList";
 import List from "../components/List";
 import Card from "../components/Card";
-import ProfileList from "../components/ProfileList";
 import Separator from "../components/Separator";
 
 export default class GroupResults extends React.Component {

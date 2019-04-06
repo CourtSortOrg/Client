@@ -4,7 +4,6 @@ import { View, Text, Alert } from "react-native";
 import Screen from "../Nav/Screen";
 import SelectList from "../components/SelectList";
 import Card from "../components/Card";
-import ProfileList from "../components/ProfileList";
 import Separator from "../components/Separator";
 
 export default class GroupCreateEvent extends React.Component {

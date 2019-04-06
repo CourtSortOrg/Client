@@ -187,6 +187,7 @@ export default class Group extends React.Component {
             list={this.state.group.memberObjects.filter(
               g => g.userHandle != this.props.screenProps.user.userHandle
             )}
+            noInvite={true}
             showStatus={false}
           />
         </Card>
