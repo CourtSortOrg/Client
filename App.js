@@ -11,10 +11,13 @@ import {
 import {
   createSwitchNavigator,
   createStackNavigator,
-  createAppContainer
+  createAppContainer,
 } from "react-navigation";
+
 import { Overlay } from "react-native-elements";
 import { Font } from "expo";
+
+import NavigationService from './NavigationService';
 
 import Splash from "./components/auth/Splash";
 import LoginSplash from "./components/auth/LoginSplash";
@@ -846,7 +849,7 @@ export default class App extends React.Component {
     return <BusynessPicker />;
   };
 
-    reportBusyness = (diningCourt, busyness) => {
+  reportBusyness = (diningCourt, busyness) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/reportBusyness",
       {
@@ -1721,7 +1724,7 @@ export default class App extends React.Component {
   voteGroup = id => {
     this.removeNotification(id);
 
-    this.props.navigation.navigate("GroupPoll", {
+    NavigationService.navigate("GroupPoll", {
       ID: id.groupID,
       MESSAGEID: id.messageID
     });
@@ -1775,6 +1778,7 @@ export default class App extends React.Component {
     ) {
       return (
         <Navigation
+          ref={navigatorRef => NavigationService.setTopLevelNavigator(navigatorRef)}
           screenProps={{
             functions: {
               fetchFriend: this.fetchFriend,
