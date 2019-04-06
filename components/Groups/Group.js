@@ -34,13 +34,16 @@ export default class Group extends React.Component {
   }
 
   updateGroup = () => {
-    this.setState({loading: true});
+    this.setState({
+      loading: true
+    });
     this.props.screenProps.functions.updateGroup(this.state.groupID, true, () =>
       this.setState({
         group: this.props.screenProps.user.groups.find(
           g => g.groupID === this.state.groupID
-        )
-      }, () => this.setState({loading: false}))
+        ),
+        loading: false
+      })
     );
   };
 
@@ -142,7 +145,8 @@ export default class Group extends React.Component {
             }
           ]}
         >
-          {this.state.group.events != undefined && this.state.group.events.length > 0 ? (
+          {this.state.group.events != undefined &&
+          this.state.group.events.length > 0 ? (
             <List
               navigation={this.props.navigation}
               list={this.state.group.events}
@@ -153,7 +157,8 @@ export default class Group extends React.Component {
             <ListElement Name="No Events" type="expandable" />
           )}
           <Separator />
-          {this.state.group.messages != undefined && this.state.group.messages.length > 0 ? (
+          {this.state.group.messages != undefined &&
+          this.state.group.messages.length > 0 ? (
             <List
               navigation={this.props.navigation}
               list={this.state.group.messages}
