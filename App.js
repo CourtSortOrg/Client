@@ -244,7 +244,7 @@ export default class App extends React.Component {
     let location = await Location.getCurrentPositionAsync({});
     console.log(location);
   };
-  
+
   dayNames = [
     "Sunday",
     "Monday",
@@ -769,6 +769,42 @@ export default class App extends React.Component {
     } catch (error) {
       console.error(`removeLocation: ${error}`);
       if (callback) callback();
+    }
+  };
+
+  toggleLocationTracking = async callback => {
+    try {
+      await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/toggleLocationTracking",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      if (this.state.user.locationTracking != null) {
+        await this.setState({
+          user: {
+            ...this.state.user,
+            locationTracking: !this.state.user.locationTracking
+          }
+        });
+      } else {
+        await this.setState({
+          user: {
+            ...this.state.user,
+            locationTracking: true
+          }
+        });
+      }
+      if (callback) callback();
+    } catch (error) {
+      console.error(`toggleLocationTracking: ${error}`);
     }
   };
 
@@ -1801,7 +1837,8 @@ export default class App extends React.Component {
               vote: this.vote,
               generateDateString: this.generateDateString,
               getNextMeal: this.getNextMeal,
-              getDay: this.getDay
+              getDay: this.getDay,
+              toggleLocationTracking: this.toggleLocationTracking
             },
             globals: {
               statusMessage: this.statusMessage,

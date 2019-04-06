@@ -13,7 +13,8 @@ export default class Settings extends React.Component {
     this.state = {
       ...this.props.screenProps.user,
       showPasswordReset: false,
-      trackLocation: false
+      trackLocation: this.props.screenProps.user.trackLocation,
+      isChangingLocation: false
     };
   }
 
@@ -178,6 +179,19 @@ export default class Settings extends React.Component {
     );
   };
 
+  toggleLocationTracking = async () => {
+    if (!this.state.isChangingLocation) {
+      await this.setState({ isChangingLocation: true });
+      this.props.screenProps.functions.toggleLocationTracking(() => {
+        console.log(this.props.screenProps.user.trackLocation);
+        this.setState({
+          trackLocation: this.props.screenProps.user.trackLocation,
+          isChangingLocation: false
+        });
+      });
+    }
+  };
+
   render() {
     // Use a different icon based on whether location tracking is on or off
     let locationIcon = this.state.trackLocation ? (
@@ -228,9 +242,7 @@ export default class Settings extends React.Component {
           rightElement={
             <Switch
               value={this.state.trackLocation}
-              onValueChange={() =>
-                this.setState({ trackLocation: !this.state.trackLocation })
-              }
+              onValueChange={this.toggleLocationTracking}
             />
           }
           topDivider
