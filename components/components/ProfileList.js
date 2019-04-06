@@ -32,7 +32,12 @@ export default class ProfileList extends React.Component {
     return (
       <View style={{ padding: 8 }}>
         <TouchableOpacity
-          style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between"
+          }}
           onPress={() => {
             if (item.props.selectable == true) {
               item.toggleSelect();
@@ -44,7 +49,7 @@ export default class ProfileList extends React.Component {
           }}
         >
           {item.props.selectable == true && (
-            <View style={{ padding: 0 }}>
+            <View>
               {item.state.selected == false ? (
                 <MaterialIcons
                   size={32}
@@ -60,30 +65,65 @@ export default class ProfileList extends React.Component {
             <Text type="header" style={{ padding: 0 }}>
               {item.props.userName}
             </Text>
-            <Text type="bold">
-              {`@${item.props.userHandle} `}
-              {this.props.showStatus !== false && (
-                <Text type="bold">
-                  {`| Status: `}
-                  <Text>{statusMessage[item.props.status]}</Text>
-                </Text>
-              )}
-            </Text>
+            <Text type="bold">{`@${item.props.userHandle} `}</Text>
+            {this.props.showStatus !== false && (
+              <Text type="bold">
+                {`Status: `}
+                <Text>{statusMessage[item.props.status]}</Text>
+              </Text>
+            )}
           </View>
-          <TouchableOpacity
-            style={{ padding: 0 }}
-            onPress={() => {
-              item.props.navigation.navigate("Friend", {
-                ID: item.props.userHandle
-              });
-            }}
-          >
-            <MaterialIcons
-              size={32}
-              name="keyboard-arrow-right"
-              color="#E86515"
-            />
-          </TouchableOpacity>
+          <View>
+            <View
+              style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+            >
+              {this.props.noInvite !== true && (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (this.props.request) {
+                      console.log("Request to join");
+                      this.props.screenProps.functions.sendRequestToJoinAlert(
+                        item.props
+                      );
+                    } else {
+                      console.log("Invite them to join");
+                      this.props.screenProps.functions.sendInvitationAlert(
+                        item.props
+                      );
+                    }
+                  }}
+                  style={{
+                    backgroundColor: "#E86515",
+                    padding: 8,
+                    borderWidth: 3,
+                    borderColor: "black",
+                    borderRadius: 8,
+                    margin: 8
+                  }}
+                >
+                  {this.props.request === true ? (
+                    <Text type="bold">{"Join"}</Text>
+                  ) : (
+                    <Text type="bold">{"Invite"}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={{ padding: 0 }}
+                onPress={() => {
+                  item.props.navigation.navigate("Friend", {
+                    ID: item.props.userHandle
+                  });
+                }}
+              >
+                <MaterialIcons
+                  size={48}
+                  name="keyboard-arrow-right"
+                  color="#E86515"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
         </TouchableOpacity>
       </View>
     );

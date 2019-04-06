@@ -19,7 +19,7 @@ export default class Recommendations extends React.Component {
       renderReport: false,
       renderBusyness: false,
       hasRatedCourt: false,
-      userCourtRating: 0,
+      userCourtRating: 0
     };
   }
 
@@ -120,16 +120,6 @@ export default class Recommendations extends React.Component {
             style={{
               flex: 1,
               flexDirection: "row",
-              padding: 16
-            }}
-          >
-            <Text type="bold">{"Meal: "}</Text>
-            <Text>{this.props.screenProps.globals.mealNames[0]}</Text>
-          </View>
-          <View
-            style={{
-              flex: 1,
-              flexDirection: "row",
               padding: 16,
               paddingTop: 0
             }}
@@ -140,6 +130,8 @@ export default class Recommendations extends React.Component {
         </View>
 
         <Card header="Dishes">
+        {
+          this.props.court.dishes.length > 0 ?
           <List
             list={this.props.court.dishes.map((d, index) => ({
               ...d,
@@ -147,17 +139,26 @@ export default class Recommendations extends React.Component {
             }))}
             renderElement={this.renderDish}
             type="element"
+          /> :
+          <ListElement
+            Name={"Please rate dishes to receive personalized recommendations."}
+            type="element"
           />
+        }
         </Card>
 
-        <Card header="Friends Checked In">
-          <ProfileList
-            navigation={this.props.navigation}
-            list={this.props.screenProps.user.friends.filter(
-              f => f.location == "Hillenbrand" && f.status == 1
-            )}
-          />
-        </Card>
+        {this.props.friends === true && (
+          <Card header="Friends Checked In">
+            <ProfileList
+              request={true}
+              screenProps={this.props.screenProps}
+              navigation={this.props.navigation}
+              list={this.props.screenProps.user.friends.filter(
+                f => f.location == this.props.court.court && f.status == 1
+              )}
+            />
+          </Card>
+        )}
 
         <Card header="Reports" expand={this.state.reports != undefined}>
           {this.state.reports != undefined ? (
