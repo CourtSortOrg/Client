@@ -48,32 +48,30 @@ export default class ProfileList extends React.Component {
             }
           }}
         >
-          <View>
-            {item.props.selectable == true && (
-              <View style={{ padding: 0 }}>
-                {item.state.selected == false ? (
-                  <MaterialIcons
-                    size={32}
-                    name="check-box-outline-blank"
-                    color="#E86515"
-                  />
-                ) : (
-                  <MaterialIcons size={32} name="check-box" color="#E86515" />
-                )}
-              </View>
-            )}
-            <View style={{ flex: 1, paddingLeft: 8, flexWrap: "wrap" }}>
-              <Text type="header" style={{ padding: 0 }}>
-                {item.props.userName}
-              </Text>
-              <Text type="bold">{`@${item.props.userHandle} `}</Text>
-              {this.props.showStatus !== false && (
-                <Text type="bold">
-                  {`Status: `}
-                  <Text>{statusMessage[item.props.status]}</Text>
-                </Text>
+          {item.props.selectable == true && (
+            <View>
+              {item.state.selected == false ? (
+                <MaterialIcons
+                  size={32}
+                  name="check-box-outline-blank"
+                  color="#E86515"
+                />
+              ) : (
+                <MaterialIcons size={32} name="check-box" color="#E86515" />
               )}
             </View>
+          )}
+          <View style={{ flex: 1, paddingLeft: 8 }}>
+            <Text type="header" style={{ padding: 0 }}>
+              {item.props.userName}
+            </Text>
+            <Text type="bold">{`@${item.props.userHandle} `}</Text>
+            {this.props.showStatus !== false && (
+              <Text type="bold">
+                {`Status: `}
+                <Text>{statusMessage[item.props.status]}</Text>
+              </Text>
+            )}
           </View>
           <View>
             <View
