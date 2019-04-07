@@ -1484,7 +1484,7 @@ exports.updateUserProfile = functions.https.onRequest((request, response) => {
 //PARAMETERS: userHandle, downloadURL
 exports.setProfilePic = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
-  var downloadURL = request.body.downloadURL;
+  var image = request.body.image;
 
   //don't check downloadURL since it can be null
   if (userHandle == null) {
@@ -1495,7 +1495,7 @@ exports.setProfilePic = functions.https.onRequest((request, response) => {
     userRef.get().then(function(doc) {
       if (doc.exists) {
         userRef.update({
-          "profilePicDownloadURL":downloadURL
+          "image":image
         })
         .then(function() {
           response.send({
@@ -1529,7 +1529,7 @@ exports.getProfilePic = functions.https.onRequest((request, response) => {
     userRef.get().then(function(doc) {
       if (doc.exists) {
         response.send({
-          "downloadURL":doc.data().profilePicDownloadURL
+          "image":doc.data().image
         });
       }
       else {
