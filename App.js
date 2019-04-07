@@ -787,24 +787,39 @@ export default class App extends React.Component {
           })
         }
       );
-      if (this.state.user.locationTracking != null) {
-        await this.setState({
-          user: {
-            ...this.state.user,
-            locationTracking: !this.state.user.locationTracking
-          }
-        });
-      } else {
-        await this.setState({
-          user: {
-            ...this.state.user,
-            locationTracking: true
-          }
-        });
-      }
       if (callback) callback();
     } catch (error) {
       console.error(`toggleLocationTracking: ${error}`);
+    }
+  };
+
+  getLocationTracking = async callback => {
+    try {
+      let data = await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getLocationTracking",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      let response = await JSON.parse(data._bodyText);
+      await this.setState({
+        user: {
+          ...this.state.user,
+          locationTracking: response.locationTracking
+            ? response.locationTracking
+            : false
+        }
+      });
+      if (callback) callback();
+    } catch (error) {
+      console.error(`getLocationTracking: ${error}`);
     }
   };
 
@@ -1838,7 +1853,8 @@ export default class App extends React.Component {
               generateDateString: this.generateDateString,
               getNextMeal: this.getNextMeal,
               getDay: this.getDay,
-              toggleLocationTracking: this.toggleLocationTracking
+              toggleLocationTracking: this.toggleLocationTracking,
+              getLocationTracking: this.getLocationTracking
             },
             globals: {
               statusMessage: this.statusMessage,

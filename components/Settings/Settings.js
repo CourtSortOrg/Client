@@ -3,6 +3,8 @@ import { Alert, Platform, Switch, Vibration } from "react-native";
 import { Icon, ListItem } from "react-native-elements";
 import DialogInput from "react-native-dialog-input";
 
+import { Permissions } from "expo";
+
 import { auth } from "firebase";
 
 import Screen from "../Nav/Screen";
@@ -12,9 +14,7 @@ export default class Settings extends React.Component {
     super(props);
     this.state = {
       ...this.props.screenProps.user,
-      showPasswordReset: false,
-      trackLocation: this.props.screenProps.user.trackLocation,
-      isChangingLocation: false
+      showPasswordReset: false
     };
   }
 
@@ -179,22 +179,31 @@ export default class Settings extends React.Component {
     );
   };
 
-  toggleLocationTracking = async () => {
-    if (!this.state.isChangingLocation) {
-      await this.setState({ isChangingLocation: true });
-      this.props.screenProps.functions.toggleLocationTracking(() => {
-        console.log(this.props.screenProps.user.trackLocation);
-        this.setState({
-          trackLocation: this.props.screenProps.user.trackLocation,
-          isChangingLocation: false
-        });
-      });
+  toggleLocationTracking = async toggle => {
+    if (toggle) {
+      const { status } = await Permissions.getAsync(Permissions.LOCATION);
+      if (status !== "granted") {
+        const { status } = await Permissions.askAsync(Permissions.LOCATION);
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Error",
+            "Please allow location permissions in the settings"
+          );
+          return;
+        }
+      }
     }
+    await this.setState({
+      locationTracking: !this.state.locationTracking
+    });
+    this.props.screenProps.functions.toggleLocationTracking(() => {
+      this.props.screenProps.functions.getLocationTracking();
+    });
   };
 
   render() {
     // Use a different icon based on whether location tracking is on or off
-    let locationIcon = this.state.trackLocation ? (
+    let locationIcon = this.state.locationTracking ? (
       <Icon name="location-on" />
     ) : (
       <Icon name="location-off" />
@@ -241,7 +250,7 @@ export default class Settings extends React.Component {
           leftIcon={locationIcon}
           rightElement={
             <Switch
-              value={this.state.trackLocation}
+              value={this.state.locationTracking}
               onValueChange={this.toggleLocationTracking}
             />
           }
