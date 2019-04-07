@@ -10,6 +10,8 @@ import Card from "../components/Card";
 import VariableGrid from "../components/VariableGrid";
 import Screen from "../Nav/Screen";
 
+import firebase from "firebase";
+
 const allRestrictions = [
   {
     name: "Eggs",
@@ -63,7 +65,8 @@ export default class EditProfile extends React.Component {
     this.state = {
       allRestrictions: allRestrictions,
       showNameInput: false,
-      updatedUsername: this.props.screenProps.user.userName
+      updatedUsername: this.props.screenProps.user.userName,
+      image: null
     };
 
     // Loop through the user's restrictions and update the restriction grid
@@ -103,10 +106,33 @@ export default class EditProfile extends React.Component {
       aspect: [4, 4]
     });
     console.log(result);
-    // if (!result.cancelled) {
-    //   this.setState({ image: result.uri });
-    // }
+     if (!result.cancelled) {
+       let downloadURL = this.uploadImage(result.uri);
+       this.setState({ image: downloadURL });
+     }
   };
+
+  uploadImage = async (uri) => {
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function(e) {
+        console.log(e);
+        reject(new TypeError('Network request failed'));
+      };
+      xhr.responseType = 'blob';
+      xhr.open('GET', uri, true);
+      xhr.send(null);
+    });
+
+    const ref = firebase.storage().ref().child('ProfilePics/' + this.props.screenProps.user.userHandle);
+    const snapshot = await ref.put(blob);
+    const downloadURL = await ref.getDownloadURL();
+    return downloadURL;
+    blob.close();
+  }
 
   updateUserInformation = () => {
     // TODO: Update username and profile picture

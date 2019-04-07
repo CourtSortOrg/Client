@@ -16,23 +16,34 @@ export default class Home extends React.Component {
     date: this.props.screenProps.functions.getDay(),
     showDate: false,
     showMeal: false,
+    friends: true,
 
     recommendation: []
   };
 
   updateRecommendations = () => {
-    //this.getBestDiningCourtUser(this.state.date, this.state.meal);
+    if (
+      this.props.screenProps.functions.getNextMeal() == this.state.meal &&
+      this.props.screenProps.functions.getDay() == this.state.date
+    ) {
+      this.setState({ friends: true });
+      this.getBestDiningCourtUser(this.state.date, this.state.meal);
+    } else {
+      this.setState({ friends: false });
+      this.getBestDiningCourtUser(this.state.date, this.state.meal);
+    }
   };
 
   componentDidMount = () => {
     this.props.navigation.addListener("willFocus", () => {
       if (this.props.screenProps.user != undefined) {
-        this.setState({
-          meal: this.props.screenProps.functions.getNextMeal(),
-          date: this.props.screenProps.functions.getDay()
-        });
-
-        this.updateRecommendations();
+        this.setState(
+          {
+            meal: this.props.screenProps.functions.getNextMeal(),
+            date: this.props.screenProps.functions.getDay()
+          },
+          this.updateRecommendations
+        );
       }
     });
   };
@@ -168,6 +179,7 @@ export default class Home extends React.Component {
                 court={court}
                 index={index}
                 key={index}
+                friends={this.state.friends}
                 navigation={this.props.navigation}
                 screenProps={this.props.screenProps}
                 expand={index == 0}

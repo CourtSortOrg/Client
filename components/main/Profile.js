@@ -50,10 +50,7 @@ export default class Profile extends React.Component {
     }
 
     this.props.navigation.addListener("willFocus", payload => {
-      console.log("update");
-
-      if (this.props.screenProps.user) {
-        console.log("update");
+      if (this.props.screenProps.user != undefined) {
         this.setState({
           restrictions: this.props.screenProps.user.dietaryRestrictions,
           friends: this.props.screenProps.user.friends,
@@ -196,6 +193,7 @@ export default class Profile extends React.Component {
               selectedIndex == 1,
               <ProfileList
                 navigation={this.props.navigation}
+                screenProps={this.props.screenProps}
                 extendedSearch={this.sendFriendRequest}
                 list={this.state.friends}
               />,
