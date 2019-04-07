@@ -1247,21 +1247,40 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
       uid: uid,
       userName: userName,
       userHandle: userHandle,
-      initials: "",
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
       groups: [],
-      preferences: [],
       dietaryRestrictions: [],
       friends: [],
       blockedUsers: [],
       outgoingFriendReq: [],
       incomingFriendReq: [],
       incomingGroupInvites: [],
-      ratings: [],
       status: 0,
       notifications: [],
-      events: []
-    }
+      events: [],
+      diningCourtTimes: {
+        "Earhart": {
+          "avgTime":0,
+          "num":0
+        },
+        "Ford": {
+          "avgTime":0,
+          "num":0
+        },
+        "Hillenbrand": {
+          "avgTime":0,
+          "num":0
+        },
+        "Wiley": {
+          "avgTime":0,
+          "num":0
+        },
+        "Windsor": {
+          "avgTime":0,
+          "num":0
+        }
+      }
+    };
     db.collection("User").doc(userHandle).set(updatedUser).then(function() {
       console.log("User successfully added!");
       response.send("success");
