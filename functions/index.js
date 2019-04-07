@@ -89,9 +89,6 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
         throw new Error(error);
       });
     }
-    else {
-      throw new Error("user does not exist");
-    }
   })
   .catch(function(error) {
     throw new Error(error);
@@ -127,6 +124,9 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
       }
     }
   }
+
+  var everyDishEveryCourt = [];
+
   var courts = [
     {
       court: "Hillenbrand",
@@ -169,7 +169,7 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
   }
 
   var dateDishRef = db.collection("DateDishes").doc(date);
-  await dateDishRef.get().then(function(doc){
+  await dateDishRef.get().then(async function(doc){
     var allCourtData = doc.data();
     console.log(allCourtData);
     for(var i = 0; i<allCourtData['Courts'].length; i++){
@@ -177,11 +177,41 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
         if(allCourtData.Courts[i].Meals[j].Name == meal){
           var currMeal = allCourtData.Courts[i].Meals[j];
           var currLoc = getCourt(allCourtData.Courts[i].Name);
-          currLoc.allDishes = currMeal;
+          var allDishesObj = currMeal['Stations'];
+          var allDishes = [];
+          for(var k=0; k<allDishesObj.length; k++){
+            var currStationDishes = allDishesObj[k]['Items'];
+            for(var p=0; p<currStationDishes.length; p++){
+              var currDish = currStationDishes[p];
+              if(currDish['Name'].includes('/'))
+                continue;
+              var itemRef = db.collection('Dish').doc(currDish['Name']);
+              var getItem = await itemRef.get().then(async doc => {
+                if (!doc.exists) {
+                    console.log("No such dish exists mate!");
+                } else {
+                    var itemJSON = await doc.data();
+                    var totalScore = itemJSON['totalScore'];
+                    var totalVotes = itemJSON['totalVotes'];
+                    var itemRating = Number(Number(totalScore) / Number(totalVotes));
+                    currDish['rating'] = itemRating;
+                    currDish['location'] = allCourtData.Courts[i].Name;
+                }
+              }).catch(err => {
+                  throw new Error(err);
+              });
+              allDishes.push(currDish);
+              everyDishEveryCourt.push(currDish);
+            }
+          }
+          currLoc['allDishes'] = allDishes;
         }
       }
     }
   });
+
+  if(matches.length == 0)
+    matches = everyDishEveryCourt;
 
   var courtNames = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
   for(var i=0; i<matches.length; i++){
@@ -492,7 +522,20 @@ exports.fetchAllOffered = functions.https.onRequest(async (request, response) =>
       if(!doc.exists){
         response.send({error: "No such dish in the database!"});
       }else{
-        response.send(doc.data());
+        var dishData = doc.data();
+        var offeredArray = dishData['offered'];
+        var newOfferedArray = [];
+        for(var i=0; i<offeredArray.length; i++){
+          var currDate = dishData['offered'][i]['data'];
+          var dishDate = new Date(currDate);
+          console.log("curr Date: " + dishDate.toString());
+          var today = new Date();
+          today.setDate(today.getDate());
+          if(+dishDate >= +today)
+            newOfferedArray.push(dishData['offered'][i]);
+        }
+        dishData['alsoOffered'] = newOfferedArray;
+        response.send(dishData);
       }
     }
   )
