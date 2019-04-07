@@ -25,7 +25,7 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
     throw new Error("incorrect parameters!");
 
   var userDishRatings = [];
-  
+
   var userRef = db.collection("User").doc(userHandle);
   await userRef.get().then(async function(doc) {
     if (doc.exists) {
@@ -46,7 +46,7 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
   .catch(function(error) {
     throw new Error(error);
   });
-  
+
   var ratedDishOfferings = [];
   for(var i=0; i<userDishRatings.length; i++){
     var ratingObj = userDishRatings[i];
@@ -213,36 +213,52 @@ exports.removeLocation = functions.https.onRequest((request, response) => {
         throw new Error("User not checked in");
       }
       else {
-        var docJSON = doc.data();
+        var diningCourtTimes = doc.data().diningCourtTimes;
         var location = doc.data().location;
         var checkInTime = doc.data().checkInTime;
         var currTime = new Date();
         var diff = Math.abs(currTime.getTime() - checkInTime);
+        var locationAvg;
+        var locationNum;
         if (checkInTime == null) {
           diff = 0;
         }
-        console.log("Diff: " + diff);
-
-        var locationNum = location + "Num";
-        var locationNumVal = docJSON[locationNum];
-        if (locationNumVal == null) {
-          locationNumVal = 0;
+        if (diningCourtTimes == null) {
+          diningCourtTimes = {
+            "Earhart": {
+              "avgTime":0,
+              "num":0
+            },
+            "Ford": {
+              "avgTime":0,
+              "num":0
+            },
+            "Hillenbrand": {
+              "avgTime":0,
+              "num":0
+            },
+            "Wiley": {
+              "avgTime":0,
+              "num":0
+            },
+            "Windsor": {
+              "avgTime":0,
+              "num":0
+            }
+          }
         }
-        console.log("locationNumVal: " + locationNumVal);
 
-        var locationAvg = location + "Avg";
-        var locationAvgVal = docJSON[locationAvg];
-        if (locationAvgVal == null) {
-          locationAvgVal = 0;
-        }
-        console.log("locationAvgVal: " + locationAvgVal);
+        locationAvg = diningCourtTimes[location].avgTime;
+        locationNum = diningCourtTimes[location].num;
+        console.log("locationAvg: " + locationAvg + ", locationNum: " + locationNum);
+        locationAvg = (locationAvg * locationNum + diff) / (++locationNum);
+        diningCourtTimes[location].avgTime = locationAvg;
+        diningCourtTimes[location].num = locationNum;
 
-        locationAvgVal = (locationAvgVal * locationNumVal + diff) / (++locationNumVal);
-        console.log("NewLoc")
         userRef.update({
           "location": null,
-          [locationAvg]: locationAvgVal,
-          [locationNum]: locationNumVal
+          "checkInTime":-1,
+          "diningCourtTimes":diningCourtTimes
         }).then(function() {
           response.send({
             "elapsedTime": diff
@@ -258,6 +274,25 @@ exports.removeLocation = functions.https.onRequest((request, response) => {
     });
   }
 })
+
+//get the average times a user spends in each dining court
+//PARAMETERS: userHandle
+exports.getDiningCourtTimes = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if (userHandle == null) {
+    throw new Error("Must pass 'userHandle' in body of request");
+  }
+  else {
+    db.collection("User").doc(userHandle).get().then(function(doc) {
+      var diningCourtTimes = doc.data().diningCourtTimes;
+      response.send(diningCourtTimes);
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
 
 // gets location
 exports.getLocation = functions.https.onRequest(async (request, response) => {
