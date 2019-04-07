@@ -286,7 +286,39 @@ exports.getDiningCourtTimes = functions.https.onRequest((request, response) => {
   else {
     db.collection("User").doc(userHandle).get().then(function(doc) {
       var diningCourtTimes = doc.data().diningCourtTimes;
-      response.send(diningCourtTimes);
+      if (diningCourtTimes == null) {
+        diningCourtTimes = {
+          "Earhart": {
+            "avgTime":0,
+            "num":0
+          },
+          "Ford": {
+            "avgTime":0,
+            "num":0
+          },
+          "Hillenbrand": {
+            "avgTime":0,
+            "num":0
+          },
+          "Wiley": {
+            "avgTime":0,
+            "num":0
+          },
+          "Windsor": {
+            "avgTime":0,
+            "num":0
+          }
+        }
+        db.collection("User").doc(userHandle).update({
+          "diningCourtTimes":diningCourtTimes
+        })
+        .then(function() {
+          response.send(diningCourtTimes);
+        });
+      }
+      else {
+        response.send(diningCourtTimes);
+      }
     })
     .catch(function(error) {
       throw new Error(error);
