@@ -4,7 +4,10 @@
     "slug": "Client",
     "privacy": "public",
     "sdkVersion": "32.0.0",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,14 +19,19 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "config": {
         "googleMapsApiKey": "AIzaSyDJ0Ka2RYGk4cAQMO4avyc_7q1opokVDIk"
       },
       "infoPlist": {
-        "UIBackgroundModes": ["location", "fetch"]
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ]
       }
     },
     "android": {
@@ -38,6 +46,7 @@
     },
     "facebookScheme": "fb279514589383224",
     "facebookAppId": "279514589383224",
-    "facebookDisplayName": "CourtSort"
+    "facebookDisplayName": "CourtSort",
+    "description": ""
   }
 }

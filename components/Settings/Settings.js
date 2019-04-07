@@ -37,7 +37,6 @@ export default class Settings extends React.Component {
       try {
         // Send the reset email
         await auth().sendPasswordResetEmail(email);
-
         // Alert the user that the email was sent and sign them out
         Alert.alert(
           "Password Reset Email Sent",
@@ -203,11 +202,9 @@ export default class Settings extends React.Component {
 
   render() {
     // Use a different icon based on whether location tracking is on or off
-    let locationIcon = this.state.locationTracking ? (
-      <Icon name="location-on" />
-    ) : (
-      <Icon name="location-off" />
-    );
+    let locationIcon = this.state.locationTracking
+      ? "location-on"
+      : "location-off";
 
     return (
       <Screen
@@ -243,11 +240,10 @@ export default class Settings extends React.Component {
         />
 
         {/* A ListItem that toggles location tracking*/}
-        {/* TODO: Implement functionality */}
         <ListItem
           title="Track Location"
           subtitle="Use location tracking"
-          leftIcon={locationIcon}
+          leftIcon={<Icon name={locationIcon} />}
           rightElement={
             <Switch
               value={this.state.locationTracking}
