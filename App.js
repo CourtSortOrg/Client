@@ -480,28 +480,34 @@ export default class App extends React.Component {
     }
   };
 
-  updateFriend = async (id, action) => {
+  updateFriend = async (id, action, callback) => {
     // action == true, add friend.
     if (action) {
       await this.fetchUser(id, async data => {
         const arr = this.state.user.friends.filter(f => f.userHandle != id);
         arr.push(data);
-        await this.setState({
-          user: {
-            ...this.state.user,
-            friends: arr
-          }
-        });
+        await this.setState(
+          {
+            user: {
+              ...this.state.user,
+              friends: arr
+            }
+          },
+          callback
+        );
       });
     }
     // action == false, remove friend.
     else {
-      await this.setState({
-        user: {
-          ...this.state.user,
-          friends: this.state.user.friends.filter(f => f.userHandle != id)
-        }
-      });
+      await this.setState(
+        {
+          user: {
+            ...this.state.user,
+            friends: this.state.user.friends.filter(f => f.userHandle != id)
+          }
+        },
+        callback
+      );
     }
   };
 
