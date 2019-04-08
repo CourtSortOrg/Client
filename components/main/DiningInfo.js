@@ -184,6 +184,29 @@ export default class DiningInfo extends React.Component {
     );
   }
 
+  renderUserTime(name) {
+    if (this.props.screenProps.user == null) {
+      return <Text>Not Signed In</Text>;
+    }
+    let timeSpent = this.props.screenProps.user.diningCourtTimes[name];
+    return (
+      <View>
+        <View style={styles.timeSpentBlock}>
+          <Text type="sectionName" style={styles.busynessHeader}>
+            Average Time Spent:
+          </Text>
+          <Text>{timeSpent.avgTime}</Text>
+        </View>
+        <View style={styles.numberVisitsBlock}>
+          <Text type="sectionName" style={styles.busynessHeader}>
+            Number of Visits:
+          </Text>
+          <Text>{timeSpent.num}</Text>
+        </View>
+      </View>
+    );
+  }
+
   renderHoursBlock(meals) {
     return (
       <FlatList
@@ -251,7 +274,7 @@ export default class DiningInfo extends React.Component {
         {/* Card to display dining court hours */}
         <Card header={"Today's Hours"}>{this.renderHoursBlock(meals)}</Card>
         {/* Card to display time spent by user in dining cours */}
-        <Card header={"Time Spent"} />
+        <Card header={"Time Spent"}>{this.renderUserTime(name)}</Card>
         {/* Card to display location of dining court */}
         <Card header={"Location"}>{this.renderMapBlock(location)}</Card>
       </Screen>
@@ -303,6 +326,18 @@ const styles = StyleSheet.create({
   mapBlock: {
     flex: 1,
     height: 200
+  },
+  timeSpentBlock: {
+    marginVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start"
+  },
+  numberVisitsBlock: {
+    marginVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start"
   },
   subHeader: {
     textAlign: "center",
