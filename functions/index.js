@@ -1491,6 +1491,9 @@ exports.setProfilePic = functions.https.onRequest((request, response) => {
     throw new Error("Must pass 'userHandle' in body of request");
   }
   else {
+    if (image == null) {
+      image = "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png";
+    }
     var userRef = db.collection("User").doc(userHandle);
     userRef.get().then(function(doc) {
       if (doc.exists) {
