@@ -278,7 +278,14 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
-    this.updateUser(true);
+    this.updateUser(true, undefined, () =>
+      setInterval(() => {
+        this.updateFriends(() => console.log("updated friends"));
+        this.updateNotifications(() => console.log("updated notifictions"));
+        //update every 15 seconds.
+      }, 15000)//60000)
+    );
+
     //If the authentification state changes
     //firebase.auth().onAuthStateChanged(user => this.updateUser(user, true));
     await Font.loadAsync({
@@ -1925,6 +1932,10 @@ export default class App extends React.Component {
         if (callback) callback(JSON.parse(data._bodyText).messageID);
       })
       .catch(error => console.error(`createPoll: ${error}`));
+  };
+
+  componentWillUnmount = () => {
+    clearInterval();
   };
 
   render = () => {

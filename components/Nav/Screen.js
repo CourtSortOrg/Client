@@ -65,11 +65,6 @@ export default class Screen extends React.Component {
       </View>
     );
   }
-
-  componentDidMount = () => {
-    if (this.props.noNotifications !== true)
-      this.props.screenProps.functions.updateNotifications();
-  };
 }
 
 const styles = StyleSheet.create({
