@@ -1258,6 +1258,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
       status: 0,
       notifications: [],
       events: [],
+      locationTracking: false,
       diningCourtTimes: {
         "Earhart": {
           "avgTime":0,
