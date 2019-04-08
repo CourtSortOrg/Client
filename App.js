@@ -1414,7 +1414,7 @@ export default class App extends React.Component {
     }  has invited you to eat with them at ${id.diningCourt} for ${id.time}!
     \nWould you like to join?`;
     id.date = this.dateStr;
-    let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
+    let obj = { ...id, onPress: () => this.respondToInvitationAlert(id) };
     return obj;
   };
 
@@ -1423,7 +1423,7 @@ export default class App extends React.Component {
       id.friendHandle
     }  has asked to join you!\nAre you available?`;
     id.date = this.dateStr;
-    let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
+    let obj = { ...id, onPress: () => this.respondToRequestAlert(id) };
     return obj;
   };
 
@@ -1628,7 +1628,7 @@ export default class App extends React.Component {
     );
   };
 
-  respondToJoinAlert = id => {
+  respondToRequestAlert = id => {
     Alert.alert(
       "Respond",
       `Would you like to join ${id.friendName}  @${id.friendHandle}?`,
@@ -1658,11 +1658,11 @@ export default class App extends React.Component {
       `Would you like to join ${id.friendName}  @${id.friendHandle}  ?`,
       [
         {
-          text: "No, I'm leaving soon",
+          text: "No, I've already eaten.",
           onPress: () => this.inviteToEatResponse(id, false)
         },
         {
-          text: "No, I'm busy",
+          text: "No, I'm not eating there.",
           onPress: () => this.inviteToEatResponse(id, false)
         },
         {
@@ -1831,7 +1831,8 @@ export default class App extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
-          friendHandles: [friendHandle]
+          friendHandles: [friendHandle],
+          diningCourt: this.state.user.location
           //default to checkin, otherwise prompt.
         })
       }
