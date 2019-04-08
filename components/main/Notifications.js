@@ -56,6 +56,7 @@ export default class Notifications extends React.Component {
         title="Notifications"
         navigation={{ ...this.props.navigation }}
         backButton={false}
+        noNotifications={true}
         refresh={() => this.getNotifications()}
       >
         {this.state.notifications.length > 0 ? (

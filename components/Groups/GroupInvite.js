@@ -47,6 +47,7 @@ export default class GroupInvite extends React.Component {
           list={this.state.friends}
           selectable={true}
           updateSelectedList={this.props.updateSelectedList}
+          noInvite={true}
         />
       </Card>
     );

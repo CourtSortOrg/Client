@@ -21,41 +21,42 @@ export default class Group extends React.Component {
         groupName: "",
         memberObjects: []
       },
+      loading: false,
 
       ...this.props.screenProps.user
     };
 
     if (this.state.groupID !== "NO-ID") {
-      this.props.screenProps.functions.updateGroup(this.state.groupID, true);
-      groups = this.props.screenProps.user.groups.filter(
-        group => group.groupID === this.state.groupID
-      );
-
       this.state.group = this.props.screenProps.user.groups.find(
         g => g.groupID === this.state.groupID
       );
     }
   }
 
+  updateGroup = () => {
+    this.setState({
+      loading: true
+    });
+    this.props.screenProps.functions.updateGroup(this.state.groupID, true, () =>
+      this.setState({
+        group: this.props.screenProps.user.groups.find(
+          g => g.groupID === this.state.groupID
+        ),
+        loading: false
+      })
+    );
+  };
+
   componentDidMount = () => {
-    this.props.navigation.addListener("willFocus", payload => {
-      this.props.screenProps.functions.updateGroup(
-        this.state.groupID,
-        true,
-        () =>
-          this.setState(
-            {
-              group: this.props.screenProps.user.groups.find(
-                g => g.groupID === this.state.groupID
-              )
-            },
-          )
-      );
+    this.updateGroup();
+
+    this.props.navigation.addListener("willFocus", () => {
+      this.updateGroup();
     });
   };
 
   renderEvent = item => {
-    let d = new Date(item.props.timeOptions[0]);
+    let d = new Date(item.props.time);
 
     return (
       <View style={{ padding: 8 }}>
@@ -125,12 +126,12 @@ export default class Group extends React.Component {
   render() {
     return (
       <Screen
+        loading={this.state.loading}
         title="Group"
         navigation={{ ...this.props.navigation }}
         screenProps={this.props.screenProps}
         backButton={true}
       >
-        <Text>{JSON.stringify(this.state.group)}</Text>
         <Card
           header={this.state.group.groupName}
           footer={[
@@ -144,10 +145,11 @@ export default class Group extends React.Component {
             }
           ]}
         >
-          {this.state.group.messages.length > 0 ? (
+          {this.state.group.events != undefined &&
+          this.state.group.events.length > 0 ? (
             <List
               navigation={this.props.navigation}
-              list={this.state.group.messages}
+              list={this.state.group.events}
               renderElement={this.renderEvent}
               type="element"
             />
@@ -155,7 +157,8 @@ export default class Group extends React.Component {
             <ListElement Name="No Events" type="expandable" />
           )}
           <Separator />
-          {this.state.group.messages.length > 0 ? (
+          {this.state.group.messages != undefined &&
+          this.state.group.messages.length > 0 ? (
             <List
               navigation={this.props.navigation}
               list={this.state.group.messages}
@@ -184,6 +187,7 @@ export default class Group extends React.Component {
             list={this.state.group.memberObjects.filter(
               g => g.userHandle != this.props.screenProps.user.userHandle
             )}
+            noInvite={true}
             showStatus={false}
           />
         </Card>

@@ -28,15 +28,29 @@ export default class Friend extends React.Component {
     const friend = this.props.screenProps.user.friends.find(
       friend => friend.userHandle === this.state.otherUser.userHandle
     );
+
     this.setState({ friend: friend !== undefined });
-    this.props.screenProps.functions.fetchFriend(
-      this.state.otherUser.userHandle,
-      data =>
-        this.setState({
-          otherUser: { ...this.state.otherUser, ...data }
-          //groups: this.state.user.groups.filter(group => group.members.includes(data.id))
-        })
-    );
+    
+    if (friend !== undefined) {
+      this.props.screenProps.functions.updateFriend(
+        this.state.otherUser.userHandle,
+        true,
+        () =>
+          this.setState({
+            otherUser: this.props.screenProps.user.friends.find(
+              friend => friend.userHandle === this.state.otherUser.userHandle
+            )
+          })
+      );
+    } else {
+      this.props.screenProps.functions.fetchFriend(
+        this.state.otherUser.userHandle,
+        data =>
+          this.setState({
+            otherUser: { ...this.state.otherUser, ...data }
+          })
+      );
+    }
   }
 
   removeFriend() {
@@ -64,9 +78,7 @@ export default class Friend extends React.Component {
   addFriend() {
     Alert.alert(
       "Friend",
-      `You are about to friend ${
-        this.state.otherUser.userName
-      }.`,
+      `You are about to friend ${this.state.otherUser.userName}.`,
       [
         {
           text: "Yes",
@@ -135,7 +147,9 @@ export default class Friend extends React.Component {
         else
           Alert.alert(
             "Friend Request",
-            `Friend request to ${this.state.otherUser.userHandle} could not be sent.`,
+            `Friend request to ${
+              this.state.otherUser.userHandle
+            } could not be sent.`,
             [
               {
                 text: "Ok"
@@ -145,7 +159,7 @@ export default class Friend extends React.Component {
           );
       })
       .catch(error => console.error(`sendFriendRequest: ${error}`));
-  }
+  };
 
   removeFriendFirebaseFunction() {
     fetch(

@@ -13,8 +13,11 @@ import {
   createStackNavigator,
   createAppContainer
 } from "react-navigation";
+
 import { Overlay } from "react-native-elements";
 import { Font } from "expo";
+
+import NavigationService from "./NavigationService";
 
 import Splash from "./components/auth/Splash";
 import LoginSplash from "./components/auth/LoginSplash";
@@ -275,7 +278,14 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
-    this.updateUser(true);
+    this.updateUser(true, undefined, () =>
+      setInterval(() => {
+        this.updateFriends(() => console.log("updated friends"));
+        this.updateNotifications(() => console.log("updated notifictions"));
+        //update every 15 seconds.
+      }, 15000)//60000)
+    );
+
     //If the authentification state changes
     //firebase.auth().onAuthStateChanged(user => this.updateUser(user, true));
     await Font.loadAsync({
@@ -360,6 +370,11 @@ export default class App extends React.Component {
       await this.updateGroups(() => console.log("groups loaded"));
       await this.resetNotifications(
         () => console.log("notifications reset"),
+        true
+      );
+      await this.updateNotifications(
+        () => console.log("notifications loaded"),
+        false,
         true
       );
       await this.updateRatings(() => console.log("ratings loaded"));
@@ -472,28 +487,34 @@ export default class App extends React.Component {
     }
   };
 
-  updateFriend = async (id, action) => {
+  updateFriend = async (id, action, callback) => {
     // action == true, add friend.
     if (action) {
       await this.fetchUser(id, async data => {
         const arr = this.state.user.friends.filter(f => f.userHandle != id);
         arr.push(data);
-        await this.setState({
-          user: {
-            ...this.state.user,
-            friends: arr
-          }
-        });
+        await this.setState(
+          {
+            user: {
+              ...this.state.user,
+              friends: arr
+            }
+          },
+          callback
+        );
       });
     }
     // action == false, remove friend.
     else {
-      await this.setState({
-        user: {
-          ...this.state.user,
-          friends: this.state.user.friends.filter(f => f.userHandle != id)
-        }
-      });
+      await this.setState(
+        {
+          user: {
+            ...this.state.user,
+            friends: this.state.user.friends.filter(f => f.userHandle != id)
+          }
+        },
+        callback
+      );
     }
   };
 
@@ -839,18 +860,6 @@ export default class App extends React.Component {
     }
 
     return <BusynessPicker />;
-  };
-
-  notificationAlert = (id, callback) => {
-    Alert.alert("Notification", id.Name, [
-      {
-        text: "Dismiss"
-      },
-      {
-        text: "Handle",
-        onPress: () => id.onPress()
-      }
-    ]);
   };
 
   reportBusyness = (diningCourt, busyness) => {
@@ -1227,8 +1236,17 @@ export default class App extends React.Component {
       case "eventStart":
         obj = this.newEventStartNotification(id);
         break;
-      case "communicationResponse":
-        obj = this.newCommunicationResponse(id);
+      case "acceptedInvitationToEat":
+        obj = this.newAcceptedInvitationToEat(id);
+        break;
+      case "deniedInvitationToEat":
+        obj = this.newDeniedInvitationToEat(id);
+        break;
+      case "acceptedRequestToEat":
+        obj = this.newAcceptedRequestToEat(id);
+        break;
+      case "deniedRequestToEat":
+        obj = this.newDeniedRequestToEat(id);
         break;
 
       default:
@@ -1321,6 +1339,7 @@ export default class App extends React.Component {
       id.friendHandle
     } accepted your friend request.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1330,6 +1349,7 @@ export default class App extends React.Component {
 
     id.Name = `${id.friendName} @${id.friendHandle} unfriended you.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1339,6 +1359,7 @@ export default class App extends React.Component {
 
     id.Name = `${id.userName} @${id.userHandle} blocked you.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1348,6 +1369,7 @@ export default class App extends React.Component {
 
     id.Name = `@${id.userHandle} joined the group: ${id.groupName}.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1357,6 +1379,7 @@ export default class App extends React.Component {
 
     id.Name = `@${id.userHandle} has left the group: ${id.groupName}.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1373,41 +1396,47 @@ export default class App extends React.Component {
   newNewPollNotification = id => {
     id.Name = `@${id.userHandle} has created a new event in ${
       id.groupName
-    }.\nVote on a time!`;
+    }.\nVote on a time! The poll will close an hour before dining courts begin serving that meal`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.voteGroupAlert(id) };
     return obj;
   };
 
   newClosePollNotification = id => {
-    id.Name = `${id.groupName} has chosen to eat at ${id.diningCourt} at ${
-      id.time._seconds
-    }!`;
+    let d = new Date(id.time);
+    id.Name = `Members of ${id.groupName} have chosen to eat at ${
+      id.diningCourt
+    } for ${id.meal} at ${
+      d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
+    }:${d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()}!`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
 
   newInviteToEatNotification = id => {
     id.Name = `${id.friendName}  @${
-      id.userHandle
-    }  has invited you to eat with them at ${id.diningCourt} at ${id.time}!
+      id.friendHandle
+    }  has invited you to eat with them at ${id.diningCourt} for ${id.time}!
     \nWould you like to join?`;
     id.date = this.dateStr;
-    let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
+    let obj = { ...id, onPress: () => this.respondToInvitationAlert(id) };
     return obj;
   };
 
   newRequestToEatNotification = id => {
     id.Name = `${id.friendName}  @${
-      id.userHandle
+      id.friendHandle
     }  has asked to join you!\nAre you available?`;
     id.date = this.dateStr;
-    let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
+    let obj = { ...id, onPress: () => this.respondToRequestAlert(id) };
     return obj;
   };
 
   newJoinedDiningCourtNotification = id => {
+    this.updateFriend(id.friendHandle, true);
+
     id.Name = `${id.friendName}  @${
       id.friendHandle
     }  has checked into your dining court!`;
@@ -1417,21 +1446,80 @@ export default class App extends React.Component {
   };
 
   newEventStartNotification = id => {
-    id.Name = `${id.groupName}'s event at ${id.time} in ${
-      id.diningCourt
+    let d = new Date(id.time);
+    id.Name = `${id.groupName}'s event on ${id.date} at ${id.diningCourt} in ${
+      d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
+    }:${
+      d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
     } is about to start.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
 
-  newCommunicationResponse = id => {
-    id.Name = `${id.friendName}  @${id.friendHandle}  has responded with: \n${
-      id.message
-    }`;
+  newAcceptedInvitationToEat = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has accepted your invitation to eat!`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
+  };
+
+  newDeniedInvitationToEat = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  is not available to join you.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newAcceptedRequestToEat = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has accepted your request to join!`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newDeniedRequestToEat = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has is not available for you to join.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  notificationAlert = (id, callback) => {
+    if (id.func === "dismiss")
+      Alert.alert("Notification", id.Name, [
+        {
+          text: "Dismiss",
+          onPress: () => this.removeNotification(id)
+        }
+      ]);
+    else
+      Alert.alert("Notification", id.Name, [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "Dismiss",
+          onPress: () => this.removeNotification(id)
+        },
+        {
+          text: "Handle",
+          onPress: () => id.onPress()
+        }
+      ]);
   };
 
   dismissNotification = id => {
@@ -1485,43 +1573,108 @@ export default class App extends React.Component {
     );
   };
 
+  sendInvitationAlert = friend => {
+    Alert.alert(
+      "Send invitation",
+      `Would you like to invite ${friend.userName}  @${
+        friend.userHandle
+      }  to join you?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "No"
+        },
+        {
+          text: "Yes",
+          onPress: () => this.inviteToEat(friend.userHandle)
+        }
+      ]
+    );
+  };
+
+  sendRequestToJoinAlert = friend => {
+    Alert.alert(
+      "Send request to join",
+      `Would you like to ask ${friend.userName}  @${
+        friend.userHandle
+      }  if you could join?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "No"
+        },
+        {
+          text: "Yes",
+          onPress: () => this.requestToEat(friend.userHandle)
+        }
+      ]
+    );
+  };
+
   requestToJoinAlert = id => {
     Alert.alert(
       "Request to Join",
       `Would you like to ask to join ${id.friendName}  @${id.friendHandle}?`,
       [
         {
-          text: "No, I'm leaving soon",
+          text: "Cancel"
+        },
+        {
+          text: "No",
           onPress: () => this.removeNotification(id)
         },
         {
-          text: "No, I'm busy",
-          onPress: () => this.removeNotification(id)
-        },
-        {
-          text: "Yes, I would like to",
-          onPress: () => this.requestToJoin(id)
+          text: "Yes",
+          onPress: () => this.requestToEat(id.friendHandle)
         }
       ]
     );
   };
 
-  respondToJoinAlert = id => {
+  respondToRequestAlert = id => {
     Alert.alert(
       "Respond",
       `Would you like to join ${id.friendName}  @${id.friendHandle}?`,
       [
         {
           text: "No, I'm leaving soon",
-          onPress: () => this.removeNotification(id)
+          onPress: () => this.requestToEatResponse(id, false)
         },
         {
           text: "No, I'm busy",
-          onPress: () => this.removeNotification(id)
+          onPress: () => this.requestToEatResponse(id, false)
         },
         {
           text: "Yes, I would like to",
-          onPress: () => this.requestToJoin(id)
+          onPress: () => this.requestToEatResponse(id, true)
+        }
+      ]
+    );
+  };
+
+  respondToInvitationAlert = id => {
+    console.log(
+      "update to be different from request. Include time and location."
+    );
+    Alert.alert(
+      "Respond",
+      `Would you like to join ${id.friendName}  @${id.friendHandle}  ?`,
+      [
+        {
+          text: "No, I've already eaten.",
+          onPress: () => this.inviteToEatResponse(id, false)
+        },
+        {
+          text: "No, I'm not eating there.",
+          onPress: () => this.inviteToEatResponse(id, false)
+        },
+        {
+          text: "Yes, I would like to",
+          onPress: () => this.inviteToEatResponse(id, true)
         }
       ]
     );
@@ -1657,14 +1810,86 @@ export default class App extends React.Component {
       .catch(error => console.error(`denyGroupInvitation: ${error}`));
   };
 
-  requestToJoin = id => {
-    //firebase function to make a request to a user.
+  requestToEat = friendHandle => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/requestToEat",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle
+        })
+      }
+    ).catch(error => console.error(`requestToEat: ${error}`));
+  };
+
+  inviteToEat = friendHandle => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/inviteToEat",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandles: [friendHandle],
+          diningCourt: this.state.user.location
+          //default to checkin, otherwise prompt.
+        })
+      }
+    ).catch(error => console.error(`inviteToEat: ${error}`));
+  };
+
+  inviteToEatResponse = (id, accepted) => {
+    this.removeNotification(id);
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/inviteToEatResponse",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle: id.friendHandle,
+          accepted
+        })
+      }
+    ).catch(error => console.error(`inviteToEatResponse: ${error}`));
+  };
+
+  requestToEatResponse = (id, accepted) => {
+    this.removeNotification(id);
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/requestToEatResponse",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle: id.friendHandle,
+          accepted
+        })
+      }
+    ).catch(error => console.error(`requestToEatResponse: ${error}`));
   };
 
   voteGroup = id => {
     this.removeNotification(id);
 
-    this.props.navigation.navigate("GroupPoll", {
+    NavigationService.navigate("GroupPoll", {
       ID: id.groupID,
       MESSAGEID: id.messageID
     });
@@ -1709,6 +1934,10 @@ export default class App extends React.Component {
       .catch(error => console.error(`createPoll: ${error}`));
   };
 
+  componentWillUnmount = () => {
+    clearInterval();
+  };
+
   render = () => {
     if (
       this.state.mealsLoaded &&
@@ -1718,6 +1947,9 @@ export default class App extends React.Component {
     ) {
       return (
         <Navigation
+          ref={navigatorRef =>
+            NavigationService.setTopLevelNavigator(navigatorRef)
+          }
           screenProps={{
             functions: {
               fetchFriend: this.fetchFriend,
@@ -1742,7 +1974,9 @@ export default class App extends React.Component {
               vote: this.vote,
               generateDateString: this.generateDateString,
               getNextMeal: this.getNextMeal,
-              getDay: this.getDay
+              getDay: this.getDay,
+              sendInvitationAlert: this.sendInvitationAlert,
+              sendRequestToJoinAlert: this.sendRequestToJoinAlert
             },
             globals: {
               statusMessage: this.statusMessage,

@@ -25,7 +25,7 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
     throw new Error("incorrect parameters!");
 
   var userDishRatings = [];
-  
+
   var userRef = db.collection("User").doc(userHandle);
   await userRef.get().then(async function(doc) {
     if (doc.exists) {
@@ -46,7 +46,7 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
   .catch(function(error) {
     throw new Error(error);
   });
-  
+
   var ratedDishOfferings = [];
   for(var i=0; i<userDishRatings.length; i++){
     var ratingObj = userDishRatings[i];
@@ -213,36 +213,52 @@ exports.removeLocation = functions.https.onRequest((request, response) => {
         throw new Error("User not checked in");
       }
       else {
-        var docJSON = doc.data();
+        var diningCourtTimes = doc.data().diningCourtTimes;
         var location = doc.data().location;
         var checkInTime = doc.data().checkInTime;
         var currTime = new Date();
         var diff = Math.abs(currTime.getTime() - checkInTime);
+        var locationAvg;
+        var locationNum;
         if (checkInTime == null) {
           diff = 0;
         }
-        console.log("Diff: " + diff);
-
-        var locationNum = location + "Num";
-        var locationNumVal = docJSON[locationNum];
-        if (locationNumVal == null) {
-          locationNumVal = 0;
+        if (diningCourtTimes == null) {
+          diningCourtTimes = {
+            "Earhart": {
+              "avgTime":0,
+              "num":0
+            },
+            "Ford": {
+              "avgTime":0,
+              "num":0
+            },
+            "Hillenbrand": {
+              "avgTime":0,
+              "num":0
+            },
+            "Wiley": {
+              "avgTime":0,
+              "num":0
+            },
+            "Windsor": {
+              "avgTime":0,
+              "num":0
+            }
+          }
         }
-        console.log("locationNumVal: " + locationNumVal);
 
-        var locationAvg = location + "Avg";
-        var locationAvgVal = docJSON[locationAvg];
-        if (locationAvgVal == null) {
-          locationAvgVal = 0;
-        }
-        console.log("locationAvgVal: " + locationAvgVal);
+        locationAvg = diningCourtTimes[location].avgTime;
+        locationNum = diningCourtTimes[location].num;
+        console.log("locationAvg: " + locationAvg + ", locationNum: " + locationNum);
+        locationAvg = (locationAvg * locationNum + diff) / (++locationNum);
+        diningCourtTimes[location].avgTime = locationAvg;
+        diningCourtTimes[location].num = locationNum;
 
-        locationAvgVal = (locationAvgVal * locationNumVal + diff) / (++locationNumVal);
-        console.log("NewLoc")
         userRef.update({
           "location": null,
-          [locationAvg]: locationAvgVal,
-          [locationNum]: locationNumVal
+          "checkInTime":-1,
+          "diningCourtTimes":diningCourtTimes
         }).then(function() {
           response.send({
             "elapsedTime": diff
@@ -258,6 +274,57 @@ exports.removeLocation = functions.https.onRequest((request, response) => {
     });
   }
 })
+
+//get the average times a user spends in each dining court
+//PARAMETERS: userHandle
+exports.getDiningCourtTimes = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if (userHandle == null) {
+    throw new Error("Must pass 'userHandle' in body of request");
+  }
+  else {
+    db.collection("User").doc(userHandle).get().then(function(doc) {
+      var diningCourtTimes = doc.data().diningCourtTimes;
+      if (diningCourtTimes == null) {
+        diningCourtTimes = {
+          "Earhart": {
+            "avgTime":0,
+            "num":0
+          },
+          "Ford": {
+            "avgTime":0,
+            "num":0
+          },
+          "Hillenbrand": {
+            "avgTime":0,
+            "num":0
+          },
+          "Wiley": {
+            "avgTime":0,
+            "num":0
+          },
+          "Windsor": {
+            "avgTime":0,
+            "num":0
+          }
+        }
+        db.collection("User").doc(userHandle).update({
+          "diningCourtTimes":diningCourtTimes
+        })
+        .then(function() {
+          response.send(diningCourtTimes);
+        });
+      }
+      else {
+        response.send(diningCourtTimes);
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
 
 // gets location
 exports.getLocation = functions.https.onRequest(async (request, response) => {
@@ -400,6 +467,23 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
       mm = '0' + mm;
     }
     date = yyyy+"-"+mm+"-"+dd;
+
+    //remove old dates
+    var delDate = new Date();
+    delDate.setDate(delDate.getDate() - 2);
+
+    var dd = delDate.getDate();
+    var mm = delDate.getMonth() + 1; //January is 0!
+
+    var yyyy = delDate.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    var delFormat = yyyy+"-"+mm+"-"+dd;
+    await db.collection("DateTimes").doc(delFormat).delete();
   }
 
   const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
@@ -647,6 +731,7 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
 exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
   var date = request.body.date;
+  var userInput = true;
 
   if(date == null){
     var today = new Date();
@@ -662,6 +747,8 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
       mm = '0' + mm;
     }
     date = yyyy+"-"+mm+"-"+dd;
+
+    userInput = false;
   }
 
 
@@ -727,6 +814,26 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
     data.push(await getData(url, locations[i]));
   }
   var updated = await updateDatabase(data);
+
+  if(!userInput){
+    //remove old dates
+    var delDate = new Date();
+    delDate.setDate(delDate.getDate() - 2);
+
+    var dd = delDate.getDate();
+    var mm = delDate.getMonth() + 1; //January is 0!
+
+    var yyyy = delDate.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    var delFormat = yyyy+"-"+mm+"-"+dd;
+    await db.collection("DateDishes").doc(delFormat).delete();
+  }
+
   console.log("done");
   response.send("Finished Population for "+date);
 });
@@ -1180,20 +1287,41 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
       uid: uid,
       userName: userName,
       userHandle: userHandle,
-      initials: "",
       image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
       groups: [],
-      preferences: [],
       dietaryRestrictions: [],
       friends: [],
       blockedUsers: [],
       outgoingFriendReq: [],
       incomingFriendReq: [],
       incomingGroupInvites: [],
-      ratings: [],
       status: 0,
-      notifications: []
-    }
+      notifications: [],
+      events: [],
+      locationTracking: false,
+      diningCourtTimes: {
+        "Earhart": {
+          "avgTime":0,
+          "num":0
+        },
+        "Ford": {
+          "avgTime":0,
+          "num":0
+        },
+        "Hillenbrand": {
+          "avgTime":0,
+          "num":0
+        },
+        "Wiley": {
+          "avgTime":0,
+          "num":0
+        },
+        "Windsor": {
+          "avgTime":0,
+          "num":0
+        }
+      }
+    };
     db.collection("User").doc(userHandle).set(updatedUser).then(function() {
       console.log("User successfully added!");
       response.send("success");
@@ -1391,6 +1519,68 @@ exports.updateUserProfile = functions.https.onRequest((request, response) => {
     var updatedUser = db.collection("User").doc(userHandle)
     getProfile(userHandle, response);
   });
+});
+
+//set profile picture downloadURL
+//PARAMETERS: userHandle, downloadURL
+exports.setProfilePic = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+  var downloadURL = request.body.downloadURL;
+
+  //don't check downloadURL since it can be null
+  if (userHandle == null) {
+    throw new Error("Must pass 'userHandle' in body of request");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        userRef.update({
+          "profilePicDownloadURL":downloadURL
+        })
+        .then(function() {
+          response.send({
+            "success":true
+          });
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+      }
+      else {
+        throw new Error("User does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    });
+  }
+});
+
+//get profile picture downloadURL
+//PARAMETERS: userHandle
+exports.getProfilePic = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  if (userHandle == null) {
+    throw new Error("Must pass 'userHandle' in body of request");
+  }
+  else {
+    var userRef = db.collection("User").doc(userHandle);
+    userRef.get().then(function(doc) {
+      if (doc.exists) {
+        response.send({
+          "downloadURL":doc.data().profilePicDownloadURL
+        });
+      }
+      else {
+        throw new Error("User does not exist");
+      }
+    })
+    .catch(function(error) {
+      throw new Error(error);
+    })
+  }
 });
 
 //block a user
@@ -1853,7 +2043,9 @@ exports.createGroup = functions.https.onRequest((request, response) => {
       memberHandles: [userHandle],
       memberObjects: [{userHandle: userHandle, userName: userName}],
       messages: [],
-      groupName: groupName
+      groupName: groupName,
+      numMessages: 0,
+      events: []
     }).then(function(docRef){
       console.log("Document written with ID: ", docRef.id);
 
@@ -2647,5 +2839,428 @@ exports.clearBusyness = functions.https.onRequest((request, response) => {
   }).catch(function(error){
     console.error(error.message);
     response.send("error");
+  });
+});
+
+//Creates a poll for users to vote on a time and returns the messageID
+//PARAMETERS: userHandle, expirationTime, groupID, timeOptions, meal
+//expirationTime is a Date object               timeOptions is an array of times
+exports.createPoll = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var expirationTime = request.body.expirationTime;
+  var groupID = request.body.groupID;
+  var timeOptions = request.body.timeOptions;
+  var meal = request.body.meal;
+
+  console.log(userHandle);
+  console.log(expirationTime);
+  console.log(groupID);
+  console.log(timeOptions);
+  console.log(meal);
+
+  if(userHandle == null || expirationTime == null || groupID == null || timeOptions == null || meal == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  if(timeOptions.length == 0){
+    throw new Error("No time options.");
+    return;
+  }
+
+  var groupDoc = db.collection("Group").doc(groupID);
+
+  var numMessages;
+
+  await groupDoc.get().then(async doc => {
+    var groupName = await doc.data().groupName;
+    numMessages = doc.data().numMessages;
+    if(numMessages == null){
+      numMessages = 0;
+    }
+    var notification = {type: "newPoll", id: {groupName: groupName, userHandle: userHandle, groupID: groupID, messageID: numMessages+1, meal: meal}};
+    var userCol = db.collection("User");
+    var members = doc.data().memberHandles;
+
+    for(var i = 0; i < members.length; i++){
+      if(members[i] == userHandle){
+        continue;
+      }
+      userCol.doc(members[i]).update({
+        notifications: admin.firestore.FieldValue.arrayUnion(notification)
+      }).catch(function(error){
+        console.log(error.message);
+        throw new Error(error);
+        return;
+      });
+    }
+  });
+
+  var votes = [];
+  for(var i = 0; i < timeOptions.length; i++){
+    votes.push({time: timeOptions[i], numVotes: 0});
+  }
+
+  var id = numMessages + 1;
+
+  var poll = {userHandle: userHandle, expirationTime: expirationTime, timeOptions: timeOptions, votes: votes, messageID: id, voters: [], meal: meal, groupID: groupID};
+
+  groupDoc.update({
+    messages: admin.firestore.FieldValue.arrayUnion(poll),
+    numMessages: id
+  }).then(function(){
+    console.log(id);
+    response.send({messageID: id});
+  }).catch(function(error){
+    console.log(error.message);
+    throw new Error(error);
+    return;
+  });
+});
+
+//Sends a users vote within a poll to the database
+//PARAMETERS: userHandle, choiceIndex, groupID, messageID
+exports.vote = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var choiceIndex = request.body.choiceIndex;
+  var messageID = request.body.messageID;
+  var groupID = request.body.groupID;
+
+  console.log(userHandle);
+  console.log(choiceIndex);
+  console.log(messageID);
+  console.log(groupID);
+
+  if(userHandle == null || choiceIndex == null || messageID == null || groupID == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var groupDoc = db.collection("Group").doc(groupID);
+
+  await groupDoc.get().then(async doc => {
+    var messages = doc.data().messages;
+
+    for(var i = 0; i < messages.length; i++){
+      var message = messages[i];
+      if(message.messageID == messageID){
+        var voters = message.voters;
+        for(var j = 0; j < voters.length; j++){
+          if(userHandle == voters[j].name){
+            messages[i].votes[voters[j].choice].numVotes--;
+            messages[i].voters.splice(j, 1);
+
+            break;
+          }
+        }
+        messages[i].votes[choiceIndex].numVotes++;
+
+        await messages[i].voters.push({name: userHandle, choice: choiceIndex});
+            console.log(messages);
+
+            groupDoc.update({
+              "messages": messages
+            }).then(function(){
+              response.send({success: true});
+            }).catch(function(error){
+              console.error(error.message);
+              throw new Error("error");
+            });
+        break;
+      }
+    }
+
+  });
+});
+
+//returns all open poles in a group
+//PARAMETERS: groupID
+exports.getPolls = functions.https.onRequest((request, response) => {
+  var groupID = request.body.groupID;
+
+  console.log(groupID);
+
+  if(groupID == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var groupDoc = db.collection("Group").doc(groupID);
+  groupDoc.get().then(doc => {
+    response.send(doc.data().messages);
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+});
+
+
+exports.closePolls = functions.https.onRequest((request, response) => {
+  var date = new Date();
+  //loop through all groups
+  var groupDoc = db.collection("Group");
+  groupDoc.get().then(gDoc => {
+    gDoc.forEach(function(doc){
+      var messages = doc.data().messages;
+      for(var i = 0; i < messages.length; i++){
+        var message = messages[i];
+        if(date.getTime() >= new Date(message.expirationTime).getTime()){
+          //send a notification to the group members and remove the message
+          var data = doc.data();
+          var max = message.votes[0];
+          var maxIndex = 0;
+          for(var j = 1; j < message.votes.length; j++){
+            if(message.votes[j] > max){
+              max = message.votes[j];
+              maxIndex = j;
+            }
+          }
+          var groupID = doc.id;
+          var messageID = message.messageID;
+
+          var notification = {type: "closePoll", id: {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, diningCourt: "Hillenbrand"}};
+          var userCol = db.collection("User");
+          var eventCreated = {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, votes: message.votes, diningCourt: "Hillenbrand"};
+          for(var j = 0; j < data.memberHandles.length; j++){
+            userCol.doc(data.memberHandles[j]).update({
+              notifications: admin.firestore.FieldValue.arrayUnion(notification),
+              events: admin.firestore.FieldValue.arrayUnion(eventCreated)
+            }).catch(function(error){
+              console.log(error.message);
+              throw new Error(error.message);
+            });
+          }
+          groupDoc.doc(doc.id).update({
+            events: admin.firestore.FieldValue.arrayUnion(eventCreated)
+          });
+          db.collection("Event").add({
+            groupID: groupID,
+            messageID: messageID,
+            time: new Date(message.timeOptions[maxIndex]),
+            users: data.memberHandles,
+            event: eventCreated
+          });
+
+          //remove the message from the array
+          messages.splice(i, 1);
+          i--;
+        }
+      }
+      groupDoc.doc(doc.id).update({
+        "messages": messages
+      }).then(function(){
+        //response.send("success");
+      }).catch(function(error){
+        throw new Error(error.message);
+      });
+    });
+  });
+});
+
+//returns the list of events for a user
+//PARAMETERS: userHandle
+exports.getUserEvents = functions.https.onRequest((request, response) => {
+  var userHandle = request.body.userHandle;
+
+  console.log(userHandle);
+
+  if(userHandle == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  db.collection("User").doc(userHandle).get().then(doc => {
+    response.send(doc.data().events);
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+});
+
+//removes events from the database when they need to be activated
+exports.activateEvents = functions.https.onRequest(async (request, response) => {
+  var eventsCol = db.collection("Event");
+  var groupsCol = db.collection("Group");
+  var userCol = db.collection("User");
+  var date = new Date();
+
+  await eventsCol.get().then( eCol =>{
+    eCol.forEach(function(doc){
+      var data = doc.data();
+      var seconds = data.time._seconds;
+      if(date.getTime()/1000 >= seconds){
+        //remove the event from the group
+        var group = data.groupID;
+        groupsCol.doc(group).update({
+          events: admin.firestore.FieldValue.arrayRemove(data.event)
+        }).catch(function(error){
+          throw new Error(error.message);
+        });
+
+        //remove the event from the users
+        var users = data.users;
+        for(var i = 0; i < users.length; i++){
+          userCol.doc(users[i]).update({
+            events: admin.firestore.FieldValue.arrayRemove(data.event),
+            notifications: admin.firestore.FieldValue.arrayUnion({type: "eventStart", id: data.event})
+          });
+        }
+        eventsCol.doc(doc.id).delete();
+      }
+    });
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+
+  response.send("success");
+});
+
+//invites friends to eat with the user
+//PARAMETERS: userHandle, friendHandles, diningCourt
+//                        friendHandles is an array of the friends
+//      Disregard what follows: If you give me time as a date object, the notification will be returned as an object with a field _seconds which contains the total number of seconds in the date object. you should be able to use this to create a new date object    ex: "time":{"_seconds":1553626800,"_nanoseconds":0}
+exports.inviteToEat = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandles = request.body.friendHandles;
+  var diningCourt = request.body.diningCourt;
+  //var time = request.body.time;
+
+  console.log(userHandle);
+  console.log(friendHandles);
+  console.log(diningCourt);
+  //console.log(time);
+
+  if(userHandle == null || friendHandles == null || diningCourt == null){// || time == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var userCol = db.collection("User");
+
+  var userName;
+  await userCol.doc(userHandle).get().then(async doc => {
+    userName = await doc.data().userName;
+  });
+
+  var notification = {type: "inviteToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};//, time: time}};
+
+  for(var i = 0; i < friendHandles.length; i++){
+    userCol.doc(friendHandles[i]).update({
+      notifications: admin.firestore.FieldValue.arrayUnion(notification)
+    }).catch(function(error){
+      throw new Error(error.message);
+    });
+  }
+
+  response.send({success: true});
+});
+
+//requests a friend for the user to  eat with them
+//PARAMETERS: userHandle, friendHandle
+exports.requestToEat = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandle = request.body.friendHandle;
+
+  console.log(userHandle);
+  console.log(friendHandle);
+
+  if(userHandle == null || friendHandle == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var userCol = db.collection("User");
+
+  var userName;
+  await userCol.doc(userHandle).get().then(async doc => {
+    userName = await doc.data().userName;
+  });
+
+  var notification = {type: "requestToEat", id: {friendHandle: userHandle, friendName: userName}};
+
+  userCol.doc(friendHandle).update({
+    notifications: admin.firestore.FieldValue.arrayUnion(notification)
+  }).then(function(){
+    response.send({success: true});
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+});
+
+//sends a user's response to an invite as a notification
+//PARAMETERS: userHandle, friendHandle, accepted
+exports.inviteToEatResponse = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandle = request.body.friendHandle;
+  var accepted = request.body.accepted;
+
+  console.log(userHandle);
+  console.log(friendHandle);
+  console.log(accepted);
+
+  if(userHandle == null || friendHandle == null || accepted == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var userCol = db.collection("User");
+
+  var userName;
+  await userCol.doc(userHandle).get().then(async doc => {
+    userName = await doc.data().userName;
+  });
+
+  var notification;
+  if(accepted){
+    notification = {type: "acceptedInvitationToEat", id: {friendHandle: userHandle, friendName: userName}};
+  }
+  else{
+    notification = {type: "deniedInvitationToEat", id: {friendHandle: userHandle, friendName: userName}};
+  }
+
+  userCol.doc(friendHandle).update({
+    notifications: admin.firestore.FieldValue.arrayUnion(notification)
+  }).then(function(){
+    response.send({success: true});
+  }).catch(function(error){
+    throw new Error(error.message);
+  });
+});
+
+//sends a user's response to an invite as a notification
+//PARAMETERS: userHandle, friendHandle, accepted
+exports.requestToEatResponse = functions.https.onRequest(async (request, response) => {
+  var userHandle = request.body.userHandle;
+  var friendHandle = request.body.friendHandle;
+  var accepted = request.body.accepted;
+
+  console.log(userHandle);
+  console.log(friendHandle);
+  console.log(accepted);
+
+  if(userHandle == null || friendHandle == null || accepted == null){
+    throw new Error("incorrect parameters");
+    return;
+  }
+
+  var userCol = db.collection("User");
+
+  var userName;
+  await userCol.doc(userHandle).get().then(async doc => {
+    userName = await doc.data().userName;
+  });
+
+  var notification;
+  if(accepted){
+    notification = {type: "acceptedRequestToEat", id: {friendHandle: userHandle, friendName: userName}};
+  }
+  else{
+    notification = {type: "deniedRequestToEat", id: {friendHandle: userHandle, friendName: userName}};
+  }
+
+  userCol.doc(friendHandle).update({
+    notifications: admin.firestore.FieldValue.arrayUnion(notification)
+  }).then(function(){
+    response.send({success: true});
+  }).catch(function(error){
+    throw new Error(error.message);
   });
 });
