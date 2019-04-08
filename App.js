@@ -1332,7 +1332,7 @@ export default class App extends React.Component {
       id.friendHandle
     } accepted your friend request.`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1342,7 +1342,7 @@ export default class App extends React.Component {
 
     id.Name = `${id.friendName} @${id.friendHandle} unfriended you.`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1352,7 +1352,7 @@ export default class App extends React.Component {
 
     id.Name = `${id.userName} @${id.userHandle} blocked you.`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1362,7 +1362,7 @@ export default class App extends React.Component {
 
     id.Name = `@${id.userHandle} joined the group: ${id.groupName}.`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1372,7 +1372,7 @@ export default class App extends React.Component {
 
     id.Name = `@${id.userHandle} has left the group: ${id.groupName}.`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1403,7 +1403,7 @@ export default class App extends React.Component {
       d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
     }:${d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()}!`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1446,7 +1446,7 @@ export default class App extends React.Component {
       d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
     } is about to start.`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1456,7 +1456,7 @@ export default class App extends React.Component {
       id.friendHandle
     }  has accepted your invitation to eat!`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1466,7 +1466,7 @@ export default class App extends React.Component {
       id.friendHandle
     }  is not available to join you.`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1476,7 +1476,7 @@ export default class App extends React.Component {
       id.friendHandle
     }  has accepted your request to join!`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1486,13 +1486,13 @@ export default class App extends React.Component {
       id.friendHandle
     }  has is not available for you to join.`;
     id.date = this.dateStr;
-    id.func = 'dismiss';
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
 
   notificationAlert = (id, callback) => {
-    if (id.func === 'dismiss')
+    if (id.func === "dismiss")
       Alert.alert("Notification", id.Name, [
         {
           text: "Dismiss",
