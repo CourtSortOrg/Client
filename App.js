@@ -1332,6 +1332,7 @@ export default class App extends React.Component {
       id.friendHandle
     } accepted your friend request.`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1341,6 +1342,7 @@ export default class App extends React.Component {
 
     id.Name = `${id.friendName} @${id.friendHandle} unfriended you.`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1350,6 +1352,7 @@ export default class App extends React.Component {
 
     id.Name = `${id.userName} @${id.userHandle} blocked you.`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1359,6 +1362,7 @@ export default class App extends React.Component {
 
     id.Name = `@${id.userHandle} joined the group: ${id.groupName}.`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1368,6 +1372,7 @@ export default class App extends React.Component {
 
     id.Name = `@${id.userHandle} has left the group: ${id.groupName}.`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1391,7 +1396,6 @@ export default class App extends React.Component {
   };
 
   newClosePollNotification = id => {
-    console.log(id);
     let d = new Date(id.time);
     id.Name = `Members of ${id.groupName} have chosen to eat at ${
       id.diningCourt
@@ -1399,13 +1403,14 @@ export default class App extends React.Component {
       d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
     }:${d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()}!`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
 
   newInviteToEatNotification = id => {
     id.Name = `${id.friendName}  @${
-      id.userHandle
+      id.friendHandle
     }  has invited you to eat with them at ${id.diningCourt} for ${id.time}!
     \nWould you like to join?`;
     id.date = this.dateStr;
@@ -1423,6 +1428,8 @@ export default class App extends React.Component {
   };
 
   newJoinedDiningCourtNotification = id => {
+    this.updateFriend(id.friendHandle, true);
+
     id.Name = `${id.friendName}  @${
       id.friendHandle
     }  has checked into your dining court!`;
@@ -1439,6 +1446,7 @@ export default class App extends React.Component {
       d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
     } is about to start.`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1448,6 +1456,7 @@ export default class App extends React.Component {
       id.friendHandle
     }  has accepted your invitation to eat!`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1457,6 +1466,7 @@ export default class App extends React.Component {
       id.friendHandle
     }  is not available to join you.`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1466,6 +1476,7 @@ export default class App extends React.Component {
       id.friendHandle
     }  has accepted your request to join!`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1475,24 +1486,33 @@ export default class App extends React.Component {
       id.friendHandle
     }  has is not available for you to join.`;
     id.date = this.dateStr;
+    id.func = 'dismiss';
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
 
   notificationAlert = (id, callback) => {
-    Alert.alert("Notification", id.Name, [
-      {
-        text: "Cancel"
-      },
-      {
-        text: "Dismiss",
-        onPress: () => this.removeNotification(id)
-      },
-      {
-        text: "Handle",
-        onPress: () => id.onPress()
-      }
-    ]);
+    if (id.func === 'dismiss')
+      Alert.alert("Notification", id.Name, [
+        {
+          text: "Dismiss",
+          onPress: () => this.removeNotification(id)
+        }
+      ]);
+    else
+      Alert.alert("Notification", id.Name, [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "Dismiss",
+          onPress: () => this.removeNotification(id)
+        },
+        {
+          text: "Handle",
+          onPress: () => id.onPress()
+        }
+      ]);
   };
 
   dismissNotification = id => {
@@ -1593,6 +1613,9 @@ export default class App extends React.Component {
       "Request to Join",
       `Would you like to ask to join ${id.friendName}  @${id.friendHandle}?`,
       [
+        {
+          text: "Cancel"
+        },
         {
           text: "No",
           onPress: () => this.removeNotification(id)
