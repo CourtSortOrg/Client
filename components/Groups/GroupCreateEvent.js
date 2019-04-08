@@ -95,7 +95,6 @@ export default class GroupCreateEvent extends React.Component {
   };
 
   vote = () => {
-    this.setState({ loading: true });
     let date = new Date();
     date.setDate(date.getDate() + this.state.date);
     date.setSeconds(0);
@@ -149,8 +148,12 @@ export default class GroupCreateEvent extends React.Component {
     //expirationTime.setMinutes(expirationTime.getMinutes() + 1, 0);
 
     if (expirationTime < new Date())
-      Alert.alert("Error", "This event has either already passed or is too close to give members enough time to vote! Try another day or meal time!");
+      Alert.alert(
+        "Error",
+        "This event has either already passed or is too close to give members enough time to vote! Try another day or meal time!"
+      );
     else {
+      this.setState({ loading: true });
       this.props.screenProps.functions.createPoll(
         expirationTime,
         this.state.groupID,
