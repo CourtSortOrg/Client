@@ -1409,7 +1409,7 @@ export default class App extends React.Component {
 
   newRequestToEatNotification = id => {
     id.Name = `${id.friendName}  @${
-      id.userHandle
+      id.friendHandle
     }  has asked to join you!\nAre you available?`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
@@ -1802,7 +1802,8 @@ export default class App extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
-          friendHandle
+          friendHandles: [friendHandle]
+          //default to checkin, otherwise prompt.
         })
       }
     ).catch(error => console.error(`inviteToEat: ${error}`));
