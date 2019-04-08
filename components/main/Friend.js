@@ -209,16 +209,80 @@ export default class Friend extends React.Component {
   }
 
   // Method to change the user's current status
-  // TODO: Firebase call
   inviteOrJoin = status => {
     if(status == 0) {
       // Invite them to eat
       console.log("Invite to eat");
+      //TODO: this.inviteToEat();
     } else {
       // Join them
       console.log("Join friend");
+      //TODO: this.joinFriend();
     }
   };
+
+  // Calls firebase function to send an invite to the user's friend in order to get them to join the user to eat
+  // TODO: Verify that the firebase function exists and works
+  inviteToEat = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/inviteToEat",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.userHandle,
+          friendHandle: this.state.otherUser.userHandle
+        })
+      }
+    )
+      .then(data => {
+        if (data._bodyText == "success")
+          Alert.alert(
+            "Success",
+            `You sent an invite to ${this.state.otherUser.userHandle}.`,
+          );
+        else
+          Alert.alert(
+            "Error",
+            "Invite could not be sent"
+          );
+      })
+      .catch(error => console.error(`inviteToEat: ${error}`));
+  }
+
+  // Calls firebase function to send a request for the user to join a friend who is currently eating
+  // TODO: Verify that the firebase function exists and works
+  joinFriend = () => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/joinFriend",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.userHandle,
+          friendHandle: this.state.otherUser.userHandle
+        })
+      }
+    )
+      .then(data => {
+        if (data._bodyText == "success")
+          Alert.alert(
+            "Success",
+            `You will join ${this.state.otherUser.userHandle} to eat.`,
+          );
+        else
+          Alert.alert(
+            "Error"
+          );
+      })
+      .catch(error => console.error(`joinFriend: ${error}`));
+  }
 
   render() {
     const statusColor = ["#0F0", "#FF0", "#F00"];
