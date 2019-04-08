@@ -1908,6 +1908,14 @@ export default class App extends React.Component {
         image: imageURL
       })
     })
+    .then(() => {
+      this.setState({
+        user: {
+          ...this.state.user,
+          image: imageURL
+        }
+      })
+    })
     .catch(error => {
       console.error(`setProfilePic: ${error}`);
     });

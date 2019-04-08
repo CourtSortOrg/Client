@@ -119,8 +119,7 @@ export default class EditProfile extends React.Component {
     const ref = firebase.storage().ref().child('ProfilePics/' + this.props.screenProps.user.userHandle);
     const snapshot = await ref.put(blob);
     const downloadURL = await ref.getDownloadURL();
-    this.setState({ "image": downloadURL });
-    this.props.screenProps.functions.setProfilePic(this.state.image);
+    await this.setState({ "image": downloadURL }, () => this.props.screenProps.functions.setProfilePic(this.state.image));
     blob.close();
   }
 
