@@ -128,30 +128,9 @@ export default class ProfileList extends React.Component {
                   item.props.status === 1 && (
                     <TouchableOpacity
                       onPress={() => {
-                        if (this.props.screenProps.user.status != 1) {
-                          Alert.alert(
-                            "Status Error",
-                            "Would you like to set your status to available to join?",
-                            [
-                              {
-                                text: "No"
-                              },
-                              {
-                                text: "Yes",
-                                onPress: () => {
-                                  this.props.screenProps.functions.setStatus(1);
-                                  this.props.screenProps.functions.sendRequestToJoinAlert(
-                                    item.props
-                                  );
-                                }
-                              }
-                            ]
-                          );
-                        } else {
-                          this.props.screenProps.functions.sendRequestToJoinAlert(
-                            item.props
-                          );
-                        }
+                        this.props.screenProps.functions.sendRequestToJoinAlert(
+                          item.props
+                        );
                       }}
                       style={{
                         backgroundColor: "#E86515",
