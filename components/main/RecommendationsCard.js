@@ -150,7 +150,6 @@ export default class Recommendations extends React.Component {
         {this.props.friends === true && (
           <Card header="Friends Checked In">
             <ProfileList
-              request={true}
               screenProps={this.props.screenProps}
               navigation={this.props.navigation}
               list={this.props.screenProps.user.friends.filter(
