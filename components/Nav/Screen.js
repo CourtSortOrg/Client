@@ -67,7 +67,8 @@ export default class Screen extends React.Component {
   }
 
   componentDidMount = () => {
-    this.props.screenProps.functions.updateNotifications();
+    if (this.props.noNotifications !== true)
+      this.props.screenProps.functions.updateNotifications();
   };
 }
 
