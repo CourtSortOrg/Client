@@ -30,7 +30,12 @@ export default class ProfileList extends React.Component {
   renderElement = item => {
     const statusMessage = ["Not Eating", "Available", "Busy"];
     return (
-      <View style={{ padding: 8 }}>
+      <View
+        style={{
+          padding: 8,
+          backgroundColor: item.props.index % 2 != 0 ? "#ccc" : "white"
+        }}
+      >
         <TouchableOpacity
           style={{
             flex: 1,
@@ -172,10 +177,12 @@ export default class ProfileList extends React.Component {
         }
         list={{
           list: this.props.selectable
-            ? this.props.list.map(item => {
-                return { ...item, Name: item.userHandle };
-              })
-            : this.props.list,
+            ? this.props.list.map((item, index) => ({
+                ...item,
+                Name: item.userHandle,
+                index
+              }))
+            : this.props.list.map((item, index) => ({ ...item, index })),
           type: "element",
           subList: false,
           rank: 1,
