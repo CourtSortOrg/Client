@@ -1365,10 +1365,10 @@ export default class App extends React.Component {
 
     if (obj) {
       notifications.push({
+        type: type,
+        date: this.dateStr,
         ...id,
         ...obj,
-        type: type,
-        date: this.dateStr
       });
     }
   };
@@ -1395,8 +1395,8 @@ export default class App extends React.Component {
     let list = arr.find(l => l.date === item.date);
     if (list == undefined) {
       list = {
-        date: this.dateStr,
-        Name: this.dateStr,
+        date: item.date,
+        Name: item.date,
         items: []
       };
       arr.push(list);
