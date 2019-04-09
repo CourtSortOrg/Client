@@ -20,7 +20,8 @@ const styles = StyleSheet.create({
   body: {
   },
   subHeader: {
-    fontSize: 16
+    fontSize: 16,
+    fontFamily: "Quicksand-Bold",
   },
   default: {
     fontFamily: "Quicksand-Regular",
