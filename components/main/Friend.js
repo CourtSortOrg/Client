@@ -227,11 +227,29 @@ export default class Friend extends React.Component {
     if(status == 0) {
       // Invite them to eat
       console.log("Invite to eat");
-      //TODO: this.inviteToEat();
+      console.log("User Location:");
+      console.log(this.state.location);
+      if( !this.state.location /* == "undefined" */ ){
+        Alert.alert(
+          "Declined",
+          "You are currently not checked into a dining court"
+        );
+      } else {
+        this.inviteToEat();
+      }
     } else {
       // Join them
       console.log("Join friend");
-      //TODO: this.joinFriend();
+      console.log("Friend Location:");
+      console.log(this.state.otherUser.location);
+      if( !this.state.otherUser.location /*== "undefined" */ ){
+        Alert.alert(
+          "Declined",
+          `${this.state.otherUser.userHandle} currently not checked into a dining court`
+        );
+      } else {
+        this.requestToEat();
+      }
     }
   };
 
@@ -254,10 +272,12 @@ export default class Friend extends React.Component {
       }
     )
       .then(data => {
-        if (data._bodyText == "success")
+        console.log("From database:");
+        console.log(data._bodyText);
+        if (data._bodyText ==  "{\"success\":true}")
           Alert.alert(
             "Success",
-            `You sent an invite to ${this.state.otherUser.userHandle}.`,
+            `You sent an invite to ${this.state.otherUser.userHandle} to eat with you.`,
           );
         else
           Alert.alert(
@@ -286,14 +306,17 @@ export default class Friend extends React.Component {
       }
     )
       .then(data => {
-        if (data._bodyText == "success")
+        console.log("From database:");
+        console.log(data._bodyText);
+        if (data._bodyText == "{\"success\":true}")
           Alert.alert(
             "Success",
-            `You will join ${this.state.otherUser.userHandle} to eat.`,
+            `You sent a request to ${this.state.otherUser.userHandle} to join them.`,
           );
         else
           Alert.alert(
-            "Error"
+            "Error",
+            "Request could not be sent",
           );
       })
       .catch(error => console.error(`requestToEat: ${error}`));
@@ -336,11 +359,21 @@ export default class Friend extends React.Component {
           </Text>
           <Separator />
           {/* Button group for joining a friend already eating or inviting a friend to eat with the user*/}
-          <ButtonGroup
-            onPress={this.inviteOrJoin}
-            buttons={eatingButtons}
-            containerStyle={{ height: 60 }}
-          />
+          <Card
+            footer={[
+              {
+                text: "Invite to eat",
+                onPress: () => this.inviteOrJoin(0)
+              },
+              {
+                text: "Request to eat",
+                onPress: () => this.inviteOrJoin(1)
+              }
+            ]}
+            //onPress={this.inviteOrJoin}
+            //buttons={eatingButtons}
+          >
+          </Card>
           <Separator />
           <List
             navigation={this.props.navigation}
