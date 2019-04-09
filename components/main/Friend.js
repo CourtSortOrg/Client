@@ -30,7 +30,7 @@ export default class Friend extends React.Component {
     );
 
     this.setState({ friend: friend !== undefined });
-    
+
     if (friend !== undefined) {
       this.props.screenProps.functions.updateFriend(
         this.state.otherUser.userHandle,
@@ -248,7 +248,8 @@ export default class Friend extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.userHandle,
-          friendHandle: this.state.otherUser.userHandle
+          friendHandle: [this.state.otherUser.userHandle],
+          location: this.state.location
         })
       }
     )
@@ -269,9 +270,9 @@ export default class Friend extends React.Component {
 
   // Calls firebase function to send a request for the user to join a friend who is currently eating
   // TODO: Verify that the firebase function exists and works
-  joinFriend = () => {
+  requestToEat = () => {
     fetch(
-      "https://us-central1-courtsort-e1100.cloudfunctions.net/joinFriend",
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/requestToEat",
       {
         method: "POST",
         headers: {
@@ -295,7 +296,7 @@ export default class Friend extends React.Component {
             "Error"
           );
       })
-      .catch(error => console.error(`joinFriend: ${error}`));
+      .catch(error => console.error(`requestToEat: ${error}`));
   }
 
   render() {
