@@ -224,6 +224,7 @@ export default class Meals extends React.Component {
               subList: {
                 list: "Meals",
                 extend: "Stations",
+                expand: true,
                 type: "dropDown",
                 subList: {
                   list: "Items",
