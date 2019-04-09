@@ -1461,7 +1461,7 @@ export default class App extends React.Component {
   newAcceptedInvitationToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has accepted your invitation to eat!`;
+    }  has accepted your invitation to eat with you at ${this.state.user.location}!`;
     id.date = this.dateStr;
     id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
@@ -1481,7 +1481,7 @@ export default class App extends React.Component {
   newAcceptedRequestToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has accepted your request to join!`;
+    }  has accepted your request to join at ${id.diningCourt}!`;
     id.date = this.dateStr;
     id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
