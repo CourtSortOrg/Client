@@ -222,14 +222,12 @@ export default class Friend extends React.Component {
       .catch(error => console.error(`blockUserFirebaseFunction: ${error}`));
   }
 
-  // Method to change the user's current status
+  // Function to determine if the user is going to invite the friend to eat, or to send a request to eat
   inviteOrJoin = status => {
     if(status == 0) {
       // Invite them to eat
-      console.log("Invite to eat");
-      console.log("User Location:");
-      console.log(this.state.location);
-      if( !this.state.location /* == "undefined" */ ){
+      // If the current user is not checked into a dining court, give an error
+      if( !this.state.location ){
         Alert.alert(
           "Declined",
           "You are currently not checked into a dining court"
@@ -238,11 +236,9 @@ export default class Friend extends React.Component {
         this.inviteToEat();
       }
     } else {
-      // Join them
-      console.log("Join friend");
-      console.log("Friend Location:");
-      console.log(this.state.otherUser.location);
-      if( !this.state.otherUser.location /*== "undefined" */ ){
+      // Request to join friend
+      // If the friend is not checked into a dining court, give an error
+      if( !this.state.otherUser.location ){
         Alert.alert(
           "Declined",
           `${this.state.otherUser.userHandle} currently not checked into a dining court`
@@ -254,7 +250,6 @@ export default class Friend extends React.Component {
   };
 
   // Calls firebase function to send an invite to the user's friend in order to get them to join the user to eat
-  // TODO: Verify that the firebase function exists and works
   inviteToEat = () => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/inviteToEat",
@@ -289,7 +284,6 @@ export default class Friend extends React.Component {
   }
 
   // Calls firebase function to send a request for the user to join a friend who is currently eating
-  // TODO: Verify that the firebase function exists and works
   requestToEat = () => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/requestToEat",
@@ -358,7 +352,7 @@ export default class Friend extends React.Component {
               : " Not Currently Eating"}
           </Text>
           <Separator />
-          {/* Button group for joining a friend already eating or inviting a friend to eat with the user*/}
+          {/* Card for joining a friend already eating or inviting a friend to eat with the user*/}
           <Card
             footer={[
               {
@@ -370,8 +364,6 @@ export default class Friend extends React.Component {
                 onPress: () => this.inviteOrJoin(1)
               }
             ]}
-            //onPress={this.inviteOrJoin}
-            //buttons={eatingButtons}
           >
           </Card>
           <Separator />
