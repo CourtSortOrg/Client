@@ -166,8 +166,9 @@ exports.checkInLocation = functions.https.onRequest((request, response) => {
             var friendRef = db.collection("User").doc(friendHandle);
             await friendRef.get().then(async function(doc) {
               var friendLocation = doc.data().location;
+              var friendStatus = doc.data().status;
               console.log("friendHandle: " + friendHandle + " friendLocation: " + friendLocation);
-              if (friendLocation == location) {
+              if (friendLocation == location && friendStatus == 1) {
                 console.log("MATCH");
                 buddiesArr.push(friendObj);
                 await friendRef.update({
