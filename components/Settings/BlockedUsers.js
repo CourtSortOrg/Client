@@ -15,12 +15,16 @@ import Text from "../components/Text";
 export default class BlockedUsers extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { refreshing: false };
+    this.state = { refreshing: true };
+  }
+
+  componentDidMount() {
+    this.refreshBlockedUsers();
   }
 
   refreshBlockedUsers = () => {
     this.setState({ refreshing: true });
-    this.props.screenProps.functions.updateBlockedUsers(
+    this.props.screenProps.functions.updateBlockedUsers(() =>
       this.setState({ refreshing: false })
     );
   };
