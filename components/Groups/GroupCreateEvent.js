@@ -19,7 +19,6 @@ export default class GroupCreateEvent extends React.Component {
 
       meals: [],
       days: [],
-      expiration: [],
       loading: false,
 
       ...this.props.screenProps.user
@@ -43,19 +42,6 @@ export default class GroupCreateEvent extends React.Component {
         index: index
       })
     );
-
-    this.state.expiration.push({
-      Name: "Tonight at midnight",
-      type: "element"
-    });
-    this.state.expiration.push({
-      Name: "Tommorrow at midnight",
-      type: "element"
-    });
-    this.state.expiration.push({
-      Name: `Hour before dining courts open for that meal`,
-      type: "element"
-    });
   }
 
   voteDay = selected => {
@@ -78,18 +64,6 @@ export default class GroupCreateEvent extends React.Component {
     } else {
       this.setState({
         meal: selected[0].item.Name
-      });
-    }
-  };
-
-  voteTime = selected => {
-    if (selected.length == 0) {
-      this.setState({
-        expiration: undefined
-      });
-    } else {
-      this.setState({
-        time: selected[0].item.Name
       });
     }
   };
@@ -208,18 +182,6 @@ export default class GroupCreateEvent extends React.Component {
               radio: true
             }}
             updateSelectedList={this.voteMeal}
-          />
-        </Card>
-        <Card header="Expiration Time">
-          <SelectList
-            navigation={this.props.navigation}
-            list={{
-              list: this.state.expiration,
-              type: "element",
-              selectable: true,
-              radio: true
-            }}
-            updateSelectedList={this.voteTime}
           />
         </Card>
         <Card
