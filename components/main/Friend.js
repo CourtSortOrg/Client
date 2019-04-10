@@ -241,7 +241,7 @@ export default class Friend extends React.Component {
       if( !this.state.otherUser.location ){
         Alert.alert(
           "Declined",
-          `${this.state.otherUser.userHandle} currently not checked into a dining court`
+          `@${this.state.otherUser.userHandle} is not currently checked into a dining court`
         );
       } else {
         this.requestToEat();
@@ -261,14 +261,12 @@ export default class Friend extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.userHandle,
-          friendHandle: [this.state.otherUser.userHandle],
-          location: this.state.location
+          friendHandles: [this.state.otherUser.userHandle],
+          diningCourt: this.state.location
         })
       }
     )
       .then(data => {
-        console.log("From database:");
-        console.log(data._bodyText);
         if (data._bodyText ==  "{\"success\":true}")
           Alert.alert(
             "Success",
@@ -295,7 +293,8 @@ export default class Friend extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.userHandle,
-          friendHandle: this.state.otherUser.userHandle
+          friendHandle: this.state.otherUser.userHandle,
+          diningCourt: "your location",
         })
       }
     )

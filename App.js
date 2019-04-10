@@ -312,12 +312,15 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
-    this.updateUser(true, undefined, () =>
-      setInterval(() => {
-        this.updateFriends(() => console.log("updated friends"));
-        this.updateNotifications(() => console.log("updated notifictions"));
-        //update every 15 seconds.
-      }, 15000)//60000)
+    this.updateUser(
+      true,
+      undefined,
+      () =>
+        setInterval(() => {
+          this.updateFriends(() => console.log("updated friends"));
+          this.updateNotifications(() => console.log("updated notifictions"));
+          //update every 15 seconds.
+        }, 15000) //60000)
     );
 
     //If the authentification state changes
@@ -1368,7 +1371,7 @@ export default class App extends React.Component {
         type: type,
         date: this.dateStr,
         ...id,
-        ...obj,
+        ...obj
       });
     }
   };
@@ -1528,7 +1531,7 @@ export default class App extends React.Component {
   newInviteToEatNotification = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has invited you to eat with them at ${id.diningCourt} for ${id.time}!
+    }  has invited you to eat with them at ${id.diningCourt}!
     \nWould you like to join?`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.respondToInvitationAlert(id) };
@@ -1538,7 +1541,7 @@ export default class App extends React.Component {
   newRequestToEatNotification = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has asked to join you!\nAre you available?`;
+    }  has asked to join you at ${id.diningCourt}!\nAre you available?`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.respondToRequestAlert(id) };
     return obj;
@@ -1571,7 +1574,9 @@ export default class App extends React.Component {
   newAcceptedInvitationToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has accepted your invitation to eat with you at ${this.state.user.location}!`;
+    }  has accepted your invitation to eat with you at ${
+      this.state.user.location
+    }!`;
     id.date = this.dateStr;
     id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
@@ -1601,7 +1606,7 @@ export default class App extends React.Component {
   newDeniedRequestToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has is not available for you to join.`;
+    }  is not available for you to join.`;
     id.date = this.dateStr;
     id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
@@ -1748,7 +1753,7 @@ export default class App extends React.Component {
   respondToRequestAlert = id => {
     Alert.alert(
       "Respond",
-      `Would you like to join ${id.friendName}  @${id.friendHandle}?`,
+      `Would you like for ${id.friendName}  @${id.friendHandle}  to join you here?`,
       [
         {
           text: "No, I'm leaving soon",
@@ -1931,6 +1936,7 @@ export default class App extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
+          diningCourt: "your location",
           friendHandle
         })
       }
@@ -1970,6 +1976,7 @@ export default class App extends React.Component {
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
           friendHandle: id.friendHandle,
+          diningCourt: id.diningCourt,
           accepted
         })
       }
@@ -1990,6 +1997,7 @@ export default class App extends React.Component {
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
           friendHandle: id.friendHandle,
+          diningCourt: this.state.user.location,
           accepted
         })
       }
@@ -2044,30 +2052,33 @@ export default class App extends React.Component {
       .catch(error => console.error(`createPoll: ${error}`));
   };
 
-  setProfilePic = (imageURL) => {
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/setProfilePic", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        userHandle: this.state.user.userHandle,
-        image: imageURL
-      })
-    })
-    .then(() => {
-      this.setState({
-        user: {
-          ...this.state.user,
+  setProfilePic = imageURL => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/setProfilePic",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
           image: imageURL
-        }
+        })
+      }
+    )
+      .then(() => {
+        this.setState({
+          user: {
+            ...this.state.user,
+            image: imageURL
+          }
+        });
       })
-    })
-    .catch(error => {
-      console.error(`setProfilePic: ${error}`);
-    });
-  }
+      .catch(error => {
+        console.error(`setProfilePic: ${error}`);
+      });
+  };
 
   componentWillUnmount = () => {
     clearInterval();

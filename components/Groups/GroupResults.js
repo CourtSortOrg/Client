@@ -19,6 +19,7 @@ export default class GroupResults extends React.Component {
         memberObjects: []
       },
       poll: undefined,
+      dishes: this.props.court.dishes.sort((a, b) => b.rating - a.rating),
 
       ...this.props.screenProps.user
     };
@@ -38,9 +39,9 @@ export default class GroupResults extends React.Component {
       this.state.poll.votes = this.state.poll.votes.map((v, index) => {
         let d = new Date(v.time);
         return {
-          Name: `${index + 1}. ${
-            v.numVotes
-          } member${index != 0 ? 's ' : ""} voted to eat at ${d.getHours()}:${
+          Name: `${index + 1}. ${v.numVotes} member${
+            index != 0 ? "s " : ""
+          } voted to eat at ${d.getHours()}:${
             d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
           } `,
           time: index
