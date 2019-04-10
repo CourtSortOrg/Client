@@ -1367,12 +1367,9 @@ export default class App extends React.Component {
     }
 
     if (obj) {
-      notifications.push({
-        type: type,
-        date: this.dateStr,
-        ...id,
-        ...obj
-      });
+      obj.type = type;
+      if (!obj.date) obj.date = this.dateStr;
+      notifications.push(obj);
     }
   };
 
@@ -1753,7 +1750,9 @@ export default class App extends React.Component {
   respondToRequestAlert = id => {
     Alert.alert(
       "Respond",
-      `Would you like for ${id.friendName}  @${id.friendHandle}  to join you here?`,
+      `Would you like for ${id.friendName}  @${
+        id.friendHandle
+      }  to join you here?`,
       [
         {
           text: "No, I'm leaving soon",
