@@ -30,7 +30,12 @@ export default class ProfileList extends React.Component {
   renderElement = item => {
     const statusMessage = ["Not Eating", "Available", "Busy"];
     return (
-      <View style={{ padding: 8 }}>
+      <View
+        style={{
+          padding: 8,
+          backgroundColor: item.props.index % 2 != 0 ? "#ccc" : "white"
+        }}
+      >
         <TouchableOpacity
           style={{
             flex: 1,
@@ -77,37 +82,69 @@ export default class ProfileList extends React.Component {
             <View
               style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
             >
-              {this.props.noInvite !== true && (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (this.props.request) {
-                      console.log("Request to join");
-                      this.props.screenProps.functions.sendRequestToJoinAlert(
-                        item.props
-                      );
-                    } else {
-                      console.log("Invite them to join");
-                      this.props.screenProps.functions.sendInvitationAlert(
-                        item.props
-                      );
-                    }
-                  }}
-                  style={{
-                    backgroundColor: "#E86515",
-                    padding: 8,
-                    borderWidth: 3,
-                    borderColor: "black",
-                    borderRadius: 8,
-                    margin: 8
-                  }}
-                >
-                  {this.props.request === true ? (
-                    <Text type="bold">{"Join"}</Text>
-                  ) : (
+              {this.props.noInvite !== true &&
+                ((item.props.location === null ||
+                  item.props.location === undefined) &&
+                this.props.screenProps.user.location !== null ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (this.props.screenProps.user.status != 1) {
+                        Alert.alert(
+                          "Status Error",
+                          "Would you like to set your status to available to invite?",
+                          [
+                            {
+                              text: "No"
+                            },
+                            {
+                              text: "Yes",
+                              onPress: () => {
+                                this.props.screenProps.functions.setStatus(1);
+                                this.props.screenProps.functions.sendInvitationAlert(
+                                  item.props
+                                );
+                              }
+                            }
+                          ]
+                        );
+                      } else {
+                        this.props.screenProps.functions.sendInvitationAlert(
+                          item.props
+                        );
+                      }
+                    }}
+                    style={{
+                      backgroundColor: "#E86515",
+                      padding: 8,
+                      borderWidth: 3,
+                      borderColor: "black",
+                      borderRadius: 8,
+                      margin: 8
+                    }}
+                  >
                     <Text type="bold">{"Invite"}</Text>
-                  )}
-                </TouchableOpacity>
-              )}
+                  </TouchableOpacity>
+                ) : (
+                  item.props.status === 1 && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        this.props.screenProps.functions.sendRequestToJoinAlert(
+                          item.props
+                        );
+                      }}
+                      style={{
+                        backgroundColor: "#E86515",
+                        padding: 8,
+                        borderWidth: 3,
+                        borderColor: "black",
+                        borderRadius: 8,
+                        margin: 8
+                      }}
+                    >
+                      <Text type="bold">{"Join"}</Text>
+                    </TouchableOpacity>
+                  )
+                ))}
               <TouchableOpacity
                 style={{ padding: 0 }}
                 onPress={() => {
@@ -141,10 +178,12 @@ export default class ProfileList extends React.Component {
         }
         list={{
           list: this.props.selectable
-            ? this.props.list.map(item => {
-                return { ...item, Name: item.userHandle };
-              })
-            : this.props.list,
+            ? this.props.list.map((item, index) => ({
+                ...item,
+                Name: item.userHandle,
+                index
+              }))
+            : this.props.list.map((item, index) => ({ ...item, index })),
           type: "element",
           subList: false,
           rank: 1,
