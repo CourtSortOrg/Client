@@ -215,7 +215,6 @@ export default class App extends React.Component {
     //   title: "Expo Notification",
     //   body: "This is a test notifcation from the Notification API"
     // });
-    //this.enableLocation();
   }
 
   date = new Date();
@@ -406,6 +405,9 @@ export default class App extends React.Component {
         true
       );
       await this.updateRatings(() => console.log("ratings loaded"));
+
+      await this.enableLocation();
+
       // TODO: Get the user's ratings here
 
       await this._storeData(`user`, JSON.stringify(this.state.user));
@@ -490,21 +492,17 @@ export default class App extends React.Component {
   enableLocation = async callback => {
     let { status } = await Permissions.askAsync(Permissions.LOCATION);
     console.log("LOCATION PERMISSIONS: ", status);
-    const { coords } = await Location.getCurrentPositionAsync();
-    console.log("CURRENT LOCATION: ", coords);
-    await Location.startGeofencingAsync(GEOFENCING_TASK, [
-      {
-        identifier: "CurrLocation",
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        radius: 50
-      }
-    ]);
-    const isGeofencing = await Location.hasStartedGeofencingAsync(
-      GEOFENCING_TASK
-    );
-    console.log("IS GEOFENCING: ", isGeofencing);
-    if (callback) callback();
+    geofencingRegions = [];
+    geofencingRegions.push({
+      identifier: `TEST`,
+      latitude: 40.42634942065527,
+      longitude: -86.92659381777048,
+      radius: 50
+    });
+    if (!(await Location.hasStartedGeofencingAsync(GEOFENCING_TASK))) {
+      // update existing geofencing task
+      await Location.startGeofencingAsync(GEOFENCING_TASK, geofencingRegions);
+    }
   };
 
   disableLocation = async callback => {
