@@ -1526,18 +1526,21 @@ exports.updateUserProfile = functions.https.onRequest((request, response) => {
 //PARAMETERS: userHandle, downloadURL
 exports.setProfilePic = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
-  var downloadURL = request.body.downloadURL;
+  var image = request.body.image;
 
   //don't check downloadURL since it can be null
   if (userHandle == null) {
     throw new Error("Must pass 'userHandle' in body of request");
   }
   else {
+    if (image == null) {
+      image = "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png";
+    }
     var userRef = db.collection("User").doc(userHandle);
     userRef.get().then(function(doc) {
       if (doc.exists) {
         userRef.update({
-          "profilePicDownloadURL":downloadURL
+          "image":image
         })
         .then(function() {
           response.send({
@@ -1571,7 +1574,7 @@ exports.getProfilePic = functions.https.onRequest((request, response) => {
     userRef.get().then(function(doc) {
       if (doc.exists) {
         response.send({
-          "downloadURL":doc.data().profilePicDownloadURL
+          "image":doc.data().image
         });
       }
       else {
