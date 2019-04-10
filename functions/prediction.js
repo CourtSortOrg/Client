@@ -4,6 +4,8 @@ const admin = require('firebase-admin');
 
 var db = admin.firestore();
 
+var prediction = require('./prediction');
+
 module.exports = {
     // PARAMETERS: (dish name, rating, userHandle)
     // adds a new rating
@@ -185,6 +187,7 @@ module.exports = {
     },
 
     getGroupPrediction: async function(groupID, date, meal, returnAll){
+      
       var members;
       await db.collection("Group").doc(groupID).get().then(doc => {
         members = doc.data().memberObjects;
@@ -230,6 +233,7 @@ module.exports = {
 
       bestForUsers.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
 
+      console.log("best court: "+bestForUsers[0]['court']);
       return bestForUsers[0]['court'];
     }
 }

@@ -16,6 +16,57 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
+async function getGroupPrediction(groupID, date, meal, returnAll){
+      
+  var members;
+  await db.collection("Group").doc(groupID).get().then(doc => {
+    members = doc.data().memberObjects;
+  }).catch(function(error){
+    throw new Error(error);
+  });
+
+  var bestForUsers;
+
+
+  for(var i=0; i<members.length; i++){
+    var currHandle = members[i]['userHandle'];
+    var currUser = await prediction.getUserPrediction(currHandle, date, meal, true);
+    currUser.sort((a, b) => {
+      if(a.court > b.court)
+        return 1;
+      if(a.court < b.court)
+        return -1;
+      return 0;
+    });
+
+    if(i==0){
+      bestForUsers = currUser;
+      continue;
+    }
+
+    for(var j=0; j<currUser.length; j++){
+      bestForUsers[j]['dishes'].push(currUser[j]['dishes']);
+      bestForUsers[j]['aggregate'] += currUser[j]['aggregate'];
+      bestForUsers[j]['total'] += currUser[j]['total'];
+    }
+  }
+
+  for(var i=0; i<bestForUsers.length; i++){
+    if (bestForUsers[i]['total'] == 0){
+      bestForUsers[i]['rating'] = -1;
+      continue;
+    }
+    var currRating = ((Number) (bestForUsers[i]['aggregate'])) / ((Number) (bestForUsers[i]['total']))
+    bestForUsers[i]['rating'] = currRating;
+    console.log("Rating for "+bestForUsers[i]['court']+" is: "+currRating);
+  }
+
+  bestForUsers.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+
+  console.log("best court: "+bestForUsers[0]['court']);
+  return bestForUsers[0]['court'];
+}
+
 // returns the best dining court for a user
 // PARAMETERS: userHandle, date, meal, returnAll
 exports.getBestDiningCourtUser = functions.https.onRequest(async (request, response)=>{
@@ -2848,12 +2899,12 @@ exports.getPolls = functions.https.onRequest((request, response) => {
 });
 
 
-exports.closePolls = functions.https.onRequest((request, response) => {
+exports.closePolls = functions.https.onRequest(async (request, response) => {
   var date = new Date();
   //loop through all groups
   var groupDoc = db.collection("Group");
   groupDoc.get().then(gDoc => {
-    gDoc.forEach(function(doc){
+    gDoc.forEach(async function(doc){
       var messages = doc.data().messages;
       for(var i = 0; i < messages.length; i++){
         var message = messages[i];
@@ -2870,10 +2921,13 @@ exports.closePolls = functions.https.onRequest((request, response) => {
           }
           var groupID = doc.id;
           var messageID = message.messageID;
+          var dateString = message.timeOptions[maxIndex].substring(0, 10);
+          console.log("gID: "+groupID+" datestring: "+dateString+" meal: "+message.meal);
+          var diningCourt = await getGroupPrediction(groupID, dateString, message.meal, false);
 
-          var notification = {type: "closePoll", id: {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, diningCourt: "Hillenbrand"}};
+          var notification = {type: "closePoll", id: {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, diningCourt: diningCourt}};
           var userCol = db.collection("User");
-          var eventCreated = {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, votes: message.votes, diningCourt: "Hillenbrand"};
+          var eventCreated = {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, votes: message.votes, diningCourt: diningCourt};
           for(var j = 0; j < data.memberHandles.length; j++){
             userCol.doc(data.memberHandles[j]).update({
               notifications: admin.firestore.FieldValue.arrayUnion(notification),
