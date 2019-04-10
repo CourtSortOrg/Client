@@ -35,33 +35,45 @@ exports.getBestDiningCourtGroup = functions.https.onRequest(async (request, resp
     throw new Error(error);
   });
 
+  var bestForUsers;
 
-  var allRatings = [];
+
   for(var i=0; i<members.length; i++){
     var currHandle = members[i]['userHandle'];
-    var userRef = db.collection("User").doc(currHandle);
-    await userRef.get().then(async function(doc) {
-      if (doc.exists) {
-        await userRef.collection("ItemRatings").get().then(function(querySnapshot) {
-          querySnapshot.forEach(async function(itemRatingDoc) {
-            var docData = itemRatingDoc.data();
-            await allRatings.push({dishData: docData, userHandle: currHandle});
-          });
-        })
-        .catch(function(error) {
-          throw new Error(error);
-        });
-      }
-      else {
-        throw new Error("user does not exist");
-      }
-    })
-    .catch(function(error) {
-      throw new Error(error);
+    var currUser = await prediction.getUserPrediction(currHandle, date, meal, true);
+    currUser.sort((a, b) => {
+      if(a.court > b.court)
+        return 1;
+      if(a.court < b.court)
+        return -1;
+      return 0;
     });
+
+    if(i==0){
+      bestForUsers = currUser;
+      continue;
+    }
+
+    for(var j=0; j<currUser.length; j++){
+      bestForUsers[j]['dishes'].push(currUser[j]['dishes']);
+      bestForUsers[j]['aggregate'] += currUser[j]['aggregate'];
+      bestForUsers[j]['total'] += currUser[j]['total'];
+    }
   }
 
-  response.send(allRatings);
+  for(var i=0; i<bestForUsers.length; i++){
+    if (bestForUsers[i]['total'] == 0){
+      bestForUsers[i]['rating'] = -1;
+      continue;
+    }
+    var currRating = ((Number) (bestForUsers[i]['aggregate'])) / ((Number) (bestForUsers[i]['total']))
+    bestForUsers[i]['rating'] = currRating;
+    console.log("Rating for "+bestForUsers[i]['court']+" is: "+currRating);
+  }
+
+  bestForUsers.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+  response.send(bestForUsers);
+
 })
 
 // returns the best dining court for a user

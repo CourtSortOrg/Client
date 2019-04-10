@@ -157,8 +157,6 @@ module.exports = {
       
         }
       
-        var best = {};
-        var maxRating = 0;
         for(var i=0; i<courtNames.length; i++){
           var currLoc = getCourt(courtNames[i]);
           if(currLoc['total']>0){
@@ -167,20 +165,71 @@ module.exports = {
             currRating = -1;
           }
           currLoc['rating'] = currRating;
-          if(currRating>maxRating){
-            maxRating = currRating;
-            best['location'] = courtNames[i];
-            best['dishes'] = currLoc['dishes'];
-            best['rating'] = currRating;
-          }
-        }
-      
-        if(!returnAll){
-          return best;
         }
       
         courts.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+
+        if(!returnAll){
+            return courts[0];
+        }
+
+        for(var i=0; i<courts.length; i++){
+          if(courts[i]['allDishes'].length == 0){
+            courts.splice(i, 1);
+            continue;
+          }
+        }
+      
         return courts;
         
+    },
+
+    getGroupPrediction: async function(groupID, date, meal, returnAll){
+      var members;
+      await db.collection("Group").doc(groupID).get().then(doc => {
+        members = doc.data().memberObjects;
+      }).catch(function(error){
+        throw new Error(error);
+      });
+
+      var bestForUsers;
+
+
+      for(var i=0; i<members.length; i++){
+        var currHandle = members[i]['userHandle'];
+        var currUser = await prediction.getUserPrediction(currHandle, date, meal, true);
+        currUser.sort((a, b) => {
+          if(a.court > b.court)
+            return 1;
+          if(a.court < b.court)
+            return -1;
+          return 0;
+        });
+
+        if(i==0){
+          bestForUsers = currUser;
+          continue;
+        }
+
+        for(var j=0; j<currUser.length; j++){
+          bestForUsers[j]['dishes'].push(currUser[j]['dishes']);
+          bestForUsers[j]['aggregate'] += currUser[j]['aggregate'];
+          bestForUsers[j]['total'] += currUser[j]['total'];
+        }
       }
+
+      for(var i=0; i<bestForUsers.length; i++){
+        if (bestForUsers[i]['total'] == 0){
+          bestForUsers[i]['rating'] = -1;
+          continue;
+        }
+        var currRating = ((Number) (bestForUsers[i]['aggregate'])) / ((Number) (bestForUsers[i]['total']))
+        bestForUsers[i]['rating'] = currRating;
+        console.log("Rating for "+bestForUsers[i]['court']+" is: "+currRating);
+      }
+
+      bestForUsers.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+
+      return bestForUsers[0]['court'];
+    }
 }
