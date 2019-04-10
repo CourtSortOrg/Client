@@ -164,7 +164,7 @@ export default class ListElement extends React.Component {
                 color="#E86515"
               />
             ))}
-          <Text type="subHeader">{this.props.Name}</Text>
+          <Text>{this.props.Name}</Text>
         </TouchableOpacity>
         {this.viewMore()}
       </View>

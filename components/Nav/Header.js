@@ -31,6 +31,7 @@ export default class Header extends React.Component {
             {this.props.showNavigation != false &&
               this.props.screenProps.user != undefined && (
                 <Avatar
+                  source={{uri: this.props.screenProps.user ? this.props.screenProps.user.image : "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"}}
                   small
                   rounded
                   title="IN"

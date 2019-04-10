@@ -39,7 +39,7 @@ export default class Profile extends React.Component {
       friends: this.props.screenProps.user.friends,
       ratings: this.props.screenProps.user.ratings,
       groups: this.props.screenProps.user.groups,
-      image: "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"
+      image: this.props.screenProps.user.image
     };
   }
 
@@ -138,6 +138,7 @@ export default class Profile extends React.Component {
             size={28}
             style={styles.settingsIcon}
           />
+
           <View style={{ padding: 8 }}>
             <Text type="bold">
               Status:{" "}

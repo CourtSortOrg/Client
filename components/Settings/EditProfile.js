@@ -1,7 +1,7 @@
 import React from "react";
-import { TouchableOpacity } from "react-native";
+import { Alert, TouchableOpacity } from "react-native";
 import { ListItem } from "react-native-elements";
-import { ImagePicker } from "expo";
+import { ImagePicker, Permissions } from "expo";
 import DialogInput from "react-native-dialog-input";
 
 import AllergenIcon from "../main/AllergenIcon";
@@ -90,15 +90,24 @@ export default class EditProfile extends React.Component {
 
   pickProfilePicture = async () => {
     // TODO: Update Profile Picture
-
+    const { status } = await Permissions.getAsync(Permissions.CAMERA_ROLL);
+    if (status !== "granted") {
+      const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Error",
+          "Please allow storage permissions in the settings"
+        );
+        return;
+      }
+    }
     let result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [4, 4]
     });
     console.log(result);
      if (!result.cancelled) {
-       let downloadURL = this.uploadImage(result.uri);
-       this.setState({ image: downloadURL });
+       this.uploadImage(result.uri);
      }
   };
 
@@ -120,7 +129,7 @@ export default class EditProfile extends React.Component {
     const ref = firebase.storage().ref().child('ProfilePics/' + this.props.screenProps.user.userHandle);
     const snapshot = await ref.put(blob);
     const downloadURL = await ref.getDownloadURL();
-    return downloadURL;
+    await this.setState({ "image": downloadURL }, () => this.props.screenProps.functions.setProfilePic(this.state.image));
     blob.close();
   }
 

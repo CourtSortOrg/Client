@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  Alert,
-  Button,
-  StyleSheet,
-  Text,
-  View,
-  AsyncStorage,
-  Picker
-} from "react-native";
+import { Alert, AsyncStorage, Picker } from "react-native";
 import {
   createSwitchNavigator,
   createStackNavigator,
@@ -16,6 +8,12 @@ import {
 
 import { Overlay } from "react-native-elements";
 import { Font } from "expo";
+import {
+  Location,
+  Notifications as Notification,
+  Permissions,
+  TaskManager
+} from "expo";
 
 import NavigationService from "./NavigationService";
 
@@ -25,7 +23,7 @@ import SignIn from "./components/auth/SignIn";
 import CreateAccount from "./components/auth/CreateAccount";
 import CreateThirdParty from "./components/auth/CreateThirdParty";
 import ResetPassword from "./components/auth/ResetPassword";
-import DiningCourt from "./components/main/DiningCourt";
+import DiningCourt from "./components/main/DiningInfo";
 import Friend from "./components/main/Friend";
 import Home from "./components/main/Home";
 import Map from "./components/main/Map";
@@ -40,6 +38,7 @@ import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
 import BlockedUsers from "./components/Settings/BlockedUsers";
+import TestLocation from "./components/main/TestLocation";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
@@ -93,6 +92,9 @@ const SettingsNavigation = createStackNavigator(
     },
     BlockedUsers: {
       screen: BlockedUsers
+    },
+    TestLocation: {
+      screen: TestLocation
     }
   },
   {
@@ -181,6 +183,22 @@ const AppNavigation = createSwitchNavigator(
 
 const Navigation = createAppContainer(AppNavigation);
 
+const GEOFENCING_TASK = "geofencing";
+
+TaskManager.defineTask(GEOFENCING_TASK, async ({ data: { region } }) => {
+  const stateString = Location.GeofencingRegionState[
+    region.state
+  ].toLowerCase();
+
+  console.log(`${stateString} region ${region.identifier}`);
+
+  await Notifications.presentLocalNotificationAsync({
+    title: "Expo Geofencing",
+    body: `You're ${stateString} a region ${region.identifier}`,
+    data: region
+  });
+});
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -192,6 +210,12 @@ export default class App extends React.Component {
       user: undefined,
       meals: []
     };
+
+    // Notification.presentLocalNotificationAsync({
+    //   title: "Expo Notification",
+    //   body: "This is a test notifcation from the Notification API"
+    // });
+    //this.enableLocation();
   }
 
   date = new Date();
@@ -213,6 +237,16 @@ export default class App extends React.Component {
   ];
 
   statusMessage = ["Not Eating", "Available", "Busy"];
+
+  _getLocationAsync = async () => {
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    if (status !== "granted") {
+      Alert.alert("No Location Permissions");
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    console.log(location);
+  };
 
   dayNames = [
     "Sunday",
@@ -368,6 +402,7 @@ export default class App extends React.Component {
       await this.updateProfile(() => console.log("profile loaded"));
       await this.updateFriends(() => console.log("friends loaded"));
       await this.updateGroups(() => console.log("groups loaded"));
+
       await this.resetNotifications(
         () => console.log("notifications reset"),
         true
@@ -456,6 +491,30 @@ export default class App extends React.Component {
       );
     });
 
+    if (callback) callback();
+  };
+
+  enableLocation = async callback => {
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    console.log("LOCATION PERMISSIONS: ", status);
+    const { coords } = await Location.getCurrentPositionAsync();
+    console.log("CURRENT LOCATION: ", coords);
+    await Location.startGeofencingAsync(GEOFENCING_TASK, [
+      {
+        identifier: "CurrLocation",
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        radius: 50
+      }
+    ]);
+    const isGeofencing = await Location.hasStartedGeofencingAsync(
+      GEOFENCING_TASK
+    );
+    console.log("IS GEOFENCING: ", isGeofencing);
+    if (callback) callback();
+  };
+
+  disableLocation = async callback => {
     if (callback) callback();
   };
 
@@ -731,6 +790,57 @@ export default class App extends React.Component {
     } catch (error) {
       console.error(`removeLocation: ${error}`);
       if (callback) callback();
+    }
+  };
+
+  toggleLocationTracking = async callback => {
+    try {
+      await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/toggleLocationTracking",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      if (callback) callback();
+    } catch (error) {
+      console.error(`toggleLocationTracking: ${error}`);
+    }
+  };
+
+  getLocationTracking = async callback => {
+    try {
+      let data = await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getLocationTracking",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      let response = await JSON.parse(data._bodyText);
+      await this.setState({
+        user: {
+          ...this.state.user,
+          locationTracking: response.locationTracking
+            ? response.locationTracking
+            : false
+        }
+      });
+      if (callback) callback();
+    } catch (error) {
+      console.error(`getLocationTracking: ${error}`);
     }
   };
 
@@ -1255,10 +1365,10 @@ export default class App extends React.Component {
 
     if (obj) {
       notifications.push({
+        type: type,
+        date: this.dateStr,
         ...id,
         ...obj,
-        type: type,
-        date: this.dateStr
       });
     }
   };
@@ -1285,8 +1395,8 @@ export default class App extends React.Component {
     let list = arr.find(l => l.date === item.date);
     if (list == undefined) {
       list = {
-        date: this.dateStr,
-        Name: this.dateStr,
+        date: item.date,
+        Name: item.date,
         items: []
       };
       arr.push(list);
@@ -1461,7 +1571,7 @@ export default class App extends React.Component {
   newAcceptedInvitationToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has accepted your invitation to eat!`;
+    }  has accepted your invitation to eat with you at ${this.state.user.location}!`;
     id.date = this.dateStr;
     id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
@@ -1481,7 +1591,7 @@ export default class App extends React.Component {
   newAcceptedRequestToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has accepted your request to join!`;
+    }  has accepted your request to join at ${id.diningCourt}!`;
     id.date = this.dateStr;
     id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
@@ -1934,6 +2044,31 @@ export default class App extends React.Component {
       .catch(error => console.error(`createPoll: ${error}`));
   };
 
+  setProfilePic = (imageURL) => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/setProfilePic", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userHandle: this.state.user.userHandle,
+        image: imageURL
+      })
+    })
+    .then(() => {
+      this.setState({
+        user: {
+          ...this.state.user,
+          image: imageURL
+        }
+      })
+    })
+    .catch(error => {
+      console.error(`setProfilePic: ${error}`);
+    });
+  }
+
   componentWillUnmount = () => {
     clearInterval();
   };
@@ -1975,8 +2110,11 @@ export default class App extends React.Component {
               generateDateString: this.generateDateString,
               getNextMeal: this.getNextMeal,
               getDay: this.getDay,
+              toggleLocationTracking: this.toggleLocationTracking,
+              getLocationTracking: this.getLocationTracking,
               sendInvitationAlert: this.sendInvitationAlert,
-              sendRequestToJoinAlert: this.sendRequestToJoinAlert
+              sendRequestToJoinAlert: this.sendRequestToJoinAlert,
+              setProfilePic: this.setProfilePic
             },
             globals: {
               statusMessage: this.statusMessage,

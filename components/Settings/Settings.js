@@ -3,6 +3,8 @@ import { Alert, Platform, Switch, Vibration } from "react-native";
 import { Icon, ListItem } from "react-native-elements";
 import DialogInput from "react-native-dialog-input";
 
+import { Permissions } from "expo";
+
 import { auth } from "firebase";
 
 import Screen from "../Nav/Screen";
@@ -12,8 +14,7 @@ export default class Settings extends React.Component {
     super(props);
     this.state = {
       ...this.props.screenProps.user,
-      showPasswordReset: false,
-      trackLocation: false
+      showPasswordReset: false
     };
   }
 
@@ -36,7 +37,6 @@ export default class Settings extends React.Component {
       try {
         // Send the reset email
         await auth().sendPasswordResetEmail(email);
-
         // Alert the user that the email was sent and sign them out
         Alert.alert(
           "Password Reset Email Sent",
@@ -178,14 +178,34 @@ export default class Settings extends React.Component {
     );
   };
 
+  toggleLocationTracking = async toggle => {
+    if (toggle) {
+      const { status } = await Permissions.getAsync(Permissions.LOCATION);
+      if (status !== "granted") {
+        const { status } = await Permissions.askAsync(Permissions.LOCATION);
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Error",
+            "Please allow location permissions in the settings"
+          );
+          return;
+        }
+      }
+    }
+    await this.setState({
+      locationTracking: !this.state.locationTracking
+    });
+    this.props.screenProps.functions.toggleLocationTracking(() => {
+      this.props.screenProps.functions.getLocationTracking();
+    });
+  };
+
   render() {
     // Use a different icon based on whether location tracking is on or off
-    let locationIcon = this.state.trackLocation ? (
-      <Icon name="location-on" />
-    ) : (
-      <Icon name="location-off" />
-    );
-    
+    let locationIcon = this.state.locationTracking
+      ? "location-on"
+      : "location-off";
+
     return (
       <Screen
         title="Settings"
@@ -220,17 +240,14 @@ export default class Settings extends React.Component {
         />
 
         {/* A ListItem that toggles location tracking*/}
-        {/* TODO: Implement functionality */}
         <ListItem
           title="Track Location"
           subtitle="Use location tracking"
-          leftIcon={locationIcon}
+          leftIcon={<Icon name={locationIcon} />}
           rightElement={
             <Switch
-              value={this.state.trackLocation}
-              onValueChange={() =>
-                this.setState({ trackLocation: !this.state.trackLocation })
-              }
+              value={this.state.locationTracking}
+              onValueChange={this.toggleLocationTracking}
             />
           }
           topDivider
@@ -244,7 +261,7 @@ export default class Settings extends React.Component {
           subtitle="Delete your account's ratings"
           leftIcon={<Icon name="food-off" type="material-community" />}
           onPress={() => {
-            Alert.alert("Need to implement this!");
+            this.props.navigation.navigate("TestLocation");
           }}
           topDivider
           bottomDivider

@@ -22,15 +22,17 @@ export default class Home extends React.Component {
   };
 
   updateRecommendations = () => {
-    if (
-      this.props.screenProps.functions.getNextMeal() == this.state.meal &&
-      this.props.screenProps.functions.getDay() == this.state.date
-    ) {
-      this.setState({ friends: true });
-      this.getBestDiningCourtUser(this.state.date, this.state.meal);
-    } else {
-      this.setState({ friends: false });
-      this.getBestDiningCourtUser(this.state.date, this.state.meal);
+    if (this.props.screenProps.user.status == 0) {
+      if (
+        this.props.screenProps.functions.getNextMeal() == this.state.meal &&
+        this.props.screenProps.functions.getDay() == this.state.date
+      ) {
+        this.setState({ friends: true });
+        this.getBestDiningCourtUser(this.state.date, this.state.meal);
+      } else {
+        this.setState({ friends: false });
+        this.getBestDiningCourtUser(this.state.date, this.state.meal);
+      }
     }
   };
 
