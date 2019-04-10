@@ -16,66 +16,6 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
-// TESTING: groupID: 8bTOjeUrROflY5VDvZTP
-// returns the best dining court for a group
-// PARAMETERS: groupID, date, meal, returnAll
-exports.getBestDiningCourtGroup = functions.https.onRequest(async (request, response) => {
-  var groupID = request.body.groupID;
-  var date = request.body.date;
-  var meal = request.body.meal;
-  var returnAll = request.body.returnAll;
-
-  if(groupID == null || date == null || meal == null || returnAll == null)
-    throw new Error("incorrect parameters!");
-
-  var members;
-  await db.collection("Group").doc(groupID).get().then(doc => {
-    members = doc.data().memberObjects;
-  }).catch(function(error){
-    throw new Error(error);
-  });
-
-  var bestForUsers;
-
-
-  for(var i=0; i<members.length; i++){
-    var currHandle = members[i]['userHandle'];
-    var currUser = await prediction.getUserPrediction(currHandle, date, meal, true);
-    currUser.sort((a, b) => {
-      if(a.court > b.court)
-        return 1;
-      if(a.court < b.court)
-        return -1;
-      return 0;
-    });
-
-    if(i==0){
-      bestForUsers = currUser;
-      continue;
-    }
-
-    for(var j=0; j<currUser.length; j++){
-      bestForUsers[j]['dishes'].push(currUser[j]['dishes']);
-      bestForUsers[j]['aggregate'] += currUser[j]['aggregate'];
-      bestForUsers[j]['total'] += currUser[j]['total'];
-    }
-  }
-
-  for(var i=0; i<bestForUsers.length; i++){
-    if (bestForUsers[i]['total'] == 0){
-      bestForUsers[i]['rating'] = -1;
-      continue;
-    }
-    var currRating = ((Number) (bestForUsers[i]['aggregate'])) / ((Number) (bestForUsers[i]['total']))
-    bestForUsers[i]['rating'] = currRating;
-    console.log("Rating for "+bestForUsers[i]['court']+" is: "+currRating);
-  }
-
-  bestForUsers.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
-  response.send(bestForUsers);
-
-})
-
 // returns the best dining court for a user
 // PARAMETERS: userHandle, date, meal, returnAll
 exports.getBestDiningCourtUser = functions.https.onRequest(async (request, response)=>{
