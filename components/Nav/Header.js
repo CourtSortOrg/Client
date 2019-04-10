@@ -28,14 +28,16 @@ export default class Header extends React.Component {
           }}
         >
           <View style={{ flex: 1, flexDirection: "row" }}>
-            {this.props.showNavigation != false && this.props.screenProps.user != undefined && (
-              <Avatar
-                small
-                rounded
-                title="IN"
-                onPress={() => this.props.navigation.navigate("Profile")}
-              />
-            )}
+            {this.props.showNavigation != false &&
+              this.props.screenProps.user != undefined && (
+                <Avatar
+                  source={{uri: this.props.screenProps.user ? this.props.screenProps.user.image : "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"}}
+                  small
+                  rounded
+                  title="IN"
+                  onPress={() => this.props.navigation.navigate("Profile")}
+                />
+              )}
             {this.props.backButton && (
               <TouchableOpacity
                 style={styles.button}
@@ -95,30 +97,32 @@ export default class Header extends React.Component {
                 style={styles.button}
                 onPress={() => this.props.refresh()}
               >
-                <MaterialIcons
-                  name="refresh"
-                  size={25}
-                  style={styles.icon}
-                />
+                <MaterialIcons name="refresh" size={25} style={styles.icon} />
               </TouchableOpacity>
             )}
-            {this.props.showNavigation != false && this.props.screenProps.user != undefined && (
-              <TouchableOpacity
-                onPress={() => this.props.navigation.navigate("Notifications")}
-              >
-                {this.props.active == "Notifications" ? (
+            {this.props.showNavigation != false &&
+              this.props.screenProps.user != undefined &&
+              (this.props.active == "Notifications" ? (
+                <TouchableOpacity
+                  onPress={() => this.props.navigation.goBack()}
+                >
                   <Image
                     style={styles.icon}
                     source={require("../../assets/icons/baseline-notifications-24px.png")}
                   />
-                ) : (
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() =>
+                    this.props.navigation.navigate("Notifications")
+                  }
+                >
                   <Image
                     style={styles.icon}
                     source={require("../../assets/icons/outline-notifications-24px.png")}
                   />
-                )}
-              </TouchableOpacity>
-            )}
+                </TouchableOpacity>
+              ))}
           </View>
         </View>
       </View>
@@ -134,6 +138,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     aspectRatio: 1,
-    height: 25,
+    height: 25
   }
 });

@@ -16,20 +16,6 @@ import SearchList from "../components/SearchList";
 import ListElement from "../components/ListElement";
 
 export default class ProfileList extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      list: props.list
-    };
-
-    if (this.props.selectable) {
-      this.state.list = this.props.list.map(item => {
-        return { ...item, Name: item.userHandle };
-      });
-    }
-  }
-
   filter(list, text) {
     return list.filter(item => {
       try {
@@ -41,12 +27,22 @@ export default class ProfileList extends React.Component {
     });
   }
 
-  renderElement(item) {
+  renderElement = item => {
     const statusMessage = ["Not Eating", "Available", "Busy"];
     return (
-      <View style={{ padding: 8 }}>
+      <View
+        style={{
+          padding: 8,
+          backgroundColor: item.props.index % 2 != 0 ? "#ccc" : "white"
+        }}
+      >
         <TouchableOpacity
-          style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between"
+          }}
           onPress={() => {
             if (item.props.selectable == true) {
               item.toggleSelect();
@@ -58,7 +54,7 @@ export default class ProfileList extends React.Component {
           }}
         >
           {item.props.selectable == true && (
-            <View style={{ padding: 0 }}>
+            <View>
               {item.state.selected == false ? (
                 <MaterialIcons
                   size={32}
@@ -74,29 +70,101 @@ export default class ProfileList extends React.Component {
             <Text type="header" style={{ padding: 0 }}>
               {item.props.userName}
             </Text>
-            <Text type="bold">
-              {`@${item.props.userHandle} | Status: `}
-              <Text>{statusMessage[item.props.status]}</Text>
-            </Text>
+            <Text type="bold">{`@${item.props.userHandle} `}</Text>
+            {this.props.showStatus !== false && (
+              <Text type="bold">
+                {`Status: `}
+                <Text>{statusMessage[item.props.status]}</Text>
+              </Text>
+            )}
           </View>
-          <TouchableOpacity
-            style={{ padding: 0 }}
-            onPress={() => {
-              item.props.navigation.navigate("Friend", {
-                ID: item.props.userHandle
-              });
-            }}
-          >
-            <MaterialIcons
-              size={32}
-              name="keyboard-arrow-right"
-              color="#E86515"
-            />
-          </TouchableOpacity>
+          <View>
+            <View
+              style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+            >
+              {this.props.noInvite !== true &&
+                ((item.props.location === null ||
+                  item.props.location === undefined) &&
+                this.props.screenProps.user.location !== null ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (this.props.screenProps.user.status != 1) {
+                        Alert.alert(
+                          "Status Error",
+                          "Would you like to set your status to available to invite?",
+                          [
+                            {
+                              text: "No"
+                            },
+                            {
+                              text: "Yes",
+                              onPress: () => {
+                                this.props.screenProps.functions.setStatus(1);
+                                this.props.screenProps.functions.sendInvitationAlert(
+                                  item.props
+                                );
+                              }
+                            }
+                          ]
+                        );
+                      } else {
+                        this.props.screenProps.functions.sendInvitationAlert(
+                          item.props
+                        );
+                      }
+                    }}
+                    style={{
+                      backgroundColor: "#E86515",
+                      padding: 8,
+                      borderWidth: 3,
+                      borderColor: "black",
+                      borderRadius: 8,
+                      margin: 8
+                    }}
+                  >
+                    <Text type="bold">{"Invite"}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  item.props.status === 1 && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        this.props.screenProps.functions.sendRequestToJoinAlert(
+                          item.props
+                        );
+                      }}
+                      style={{
+                        backgroundColor: "#E86515",
+                        padding: 8,
+                        borderWidth: 3,
+                        borderColor: "black",
+                        borderRadius: 8,
+                        margin: 8
+                      }}
+                    >
+                      <Text type="bold">{"Join"}</Text>
+                    </TouchableOpacity>
+                  )
+                ))}
+              <TouchableOpacity
+                style={{ padding: 0 }}
+                onPress={() => {
+                  item.props.navigation.navigate("Friend", {
+                    ID: item.props.userHandle
+                  });
+                }}
+              >
+                <MaterialIcons
+                  size={48}
+                  name="keyboard-arrow-right"
+                  color="#E86515"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
         </TouchableOpacity>
       </View>
     );
-  }
+  };
 
   render() {
     return (
@@ -106,13 +174,16 @@ export default class ProfileList extends React.Component {
         extendedSearch={this.props.extendedSearch}
         updateSelectedList={this.props.updateSelectedList}
         noElementFound={
-          <ListElement
-            type={"expandable"}
-            Name="No friends found"
-          />
+          <ListElement type={"expandable"} Name="No friends found" />
         }
         list={{
-          list: this.state.list,
+          list: this.props.selectable
+            ? this.props.list.map((item, index) => ({
+                ...item,
+                Name: item.userHandle,
+                index
+              }))
+            : this.props.list.map((item, index) => ({ ...item, index })),
           type: "element",
           subList: false,
           rank: 1,

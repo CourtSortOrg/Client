@@ -1,7 +1,7 @@
 import React from "react";
-import { TouchableOpacity } from "react-native";
+import { Alert, TouchableOpacity } from "react-native";
 import { ListItem } from "react-native-elements";
-import { ImagePicker } from "expo";
+import { ImagePicker, Permissions } from "expo";
 import DialogInput from "react-native-dialog-input";
 
 import AllergenIcon from "../main/AllergenIcon";
@@ -9,6 +9,8 @@ import AllergenIcon from "../main/AllergenIcon";
 import Card from "../components/Card";
 import VariableGrid from "../components/VariableGrid";
 import Screen from "../Nav/Screen";
+
+import firebase from "firebase";
 
 const allRestrictions = [
   {
@@ -63,7 +65,8 @@ export default class EditProfile extends React.Component {
     this.state = {
       allRestrictions: allRestrictions,
       showNameInput: false,
-      updatedUsername: this.props.screenProps.user.userName
+      updatedUsername: this.props.screenProps.user.userName,
+      image: null
     };
 
     // Loop through the user's restrictions and update the restriction grid
@@ -87,16 +90,48 @@ export default class EditProfile extends React.Component {
 
   pickProfilePicture = async () => {
     // TODO: Update Profile Picture
-
+    const { status } = await Permissions.getAsync(Permissions.CAMERA_ROLL);
+    if (status !== "granted") {
+      const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Error",
+          "Please allow storage permissions in the settings"
+        );
+        return;
+      }
+    }
     let result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [4, 4]
     });
     console.log(result);
-    // if (!result.cancelled) {
-    //   this.setState({ image: result.uri });
-    // }
+     if (!result.cancelled) {
+       this.uploadImage(result.uri);
+     }
   };
+
+  uploadImage = async (uri) => {
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function(e) {
+        console.log(e);
+        reject(new TypeError('Network request failed'));
+      };
+      xhr.responseType = 'blob';
+      xhr.open('GET', uri, true);
+      xhr.send(null);
+    });
+
+    const ref = firebase.storage().ref().child('ProfilePics/' + this.props.screenProps.user.userHandle);
+    const snapshot = await ref.put(blob);
+    const downloadURL = await ref.getDownloadURL();
+    await this.setState({ "image": downloadURL }, () => this.props.screenProps.functions.setProfilePic(this.state.image));
+    blob.close();
+  }
 
   updateUserInformation = () => {
     // TODO: Update username and profile picture

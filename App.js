@@ -1,20 +1,21 @@
 import React from "react";
-import {
-  Alert,
-  Button,
-  StyleSheet,
-  Text,
-  View,
-  AsyncStorage,
-  Picker
-} from "react-native";
+import { Alert, AsyncStorage, Picker } from "react-native";
 import {
   createSwitchNavigator,
   createStackNavigator,
   createAppContainer
 } from "react-navigation";
+
 import { Overlay } from "react-native-elements";
 import { Font } from "expo";
+import {
+  Location,
+  Notifications as Notification,
+  Permissions,
+  TaskManager
+} from "expo";
+
+import NavigationService from "./NavigationService";
 
 import Splash from "./components/auth/Splash";
 import LoginSplash from "./components/auth/LoginSplash";
@@ -22,7 +23,7 @@ import SignIn from "./components/auth/SignIn";
 import CreateAccount from "./components/auth/CreateAccount";
 import CreateThirdParty from "./components/auth/CreateThirdParty";
 import ResetPassword from "./components/auth/ResetPassword";
-import DiningCourt from "./components/main/DiningCourt";
+import DiningCourt from "./components/main/DiningInfo";
 import Friend from "./components/main/Friend";
 import Home from "./components/main/Home";
 import Map from "./components/main/Map";
@@ -37,11 +38,18 @@ import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
 import BlockedUsers from "./components/Settings/BlockedUsers";
+import TestLocation from "./components/main/TestLocation";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
+import GroupPoll from "./components/Groups/GroupPoll";
+import GroupResults from "./components/Groups/GroupResults";
+//import GroupEvent from "./components/Groups/GroupEvent";
+import GroupCreateEvent from "./components/Groups/GroupCreateEvent";
 
 import Card from "./components/components/Card";
+import List from "./components/components/List";
+import ListElement from "./components/components/ListElement";
 
 import * as firebase from "firebase";
 import config from "./config";
@@ -84,6 +92,9 @@ const SettingsNavigation = createStackNavigator(
     },
     BlockedUsers: {
       screen: BlockedUsers
+    },
+    TestLocation: {
+      screen: TestLocation
     }
   },
   {
@@ -107,6 +118,15 @@ const MainNavigation = createStackNavigator(
     },
     Group: {
       screen: Group
+    },
+    GroupCreateEvent: {
+      screen: GroupCreateEvent
+    },
+    GroupResults: {
+      screen: GroupResults
+    },
+    GroupPoll: {
+      screen: GroupPoll
     },
     GroupSettings: {
       screen: GroupSettings
@@ -163,6 +183,22 @@ const AppNavigation = createSwitchNavigator(
 
 const Navigation = createAppContainer(AppNavigation);
 
+const GEOFENCING_TASK = "geofencing";
+
+TaskManager.defineTask(GEOFENCING_TASK, async ({ data: { region } }) => {
+  const stateString = Location.GeofencingRegionState[
+    region.state
+  ].toLowerCase();
+
+  console.log(`${stateString} region ${region.identifier}`);
+
+  await Notifications.presentLocalNotificationAsync({
+    title: "Expo Geofencing",
+    body: `You're ${stateString} a region ${region.identifier}`,
+    data: region
+  });
+});
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -174,7 +210,23 @@ export default class App extends React.Component {
       user: undefined,
       meals: []
     };
+
+    // Notification.presentLocalNotificationAsync({
+    //   title: "Expo Notification",
+    //   body: "This is a test notifcation from the Notification API"
+    // });
+    //this.enableLocation();
   }
+
+  date = new Date();
+
+  dateStr = `${this.date.getFullYear()}-${
+    this.date.getMonth() + 1 < 10
+      ? `0${this.date.getMonth() + 1}`
+      : this.date.getMonth() + 1
+  }-${
+    this.date.getDate() < 10 ? `0${this.date.getDate()}` : this.date.getDate()
+  }`;
 
   busynessMessage = [
     "No one else is here!",
@@ -185,6 +237,46 @@ export default class App extends React.Component {
   ];
 
   statusMessage = ["Not Eating", "Available", "Busy"];
+
+  _getLocationAsync = async () => {
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    if (status !== "granted") {
+      Alert.alert("No Location Permissions");
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    console.log(location);
+  };
+
+  dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+  ];
+
+  mealNames = ["Breakfast", "Lunch", "Late Lunch", "Dinner"];
+
+  generateDateString = date => {
+    return `${date.getFullYear()}-${
+      date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
+    }-${date.getDate() < 10 ? `0${date.getDate()}` : date.getDate()}`;
+  };
+
+  getDay = () => {
+    return this.date.getDay();
+  };
+
+  getNextMeal = () => {
+    if (this.date.getHours() < 10) return this.mealNames[0];
+    else if (this.date.getHours() < 14) return this.mealNames[1];
+    else if (this.date.getHours() < 16 && this.date.getMinutes() < 15)
+      return this.mealNames[2];
+    else if (this.date.getHours() < 22) return this.mealNames[3];
+  };
 
   _storeData = async (key, value) => {
     try {
@@ -220,7 +312,14 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
-    this.updateUser(true);
+    this.updateUser(true, undefined, () =>
+      setInterval(() => {
+        this.updateFriends(() => console.log("updated friends"));
+        this.updateNotifications(() => console.log("updated notifictions"));
+        //update every 15 seconds.
+      }, 15000)//60000)
+    );
+
     //If the authentification state changes
     //firebase.auth().onAuthStateChanged(user => this.updateUser(user, true));
     await Font.loadAsync({
@@ -303,7 +402,17 @@ export default class App extends React.Component {
       await this.updateProfile(() => console.log("profile loaded"));
       await this.updateFriends(() => console.log("friends loaded"));
       await this.updateGroups(() => console.log("groups loaded"));
-      await this.updateRatings();
+
+      await this.resetNotifications(
+        () => console.log("notifications reset"),
+        true
+      );
+      await this.updateNotifications(
+        () => console.log("notifications loaded"),
+        false,
+        true
+      );
+      await this.updateRatings(() => console.log("ratings loaded"));
       // TODO: Get the user's ratings here
 
       await this._storeData(`user`, JSON.stringify(this.state.user));
@@ -329,8 +438,7 @@ export default class App extends React.Component {
         user: {
           ...this.state.user,
           ...data,
-          friends: [],
-          groups: []
+          notifications: this.state.user.notifications
         }
       });
     });
@@ -351,12 +459,12 @@ export default class App extends React.Component {
   };
 
   updateFriends = async callback => {
-    /*await this.setState({
+    await this.setState({
       user: {
         ...this.state.user,
         friends: []
       }
-    });*/
+    });
 
     await this.fetchFriends(
       this.state.user.userHandle,
@@ -370,12 +478,12 @@ export default class App extends React.Component {
   };
 
   updateGroups = async callback => {
-    /*await this.setState({
+    await this.setState({
       user: {
         ...this.state.user,
         groups: []
       }
-    });*/
+    });
 
     await this.fetchGroups(this.state.user.userHandle, async data => {
       await data.forEach(
@@ -383,6 +491,30 @@ export default class App extends React.Component {
       );
     });
 
+    if (callback) callback();
+  };
+
+  enableLocation = async callback => {
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    console.log("LOCATION PERMISSIONS: ", status);
+    const { coords } = await Location.getCurrentPositionAsync();
+    console.log("CURRENT LOCATION: ", coords);
+    await Location.startGeofencingAsync(GEOFENCING_TASK, [
+      {
+        identifier: "CurrLocation",
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        radius: 50
+      }
+    ]);
+    const isGeofencing = await Location.hasStartedGeofencingAsync(
+      GEOFENCING_TASK
+    );
+    console.log("IS GEOFENCING: ", isGeofencing);
+    if (callback) callback();
+  };
+
+  disableLocation = async callback => {
     if (callback) callback();
   };
 
@@ -414,43 +546,52 @@ export default class App extends React.Component {
     }
   };
 
-  updateFriend = async (id, action) => {
+  updateFriend = async (id, action, callback) => {
     // action == true, add friend.
     if (action) {
       await this.fetchUser(id, async data => {
         const arr = this.state.user.friends.filter(f => f.userHandle != id);
         arr.push(data);
-        await this.setState({
-          user: {
-            ...this.state.user,
-            friends: arr
-          }
-        });
+        await this.setState(
+          {
+            user: {
+              ...this.state.user,
+              friends: arr
+            }
+          },
+          callback
+        );
       });
     }
     // action == false, remove friend.
     else {
-      await this.setState({
-        user: {
-          ...this.state.user,
-          friends: this.state.user.friends.filter(f => f.userHandle != id)
-        }
-      });
+      await this.setState(
+        {
+          user: {
+            ...this.state.user,
+            friends: this.state.user.friends.filter(f => f.userHandle != id)
+          }
+        },
+        callback
+      );
     }
   };
 
-  updateGroup = async (id, action) => {
+  updateGroup = async (id, action, callback) => {
     // action == true, add friend.
     if (action) {
       await this.fetchGroup(id, async data => {
         const arr = this.state.user.groups.filter(g => g.groupID != id);
         arr.push({ ...data, groupID: id });
-        await this.setState({
-          user: {
-            ...this.state.user,
-            groups: arr
-          }
-        });
+        await this.setState(
+          {
+            user: {
+              ...this.state.user,
+              groups: arr
+            }
+          },
+          callback
+        );
       });
     }
     // action == false, remove group.
@@ -459,12 +600,13 @@ export default class App extends React.Component {
         user: {
           ...this.state.user,
           groups: this.state.user.groups.filter(g => g.groupID != id)
-        }
+        },
+        callback
       });
     }
   };
 
-  updateRatings = async () => {
+  updateRatings = async callback => {
     try {
       let data = await fetch(
         "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserDishRatings",
@@ -480,28 +622,15 @@ export default class App extends React.Component {
         }
       );
       let ratingData = await JSON.parse(data._bodyText);
-      await this.setState({
-        user: { ...this.state.user, ratings: ratingData }
-      });
+      await this.setState(
+        {
+          user: { ...this.state.user, ratings: ratingData }
+        },
+        callback
+      );
     } catch (error) {
       console.error(`getUserDishRatings : ${error}`);
     }
-  };
-
-  checkOut = callback => {
-    Alert.alert("Check Out", `Would you like to check out?`, [
-      {
-        text: "Cancel"
-      },
-      {
-        text: "No"
-      },
-      {
-        text: "Yes",
-        onPress: () =>
-          this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
-      }
-    ]);
   };
 
   updateDietaryRestrictions = async restrictions => {
@@ -528,13 +657,29 @@ export default class App extends React.Component {
     ).catch(error => console.error(`setDietaryRestrictions : ${error}`));
   };
 
+  checkOut = callback => {
+    Alert.alert("Check Out", `Would you like to check out?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "No"
+      },
+      {
+        text: "Yes",
+        onPress: () =>
+          this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
+      }
+    ]);
+  };
+
   checkIn = (courtId, callback) => {
     Alert.alert(
       "Check In",
       `What status would you like to have while you eat at ${courtId}?`,
       [
         {
-          text: this.statusMessage[0],
+          text: "Cancel",
           onPress: () =>
             this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
         },
@@ -561,9 +706,7 @@ export default class App extends React.Component {
 
     Alert.alert("Change Status", `What status would you like to have?`, [
       {
-        text: this.statusMessage[0],
-        onPress: () =>
-          this.checkOutOfDiningCourt(() => this.setStatus(0, callback))
+        text: "Cancel"
       },
       {
         text: this.statusMessage[1],
@@ -578,7 +721,6 @@ export default class App extends React.Component {
     ]);
   };
 
-  // status is an integer.
   setStatus = (status, callback) => {
     this.setState({ user: { ...this.state.user, status: status } });
 
@@ -651,6 +793,57 @@ export default class App extends React.Component {
     }
   };
 
+  toggleLocationTracking = async callback => {
+    try {
+      await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/toggleLocationTracking",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      if (callback) callback();
+    } catch (error) {
+      console.error(`toggleLocationTracking: ${error}`);
+    }
+  };
+
+  getLocationTracking = async callback => {
+    try {
+      let data = await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getLocationTracking",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      let response = await JSON.parse(data._bodyText);
+      await this.setState({
+        user: {
+          ...this.state.user,
+          locationTracking: response.locationTracking
+            ? response.locationTracking
+            : false
+        }
+      });
+      if (callback) callback();
+    } catch (error) {
+      console.error(`getLocationTracking: ${error}`);
+    }
+  };
+
   checkOutOfDiningCourt = callback => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/removeLocation",
@@ -686,78 +879,47 @@ export default class App extends React.Component {
         chosen: 0,
         visible: true,
         options: [
-          {
-            text: "Cancel",
-            onPress: 0
-          },
-          {
-            text: "Ice cream machine is nonfunctional.",
-            onPress: 1
-          },
-          {
-            text: "Menu is inaccurate.",
-            onPress: 1
-          },
-          {
-            text: "Inadequate utensils.",
-            onPress: 1
-          },
-          {
-            text: "All dishes are paper and plastic.",
-            onPress: 1
-          }
+          "Cancel",
+          "Ice cream machine is nonfunctional.",
+          "Menu is inaccurate.",
+          "Inadequate utensils."
         ]
       };
 
-      render() {
+      render = () => {
         return (
           <Overlay
             overlayStyle={{ padding: 0 }}
             containerStyle={{ padding: 0, margin: 0 }}
             isVisible={this.state.visible}
           >
-            <Card
-              style={{ margin: -20 }}
-              header={`Report at ${diningCourt}?`}
-              footer={[
-                {
-                  text: "Submit",
-                  onPress: () => {
-                    switch (this.state.options[this.state.chosen].onPress) {
-                      case 0:
-                        break;
-                      case 1:
-                        reportMalfunction(
-                          diningCourt,
-                          this.state.options[this.state.chosen].text
-                        );
-                        break;
-                      case 2:
-                        busynessAlert();
-                        break;
-                    }
-                    this.setState({
-                      visible: false
-                    });
-                    if (callback) callback();
-                  }
-                }
-              ]}
-            >
-              <Picker
-                selectedValue={this.state.chosen}
-                onValueChange={(itemValue, itemIndex) => {
-                  this.setState({ chosen: itemValue });
-                }}
-              >
-                {this.state.options.map((o, index) => {
-                  return <Picker.Item label={o.text} value={index} />;
-                })}
-              </Picker>
+            <Card overlay={true} header={`Report at ${diningCourt}?`}>
+              {this.state.options.map((o, index) => {
+                return (
+                  <Card
+                    footer={[
+                      {
+                        text: o,
+                        onPress: () => {
+                          if (index != 0)
+                            reportMalfunction(
+                              diningCourt,
+                              this.state.options[index]
+                            );
+                          this.setState({
+                            visible: false
+                          });
+                          if (callback) callback();
+                        }
+                      }
+                    ]}
+                  />
+                );
+              })}
             </Card>
           </Overlay>
         );
-      }
+      };
     }
 
     return <AlertPicker />;
@@ -775,43 +937,36 @@ export default class App extends React.Component {
         options: busynessMessage
       };
 
-      render() {
+      render = () => {
         return (
           <Overlay
             overlayStyle={{ padding: 0 }}
             containerStyle={{ padding: 0, margin: 0 }}
             isVisible={this.state.visible}
           >
-            <Card
-              style={{ margin: -20 }}
-              header={`Busyness at ${diningCourt}?`}
-              footer={[
-                {
-                  text: "Submit",
-                  onPress: () => {
-                    reportBusyness(diningCourt, this.state.chosen);
-                    this.setState({
-                      visible: false
-                    });
-                    if (callback) callback();
-                  }
-                }
-              ]}
-            >
-              <Picker
-                selectedValue={this.state.chosen}
-                onValueChange={(itemValue, itemIndex) => {
-                  this.setState({ chosen: itemValue });
-                }}
-              >
-                {this.state.options.map((o, index) => {
-                  return <Picker.Item label={o} value={index} />;
-                })}
-              </Picker>
+            <Card overlay={true} header={`Busyness at ${diningCourt}?`}>
+              {this.state.options.map((o, index) => {
+                return (
+                  <Card
+                    footer={[
+                      {
+                        text: o,
+                        onPress: () => {
+                          if (index != 0) reportBusyness(diningCourt, index);
+                          this.setState({
+                            visible: false
+                          });
+                          if (callback) callback();
+                        }
+                      }
+                    ]}
+                  />
+                );
+              })}
             </Card>
           </Overlay>
         );
-      }
+      };
     }
 
     return <BusynessPicker />;
@@ -998,15 +1153,6 @@ export default class App extends React.Component {
       .catch(error => console.error(`getDiningCourtRatings: ${error}`));
   };
 
-  updateNotifications = notifications => {
-    this.setState({
-      user: {
-        ...this.state.user,
-        notifications
-      }
-    });
-  };
-
   rateDiningCourt = (diningCourt, rating) => {
     fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/rateDiningCourt",
@@ -1030,7 +1176,7 @@ export default class App extends React.Component {
       this.setState({ mealsLoaded: true });
       return;
     }
-    let date = new Date();
+    let date = this.date;
     date.setDate(date.getDate() + from);
     const dateStr = `${date.getFullYear()}-${
       date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
@@ -1069,10 +1215,865 @@ export default class App extends React.Component {
       .catch(error => console.error(`fetchMeals: ${error}`));
   };
 
-  render() {
-    /*console.log("render:")
-    console.log(this.state.user);
-    console.log(":render")*/
+  changeGroupName = (groupID, groupName) => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/changeGroupName",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          groupID: groupID,
+          groupName: groupName
+        })
+      }
+    )
+      .then(data => {
+        let g = this.state.user.groups.slice();
+        g.find(g => g.groupID === groupID).groupName = groupName;
+        this.setState({
+          user: {
+            ...this.state.user,
+            groups: g
+          }
+        });
+        console.log(`Update group name to ${groupName}`);
+      })
+      .catch(error => console.error(`changeGroupName: ${error}`));
+  };
+
+  resetNotifications = async callback => {
+    let n = this.state.user.notifications;
+    this.setState(
+      {
+        user: {
+          ...this.state.user,
+          notifications: []
+        }
+      },
+      () => {
+        if (n != undefined) {
+          let arr = [];
+          n.forEach(list =>
+            list.items.forEach(e => this.parseNotifications(arr, e.type, e))
+          );
+          this.addNotifications(arr, callback);
+        } else {
+          if (callback) callback();
+        }
+      }
+    );
+  };
+
+  updateNotifications = async (callback, alert, noStore) => {
+    this.getNotifications(data => {
+      let arr = [];
+      data.forEach((e, index) => this.parseNotifications(arr, e.type, e.id));
+      this.addNotifications(arr, () => {
+        if (alert !== false) arr.forEach(i => this.notificationAlert(i));
+        if (noStore !== true && arr.length > 0) {
+          console.log("storing ...");
+          console.log(this.state.user.notifications);
+          this._storeData("user", JSON.stringify(this.state.user));
+        }
+        if (callback) callback();
+      });
+    });
+  };
+
+  getNotifications = async callback => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/getNotifications",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle
+        })
+      }
+    )
+      .then(data => {
+        this.handleData(`getNotifications`, data, callback);
+      })
+      .catch(error => console.error(`getNotifications: ${error}`));
+  };
+
+  parseNotifications = (notifications, type, id, callback) => {
+    let obj = undefined;
+    console.log(id);
+    switch (type) {
+      case "new friend":
+        obj = this.newFriendNotification(id);
+        break;
+      case "new friend request":
+        obj = this.newFriendRequestNotification(id);
+        break;
+      case "unfriended":
+        obj = this.newUnfriendNotification(id);
+        break;
+      case "blocked":
+        obj = this.newBlockedNotification(id);
+        break;
+      case "invited to group":
+        obj = this.newGroupInvitationNotification(id);
+        break;
+      case "user joined group":
+        obj = this.newGroupJoinNotification(id);
+        break;
+      case "user left group":
+        obj = this.newGroupLeaveNotification(id);
+        break;
+      case "newPoll":
+        obj = this.newNewPollNotification(id);
+        break;
+      case "closePoll":
+        obj = this.newClosePollNotification(id);
+        break;
+      case "inviteToEat":
+        obj = this.newInviteToEatNotification(id);
+        break;
+      case "requestToEat":
+        obj = this.newRequestToEatNotification(id);
+        break;
+      case "joinedDiningCourt":
+        obj = this.newJoinedDiningCourtNotification(id);
+        break;
+      case "eventStart":
+        obj = this.newEventStartNotification(id);
+        break;
+      case "acceptedInvitationToEat":
+        obj = this.newAcceptedInvitationToEat(id);
+        break;
+      case "deniedInvitationToEat":
+        obj = this.newDeniedInvitationToEat(id);
+        break;
+      case "acceptedRequestToEat":
+        obj = this.newAcceptedRequestToEat(id);
+        break;
+      case "deniedRequestToEat":
+        obj = this.newDeniedRequestToEat(id);
+        break;
+
+      default:
+        console.error(`invalid notification type: ${type}\nid: ${id}`);
+    }
+
+    if (obj) {
+      notifications.push({
+        type: type,
+        date: this.dateStr,
+        ...id,
+        ...obj,
+      });
+    }
+  };
+
+  addNotifications = (arr, callback) => {
+    let n = [];
+    if (this.state.user.notifications)
+      n = this.state.user.notifications.slice();
+
+    arr.forEach(item => this.addNotification(n, item));
+
+    this.setState(
+      {
+        user: {
+          ...this.state.user,
+          notifications: n
+        }
+      },
+      callback
+    );
+  };
+
+  addNotification = (arr, item) => {
+    let list = arr.find(l => l.date === item.date);
+    if (list == undefined) {
+      list = {
+        date: item.date,
+        Name: item.date,
+        items: []
+      };
+      arr.push(list);
+    } else {
+      list.items = list.items.slice();
+    }
+
+    list.items.push(item);
+  };
+
+  removeNotification = async id => {
+    this.setState(
+      {
+        user: {
+          ...this.state.user,
+          notifications: this.state.user.notifications
+            .map(list =>
+              list.date == id.date
+                ? {
+                    ...list,
+                    items: list.items.filter(item => item.Name != id.Name)
+                  }
+                : list
+            )
+            .filter(list => list.items.length != 0)
+        }
+      },
+      () => {
+        console.log("storing ...");
+        console.log(this.state.user.notifications);
+        this._storeData("user", JSON.stringify(this.state.user));
+      }
+    );
+  };
+
+  newFriendRequestNotification = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  would like to become friends`;
+    id.id = id.friendHandle;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.friendAlert(id) };
+    return obj;
+  };
+
+  newFriendNotification = id => {
+    this.updateFriend(id.friendHandle, true);
+
+    id.Name = `${id.friendName} @${
+      id.friendHandle
+    } accepted your friend request.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newUnfriendNotification = id => {
+    this.updateFriend(id.friendHandle, false);
+
+    id.Name = `${id.friendName} @${id.friendHandle} unfriended you.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newBlockedNotification = id => {
+    this.updateFriend(id.friendHandle, false);
+
+    id.Name = `${id.userName} @${id.userHandle} blocked you.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newGroupJoinNotification = id => {
+    this.updateGroup(id.groupID, true);
+
+    id.Name = `@${id.userHandle} joined the group: ${id.groupName}.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newGroupLeaveNotification = id => {
+    this.updateGroup(id.groupID, true);
+
+    id.Name = `@${id.userHandle} has left the group: ${id.groupName}.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newGroupInvitationNotification = id => {
+    id.Name = `@${id.friendHandle} invited you to join ${id.groupName}`;
+    id.date = this.dateStr;
+    id.id = id.groupID;
+
+    let obj = { ...id, onPress: () => this.groupAlert(id) };
+    return obj;
+  };
+
+  newNewPollNotification = id => {
+    id.Name = `@${id.userHandle} has created a new event in ${
+      id.groupName
+    }.\nVote on a time! The poll will close an hour before dining courts begin serving that meal`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.voteGroupAlert(id) };
+    return obj;
+  };
+
+  newClosePollNotification = id => {
+    let d = new Date(id.time);
+    id.Name = `Members of ${id.groupName} have chosen to eat at ${
+      id.diningCourt
+    } for ${id.meal} at ${
+      d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
+    }:${d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()}!`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newInviteToEatNotification = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has invited you to eat with them at ${id.diningCourt} for ${id.time}!
+    \nWould you like to join?`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.respondToInvitationAlert(id) };
+    return obj;
+  };
+
+  newRequestToEatNotification = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has asked to join you!\nAre you available?`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.respondToRequestAlert(id) };
+    return obj;
+  };
+
+  newJoinedDiningCourtNotification = id => {
+    this.updateFriend(id.friendHandle, true);
+
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has checked into your dining court!`;
+    id.date = this.dateStr;
+    let obj = { ...id, onPress: () => this.requestToJoinAlert(id) };
+    return obj;
+  };
+
+  newEventStartNotification = id => {
+    let d = new Date(id.time);
+    id.Name = `${id.groupName}'s event on ${id.date} at ${id.diningCourt} in ${
+      d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
+    }:${
+      d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
+    } is about to start.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newAcceptedInvitationToEat = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has accepted your invitation to eat with you at ${this.state.user.location}!`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newDeniedInvitationToEat = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  is not available to join you.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newAcceptedRequestToEat = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has accepted your request to join at ${id.diningCourt}!`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newDeniedRequestToEat = id => {
+    id.Name = `${id.friendName}  @${
+      id.friendHandle
+    }  has is not available for you to join.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  notificationAlert = (id, callback) => {
+    if (id.func === "dismiss")
+      Alert.alert("Notification", id.Name, [
+        {
+          text: "Dismiss",
+          onPress: () => this.removeNotification(id)
+        }
+      ]);
+    else
+      Alert.alert("Notification", id.Name, [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "Dismiss",
+          onPress: () => this.removeNotification(id)
+        },
+        {
+          text: "Handle",
+          onPress: () => id.onPress()
+        }
+      ]);
+  };
+
+  dismissNotification = id => {
+    Alert.alert(`Dismiss notification?`, undefined, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "No"
+      },
+      {
+        text: "Yes",
+        onPress: () => this.removeNotification(id)
+      }
+    ]);
+  };
+
+  friendAlert = id => {
+    Alert.alert("Friend Request", `Accept request from @${id.friendHandle}?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "Deny",
+        onPress: () => this.denyFriendRequest(id)
+      },
+      {
+        text: "Accept",
+        onPress: () => this.acceptFriendRequest(id)
+      }
+    ]);
+  };
+
+  groupAlert = id => {
+    Alert.alert(
+      "Group Invite",
+      `Join group ${id.groupName} made by @${id.friendHandle}?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "Deny",
+          onPress: () => this.denyGroupInvitation(id)
+        },
+        {
+          text: "Accept",
+          onPress: () => this.acceptGroupInvitation(id)
+        }
+      ]
+    );
+  };
+
+  sendInvitationAlert = friend => {
+    Alert.alert(
+      "Send invitation",
+      `Would you like to invite ${friend.userName}  @${
+        friend.userHandle
+      }  to join you?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "No"
+        },
+        {
+          text: "Yes",
+          onPress: () => this.inviteToEat(friend.userHandle)
+        }
+      ]
+    );
+  };
+
+  sendRequestToJoinAlert = friend => {
+    Alert.alert(
+      "Send request to join",
+      `Would you like to ask ${friend.userName}  @${
+        friend.userHandle
+      }  if you could join?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "No"
+        },
+        {
+          text: "Yes",
+          onPress: () => this.requestToEat(friend.userHandle)
+        }
+      ]
+    );
+  };
+
+  requestToJoinAlert = id => {
+    Alert.alert(
+      "Request to Join",
+      `Would you like to ask to join ${id.friendName}  @${id.friendHandle}?`,
+      [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "No",
+          onPress: () => this.removeNotification(id)
+        },
+        {
+          text: "Yes",
+          onPress: () => this.requestToEat(id.friendHandle)
+        }
+      ]
+    );
+  };
+
+  respondToRequestAlert = id => {
+    Alert.alert(
+      "Respond",
+      `Would you like to join ${id.friendName}  @${id.friendHandle}?`,
+      [
+        {
+          text: "No, I'm leaving soon",
+          onPress: () => this.requestToEatResponse(id, false)
+        },
+        {
+          text: "No, I'm busy",
+          onPress: () => this.requestToEatResponse(id, false)
+        },
+        {
+          text: "Yes, I would like to",
+          onPress: () => this.requestToEatResponse(id, true)
+        }
+      ]
+    );
+  };
+
+  respondToInvitationAlert = id => {
+    console.log(
+      "update to be different from request. Include time and location."
+    );
+    Alert.alert(
+      "Respond",
+      `Would you like to join ${id.friendName}  @${id.friendHandle}  ?`,
+      [
+        {
+          text: "No, I've already eaten.",
+          onPress: () => this.inviteToEatResponse(id, false)
+        },
+        {
+          text: "No, I'm not eating there.",
+          onPress: () => this.inviteToEatResponse(id, false)
+        },
+        {
+          text: "Yes, I would like to",
+          onPress: () => this.inviteToEatResponse(id, true)
+        }
+      ]
+    );
+  };
+
+  voteGroupAlert = id => {
+    this.updateGroup(id.groupID, true);
+
+    Alert.alert(`Group Poll in ${id.groupName}`, `Would you like to vote?`, [
+      {
+        text: "Cancel"
+      },
+      {
+        text: "No",
+        onPress: () => this.removeNotification(id)
+      },
+      {
+        text: "Yes",
+        onPress: () => this.voteGroup(id)
+      }
+    ]);
+  };
+
+  acceptFriendRequest = id => {
+    this.removeNotification(id);
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptFriendRequest",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle: id.friendHandle
+        })
+      }
+    )
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+          this.updateFriend(id.friendHandle, true);
+        } catch (error) {
+          console.error(`acceptFriendRequest: ${error} -- ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`acceptFriendRequest: ${error}`));
+  };
+
+  denyFriendRequest = id => {
+    this.removeNotification(id);
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/denyFriendRequest",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle: id.friendHandle
+        })
+      }
+    )
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+        } catch (error) {
+          console.error(`denyFriendRequest: ${error}: ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`denyFriendRequest: ${error}`));
+  };
+
+  acceptGroupInvitation = id => {
+    this.removeNotification(id);
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/acceptGroupInvitation",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle: id.friendHandle,
+          groupID: id.groupID
+        })
+      }
+    )
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+          this.updateGroup(id.groupID, true);
+        } catch (error) {
+          console.error(`acceptGroupInvitation: ${error}- ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`acceptGroupInvitation: ${error}`));
+  };
+
+  denyGroupInvitation = id => {
+    this.removeNotification(id);
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/denyGroupInvitation",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle: id.friendHandle,
+          groupID: id.groupID
+        })
+      }
+    )
+      .then(data => {
+        try {
+          //JSON.parse(data._bodyText);
+        } catch (error) {
+          console.error(`denyGroupInvitation: ${error}- ${data._bodyText}`);
+        }
+      })
+      .catch(error => console.error(`denyGroupInvitation: ${error}`));
+  };
+
+  requestToEat = friendHandle => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/requestToEat",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle
+        })
+      }
+    ).catch(error => console.error(`requestToEat: ${error}`));
+  };
+
+  inviteToEat = friendHandle => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/inviteToEat",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandles: [friendHandle],
+          diningCourt: this.state.user.location
+          //default to checkin, otherwise prompt.
+        })
+      }
+    ).catch(error => console.error(`inviteToEat: ${error}`));
+  };
+
+  inviteToEatResponse = (id, accepted) => {
+    this.removeNotification(id);
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/inviteToEatResponse",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle: id.friendHandle,
+          accepted
+        })
+      }
+    ).catch(error => console.error(`inviteToEatResponse: ${error}`));
+  };
+
+  requestToEatResponse = (id, accepted) => {
+    this.removeNotification(id);
+
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/requestToEatResponse",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
+          friendHandle: id.friendHandle,
+          accepted
+        })
+      }
+    ).catch(error => console.error(`requestToEatResponse: ${error}`));
+  };
+
+  voteGroup = id => {
+    this.removeNotification(id);
+
+    NavigationService.navigate("GroupPoll", {
+      ID: id.groupID,
+      MESSAGEID: id.messageID
+    });
+  };
+
+  vote = (choiceIndex, groupID, messageID) => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/vote", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userHandle: this.state.user.userHandle,
+        choiceIndex,
+        groupID,
+        messageID
+      })
+    }).catch(error => console.error(`vote: ${error}`));
+  };
+
+  createPoll = (expirationTime, groupID, timeOptions, meal, callback) => {
+    //userHandle, expirationTime, groupID, timeOptions, meal
+    // time options is a list of date objects.
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/createPoll", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userHandle: this.state.user.userHandle,
+        expirationTime,
+        groupID,
+        timeOptions,
+        meal
+      })
+    })
+      .then(data => {
+        if (callback) callback(JSON.parse(data._bodyText).messageID);
+      })
+      .catch(error => console.error(`createPoll: ${error}`));
+  };
+
+  setProfilePic = (imageURL) => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/setProfilePic", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userHandle: this.state.user.userHandle,
+        image: imageURL
+      })
+    })
+    .then(() => {
+      this.setState({
+        user: {
+          ...this.state.user,
+          image: imageURL
+        }
+      })
+    })
+    .catch(error => {
+      console.error(`setProfilePic: ${error}`);
+    });
+  }
+
+  componentWillUnmount = () => {
+    clearInterval();
+  };
+
+  render = () => {
     if (
       this.state.mealsLoaded &&
       this.state.fontLoaded &&
@@ -1081,6 +2082,9 @@ export default class App extends React.Component {
     ) {
       return (
         <Navigation
+          ref={navigatorRef =>
+            NavigationService.setTopLevelNavigator(navigatorRef)
+          }
           screenProps={{
             functions: {
               fetchFriend: this.fetchFriend,
@@ -1098,12 +2102,25 @@ export default class App extends React.Component {
               busynessAlert: this.busynessAlert,
               rateDiningCourt: this.rateDiningCourt,
               updateRatings: this.updateRatings,
+              changeGroupName: this.changeGroupName,
               updateBlockedUsers: this.updateBlockedUsers,
-              unblockUser: this.unblockUser
+              unblockUser: this.unblockUser,
+              createPoll: this.createPoll,
+              vote: this.vote,
+              generateDateString: this.generateDateString,
+              getNextMeal: this.getNextMeal,
+              getDay: this.getDay,
+              toggleLocationTracking: this.toggleLocationTracking,
+              getLocationTracking: this.getLocationTracking,
+              sendInvitationAlert: this.sendInvitationAlert,
+              sendRequestToJoinAlert: this.sendRequestToJoinAlert,
+              setProfilePic: this.setProfilePic
             },
             globals: {
               statusMessage: this.statusMessage,
-              busynessMessage: this.busynessMessage
+              busynessMessage: this.busynessMessage,
+              dayNames: this.dayNames,
+              mealNames: this.mealNames
             },
             user: this.state.user,
             meals: this.state.meals
@@ -1112,5 +2129,5 @@ export default class App extends React.Component {
       );
     }
     return <Splash />;
-  }
+  };
 }

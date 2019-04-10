@@ -140,10 +140,11 @@ export default class CheckIn extends React.Component {
 
           <ProfileList
             navigation={this.props.navigation}
+            screenProps={this.props.screenProps}
             list={this.props.screenProps.user.friends.filter(
               f =>
                 f.location == this.props.screenProps.user.location &&
-                f.status == 0
+                f.status == 1
             )}
           />
         </View>

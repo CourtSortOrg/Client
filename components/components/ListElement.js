@@ -49,7 +49,7 @@ export default class ListElement extends React.Component {
         <TouchableOpacity
           style={this.styles.dropDownHeader}
           onPress={() => {
-            if (this.props.onPress) this.props.onPress();
+            if (this.props.onPress) this.props.nPress();
             this.toggleExpansion();
           }}
         >
@@ -127,11 +127,11 @@ export default class ListElement extends React.Component {
     return (
       <View
         style={
-          this.props.id % 2 == 0
+          this.props.id % 2 != 0
             ? {
                 ...this.styles.listElement,
                 ...this.styles.element,
-                ...this.styles.elementShaded
+                ...this.styles.shaded
               }
             : { ...this.styles.listElement, ...this.styles.element }
         }
@@ -150,13 +150,21 @@ export default class ListElement extends React.Component {
             (this.state.selected == false ? (
               <MaterialIcons
                 size={32}
-                name="check-box-outline-blank"
+                name={
+                  this.props.radio
+                    ? "radio-button-unchecked"
+                    : "check-box-outline-blank"
+                }
                 color="#E86515"
               />
             ) : (
-              <MaterialIcons size={32} name="check-box" color="#E86515" />
+              <MaterialIcons
+                size={32}
+                name={this.props.radio ? "radio-button-checked" : "check-box"}
+                color="#E86515"
+              />
             ))}
-          <Text type="subHeader">{this.props.Name}</Text>
+          <Text>{this.props.Name}</Text>
         </TouchableOpacity>
         {this.viewMore()}
       </View>
@@ -172,11 +180,18 @@ export default class ListElement extends React.Component {
         this.props.selectFunction(
           this.props,
           this.props.Name,
-          this.state.selected
-        )
+          this.state.selected,
+          this.deselect
+        );
       }
     );
-  }
+  };
+
+  deselect = () => {
+    this.setState({
+      selected: false
+    });
+  };
 
   render() {
     if (this.props.renderElement) {
@@ -224,16 +239,18 @@ export default class ListElement extends React.Component {
       backgroundColor: "white"
     },
     dropDownHeader: {
+      padding: 8,
       alignItems: "center",
       flexDirection: "row"
     },
     element: {
+      padding: 8,
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center"
     },
-    elementShaded: {
-      backgroundColor: "#ddd"
+    shaded: {
+      backgroundColor: "#ccc"
     }
   });
 }
