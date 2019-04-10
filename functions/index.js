@@ -17,7 +17,7 @@ exports.test = functions.https.onRequest((request, response) => {
 });
 
 async function getGroupPrediction(groupID, date, meal, returnAll){
-      
+
   var members;
   await db.collection("Group").doc(groupID).get().then(doc => {
     members = doc.data().memberObjects;
@@ -3122,10 +3122,10 @@ exports.inviteToEatResponse = functions.https.onRequest(async (request, response
 
   var notification;
   if(accepted){
-    notification = {type: "acceptedInvitationToEat", id: {friendHandle: userHandle, friendName: userName}};
+    notification = {type: "acceptedInvitationToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
   }
   else{
-    notification = {type: "deniedInvitationToEat", id: {friendHandle: userHandle, friendName: userName}};
+    notification = {type: "deniedInvitationToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
   }
 
   userCol.doc(friendHandle).update({
@@ -3164,10 +3164,10 @@ exports.requestToEatResponse = functions.https.onRequest(async (request, respons
 
   var notification;
   if(accepted){
-    notification = {type: "acceptedRequestToEat", id: {friendHandle: userHandle, friendName: userName}};
+    notification = {type: "acceptedRequestToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
   }
   else{
-    notification = {type: "deniedRequestToEat", id: {friendHandle: userHandle, friendName: userName}};
+    notification = {type: "deniedRequestToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
   }
 
   userCol.doc(friendHandle).update({
