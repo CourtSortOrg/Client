@@ -6,6 +6,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import Screen from "../Nav/Screen";
 import List from "../components/List";
+import ListElement from "../components/ListElement";
 import Text from "../components/Text";
 
 export default class Messages extends React.Component {

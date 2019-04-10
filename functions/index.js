@@ -166,8 +166,9 @@ exports.checkInLocation = functions.https.onRequest((request, response) => {
             var friendRef = db.collection("User").doc(friendHandle);
             await friendRef.get().then(async function(doc) {
               var friendLocation = doc.data().location;
+              var friendStatus = doc.data().status;
               console.log("friendHandle: " + friendHandle + " friendLocation: " + friendLocation);
-              if (friendLocation == location) {
+              if (friendLocation == location && friendStatus == 1) {
                 console.log("MATCH");
                 buddiesArr.push(friendObj);
                 await friendRef.update({
@@ -467,6 +468,23 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
       mm = '0' + mm;
     }
     date = yyyy+"-"+mm+"-"+dd;
+
+    //remove old dates
+    var delDate = new Date();
+    delDate.setDate(delDate.getDate() - 2);
+
+    var dd = delDate.getDate();
+    var mm = delDate.getMonth() + 1; //January is 0!
+
+    var yyyy = delDate.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    var delFormat = yyyy+"-"+mm+"-"+dd;
+    await db.collection("DateTimes").doc(delFormat).delete();
   }
 
   const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
@@ -714,6 +732,7 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
 exports.populateDishes = functions.https.onRequest(async (request, response)=>{
   var locations = ["hillenbrand", "ford", "wiley", "windsor", "earhart"]
   var date = request.body.date;
+  var userInput = true;
 
   if(date == null){
     var today = new Date();
@@ -729,6 +748,8 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
       mm = '0' + mm;
     }
     date = yyyy+"-"+mm+"-"+dd;
+
+    userInput = false;
   }
 
 
@@ -794,6 +815,26 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
     data.push(await getData(url, locations[i]));
   }
   var updated = await updateDatabase(data);
+
+  if(!userInput){
+    //remove old dates
+    var delDate = new Date();
+    delDate.setDate(delDate.getDate() - 2);
+
+    var dd = delDate.getDate();
+    var mm = delDate.getMonth() + 1; //January is 0!
+
+    var yyyy = delDate.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    var delFormat = yyyy+"-"+mm+"-"+dd;
+    await db.collection("DateDishes").doc(delFormat).delete();
+  }
+
   console.log("done");
   response.send("Finished Population for "+date);
 });
@@ -1258,6 +1299,7 @@ exports.addUserToDatabase = functions.https.onRequest((request, response) => {
       status: 0,
       notifications: [],
       events: [],
+      locationTracking: false,
       diningCourtTimes: {
         "Earhart": {
           "avgTime":0,

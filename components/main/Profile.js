@@ -138,6 +138,7 @@ export default class Profile extends React.Component {
             size={28}
             style={styles.settingsIcon}
           />
+
           <View style={{ padding: 8 }}>
             <Text type="bold">
               Status:{" "}

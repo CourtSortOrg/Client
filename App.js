@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  Alert,
-  Button,
-  StyleSheet,
-  Text,
-  View,
-  AsyncStorage,
-  Picker
-} from "react-native";
+import { Alert, AsyncStorage, Picker } from "react-native";
 import {
   createSwitchNavigator,
   createStackNavigator,
@@ -16,6 +8,12 @@ import {
 
 import { Overlay } from "react-native-elements";
 import { Font } from "expo";
+import {
+  Location,
+  Notifications as Notification,
+  Permissions,
+  TaskManager
+} from "expo";
 
 import NavigationService from "./NavigationService";
 
@@ -25,7 +23,7 @@ import SignIn from "./components/auth/SignIn";
 import CreateAccount from "./components/auth/CreateAccount";
 import CreateThirdParty from "./components/auth/CreateThirdParty";
 import ResetPassword from "./components/auth/ResetPassword";
-import DiningCourt from "./components/main/DiningCourt";
+import DiningCourt from "./components/main/DiningInfo";
 import Friend from "./components/main/Friend";
 import Home from "./components/main/Home";
 import Map from "./components/main/Map";
@@ -40,6 +38,7 @@ import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
 import BlockedUsers from "./components/Settings/BlockedUsers";
+import TestLocation from "./components/main/TestLocation";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
@@ -93,6 +92,9 @@ const SettingsNavigation = createStackNavigator(
     },
     BlockedUsers: {
       screen: BlockedUsers
+    },
+    TestLocation: {
+      screen: TestLocation
     }
   },
   {
@@ -181,6 +183,22 @@ const AppNavigation = createSwitchNavigator(
 
 const Navigation = createAppContainer(AppNavigation);
 
+const GEOFENCING_TASK = "geofencing";
+
+TaskManager.defineTask(GEOFENCING_TASK, async ({ data: { region } }) => {
+  const stateString = Location.GeofencingRegionState[
+    region.state
+  ].toLowerCase();
+
+  console.log(`${stateString} region ${region.identifier}`);
+
+  await Notifications.presentLocalNotificationAsync({
+    title: "Expo Geofencing",
+    body: `You're ${stateString} a region ${region.identifier}`,
+    data: region
+  });
+});
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -192,6 +210,12 @@ export default class App extends React.Component {
       user: undefined,
       meals: []
     };
+
+    // Notification.presentLocalNotificationAsync({
+    //   title: "Expo Notification",
+    //   body: "This is a test notifcation from the Notification API"
+    // });
+    //this.enableLocation();
   }
 
   date = new Date();
@@ -213,6 +237,16 @@ export default class App extends React.Component {
   ];
 
   statusMessage = ["Not Eating", "Available", "Busy"];
+
+  _getLocationAsync = async () => {
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    if (status !== "granted") {
+      Alert.alert("No Location Permissions");
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    console.log(location);
+  };
 
   dayNames = [
     "Sunday",
@@ -278,7 +312,14 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
-    this.updateUser(true);
+    this.updateUser(true, undefined, () =>
+      setInterval(() => {
+        this.updateFriends(() => console.log("updated friends"));
+        this.updateNotifications(() => console.log("updated notifictions"));
+        //update every 15 seconds.
+      }, 15000)//60000)
+    );
+
     //If the authentification state changes
     //firebase.auth().onAuthStateChanged(user => this.updateUser(user, true));
     await Font.loadAsync({
@@ -361,6 +402,7 @@ export default class App extends React.Component {
       await this.updateProfile(() => console.log("profile loaded"));
       await this.updateFriends(() => console.log("friends loaded"));
       await this.updateGroups(() => console.log("groups loaded"));
+
       await this.resetNotifications(
         () => console.log("notifications reset"),
         true
@@ -452,6 +494,30 @@ export default class App extends React.Component {
     if (callback) callback();
   };
 
+  enableLocation = async callback => {
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    console.log("LOCATION PERMISSIONS: ", status);
+    const { coords } = await Location.getCurrentPositionAsync();
+    console.log("CURRENT LOCATION: ", coords);
+    await Location.startGeofencingAsync(GEOFENCING_TASK, [
+      {
+        identifier: "CurrLocation",
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        radius: 50
+      }
+    ]);
+    const isGeofencing = await Location.hasStartedGeofencingAsync(
+      GEOFENCING_TASK
+    );
+    console.log("IS GEOFENCING: ", isGeofencing);
+    if (callback) callback();
+  };
+
+  disableLocation = async callback => {
+    if (callback) callback();
+  };
+
   updateBlockedUsers = async callback => {
     try {
       let data = await fetch(
@@ -480,28 +546,34 @@ export default class App extends React.Component {
     }
   };
 
-  updateFriend = async (id, action) => {
+  updateFriend = async (id, action, callback) => {
     // action == true, add friend.
     if (action) {
       await this.fetchUser(id, async data => {
         const arr = this.state.user.friends.filter(f => f.userHandle != id);
         arr.push(data);
-        await this.setState({
-          user: {
-            ...this.state.user,
-            friends: arr
-          }
-        });
+        await this.setState(
+          {
+            user: {
+              ...this.state.user,
+              friends: arr
+            }
+          },
+          callback
+        );
       });
     }
     // action == false, remove friend.
     else {
-      await this.setState({
-        user: {
-          ...this.state.user,
-          friends: this.state.user.friends.filter(f => f.userHandle != id)
-        }
-      });
+      await this.setState(
+        {
+          user: {
+            ...this.state.user,
+            friends: this.state.user.friends.filter(f => f.userHandle != id)
+          }
+        },
+        callback
+      );
     }
   };
 
@@ -718,6 +790,57 @@ export default class App extends React.Component {
     } catch (error) {
       console.error(`removeLocation: ${error}`);
       if (callback) callback();
+    }
+  };
+
+  toggleLocationTracking = async callback => {
+    try {
+      await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/toggleLocationTracking",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      if (callback) callback();
+    } catch (error) {
+      console.error(`toggleLocationTracking: ${error}`);
+    }
+  };
+
+  getLocationTracking = async callback => {
+    try {
+      let data = await fetch(
+        "https://us-central1-courtsort-e1100.cloudfunctions.net/getLocationTracking",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userHandle: this.state.user.userHandle
+          })
+        }
+      );
+      let response = await JSON.parse(data._bodyText);
+      await this.setState({
+        user: {
+          ...this.state.user,
+          locationTracking: response.locationTracking
+            ? response.locationTracking
+            : false
+        }
+      });
+      if (callback) callback();
+    } catch (error) {
+      console.error(`getLocationTracking: ${error}`);
     }
   };
 
@@ -1242,10 +1365,10 @@ export default class App extends React.Component {
 
     if (obj) {
       notifications.push({
+        type: type,
+        date: this.dateStr,
         ...id,
         ...obj,
-        type: type,
-        date: this.dateStr
       });
     }
   };
@@ -1272,8 +1395,8 @@ export default class App extends React.Component {
     let list = arr.find(l => l.date === item.date);
     if (list == undefined) {
       list = {
-        date: this.dateStr,
-        Name: this.dateStr,
+        date: item.date,
+        Name: item.date,
         items: []
       };
       arr.push(list);
@@ -1326,6 +1449,7 @@ export default class App extends React.Component {
       id.friendHandle
     } accepted your friend request.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1335,6 +1459,7 @@ export default class App extends React.Component {
 
     id.Name = `${id.friendName} @${id.friendHandle} unfriended you.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1344,6 +1469,7 @@ export default class App extends React.Component {
 
     id.Name = `${id.userName} @${id.userHandle} blocked you.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1353,6 +1479,7 @@ export default class App extends React.Component {
 
     id.Name = `@${id.userHandle} joined the group: ${id.groupName}.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1362,6 +1489,7 @@ export default class App extends React.Component {
 
     id.Name = `@${id.userHandle} has left the group: ${id.groupName}.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1385,7 +1513,6 @@ export default class App extends React.Component {
   };
 
   newClosePollNotification = id => {
-    console.log(id);
     let d = new Date(id.time);
     id.Name = `Members of ${id.groupName} have chosen to eat at ${
       id.diningCourt
@@ -1393,30 +1520,33 @@ export default class App extends React.Component {
       d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
     }:${d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()}!`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
 
   newInviteToEatNotification = id => {
     id.Name = `${id.friendName}  @${
-      id.userHandle
+      id.friendHandle
     }  has invited you to eat with them at ${id.diningCourt} for ${id.time}!
     \nWould you like to join?`;
     id.date = this.dateStr;
-    let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
+    let obj = { ...id, onPress: () => this.respondToInvitationAlert(id) };
     return obj;
   };
 
   newRequestToEatNotification = id => {
     id.Name = `${id.friendName}  @${
-      id.userHandle
+      id.friendHandle
     }  has asked to join you!\nAre you available?`;
     id.date = this.dateStr;
-    let obj = { ...id, onPress: () => this.respondToJoinAlert(id) };
+    let obj = { ...id, onPress: () => this.respondToRequestAlert(id) };
     return obj;
   };
 
   newJoinedDiningCourtNotification = id => {
+    this.updateFriend(id.friendHandle, true);
+
     id.Name = `${id.friendName}  @${
       id.friendHandle
     }  has checked into your dining court!`;
@@ -1433,6 +1563,7 @@ export default class App extends React.Component {
       d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
     } is about to start.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1440,8 +1571,9 @@ export default class App extends React.Component {
   newAcceptedInvitationToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has accepted your invitation to eat!`;
+    }  has accepted your invitation to eat with you at ${this.state.user.location}!`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1451,6 +1583,7 @@ export default class App extends React.Component {
       id.friendHandle
     }  is not available to join you.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1458,8 +1591,9 @@ export default class App extends React.Component {
   newAcceptedRequestToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has accepted your request to join!`;
+    }  has accepted your request to join at ${id.diningCourt}!`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
@@ -1469,24 +1603,33 @@ export default class App extends React.Component {
       id.friendHandle
     }  has is not available for you to join.`;
     id.date = this.dateStr;
+    id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
     return obj;
   };
 
   notificationAlert = (id, callback) => {
-    Alert.alert("Notification", id.Name, [
-      {
-        text: "Cancel"
-      },
-      {
-        text: "Dismiss",
-        onPress: () => this.removeNotification(id)
-      },
-      {
-        text: "Handle",
-        onPress: () => id.onPress()
-      }
-    ]);
+    if (id.func === "dismiss")
+      Alert.alert("Notification", id.Name, [
+        {
+          text: "Dismiss",
+          onPress: () => this.removeNotification(id)
+        }
+      ]);
+    else
+      Alert.alert("Notification", id.Name, [
+        {
+          text: "Cancel"
+        },
+        {
+          text: "Dismiss",
+          onPress: () => this.removeNotification(id)
+        },
+        {
+          text: "Handle",
+          onPress: () => id.onPress()
+        }
+      ]);
   };
 
   dismissNotification = id => {
@@ -1588,6 +1731,9 @@ export default class App extends React.Component {
       `Would you like to ask to join ${id.friendName}  @${id.friendHandle}?`,
       [
         {
+          text: "Cancel"
+        },
+        {
           text: "No",
           onPress: () => this.removeNotification(id)
         },
@@ -1599,7 +1745,7 @@ export default class App extends React.Component {
     );
   };
 
-  respondToJoinAlert = id => {
+  respondToRequestAlert = id => {
     Alert.alert(
       "Respond",
       `Would you like to join ${id.friendName}  @${id.friendHandle}?`,
@@ -1629,11 +1775,11 @@ export default class App extends React.Component {
       `Would you like to join ${id.friendName}  @${id.friendHandle}  ?`,
       [
         {
-          text: "No, I'm leaving soon",
+          text: "No, I've already eaten.",
           onPress: () => this.inviteToEatResponse(id, false)
         },
         {
-          text: "No, I'm busy",
+          text: "No, I'm not eating there.",
           onPress: () => this.inviteToEatResponse(id, false)
         },
         {
@@ -1802,7 +1948,9 @@ export default class App extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
-          friendHandle
+          friendHandles: [friendHandle],
+          diningCourt: this.state.user.location
+          //default to checkin, otherwise prompt.
         })
       }
     ).catch(error => console.error(`inviteToEat: ${error}`));
@@ -1921,6 +2069,10 @@ export default class App extends React.Component {
     });
   }
 
+  componentWillUnmount = () => {
+    clearInterval();
+  };
+
   render = () => {
     if (
       this.state.mealsLoaded &&
@@ -1958,6 +2110,8 @@ export default class App extends React.Component {
               generateDateString: this.generateDateString,
               getNextMeal: this.getNextMeal,
               getDay: this.getDay,
+              toggleLocationTracking: this.toggleLocationTracking,
+              getLocationTracking: this.getLocationTracking,
               sendInvitationAlert: this.sendInvitationAlert,
               sendRequestToJoinAlert: this.sendRequestToJoinAlert,
               setProfilePic: this.setProfilePic
