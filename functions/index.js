@@ -3154,15 +3154,17 @@ exports.inviteToEat = functions.https.onRequest(async (request, response) => {
 });
 
 //requests a friend for the user to  eat with them
-//PARAMETERS: userHandle, friendHandle
+//PARAMETERS: userHandle, friendHandle, diningCourt
 exports.requestToEat = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
+  var diningCourt = request.body.diningCourt;
 
   console.log(userHandle);
   console.log(friendHandle);
+  console.log(diningCourt);
 
-  if(userHandle == null || friendHandle == null){
+  if(userHandle == null || friendHandle == null || diningCourt == null){
     throw new Error("incorrect parameters");
     return;
   }
@@ -3174,7 +3176,7 @@ exports.requestToEat = functions.https.onRequest(async (request, response) => {
     userName = await doc.data().userName;
   });
 
-  var notification = {type: "requestToEat", id: {friendHandle: userHandle, friendName: userName}};
+  var notification = {type: "requestToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
 
   userCol.doc(friendHandle).update({
     notifications: admin.firestore.FieldValue.arrayUnion(notification)
@@ -3186,17 +3188,19 @@ exports.requestToEat = functions.https.onRequest(async (request, response) => {
 });
 
 //sends a user's response to an invite as a notification
-//PARAMETERS: userHandle, friendHandle, accepted
+//PARAMETERS: userHandle, friendHandle, accepted, diningCourt
 exports.inviteToEatResponse = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var accepted = request.body.accepted;
+  var diningCourt = request.body.diningCourt;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(accepted);
+  console.log(diningCourt);
 
-  if(userHandle == null || friendHandle == null || accepted == null){
+  if(userHandle == null || friendHandle == null || accepted == null || diningCourt == null){
     throw new Error("incorrect parameters");
     return;
   }
@@ -3226,17 +3230,19 @@ exports.inviteToEatResponse = functions.https.onRequest(async (request, response
 });
 
 //sends a user's response to an invite as a notification
-//PARAMETERS: userHandle, friendHandle, accepted
+//PARAMETERS: userHandle, friendHandle, accepted, diningCourt
 exports.requestToEatResponse = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var accepted = request.body.accepted;
+  var diningCourt = request.body.diningCourt;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(accepted);
+  console.log(diningCourt);
 
-  if(userHandle == null || friendHandle == null || accepted == null){
+  if(userHandle == null || friendHandle == null || accepted == null || diningCourt == null){
     throw new Error("incorrect parameters");
     return;
   }
