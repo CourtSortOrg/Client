@@ -8,6 +8,7 @@ admin.initializeApp(functions.config().firebase);
 var db = admin.firestore();
 
 var ratings = require('./ratings');
+var prediction = require('./prediction');
 
 //this function is for testing
 //PARAMETERS: none
@@ -16,185 +17,21 @@ exports.test = functions.https.onRequest((request, response) => {
 });
 
 // returns the best dining court for a user
-// PARAMETERS: userHandle, date, meal
+// PARAMETERS: userHandle, date, meal, returnAll
 exports.getBestDiningCourtUser = functions.https.onRequest(async (request, response)=>{
   var userHandle = request.body.userHandle;
   var date = request.body.date;
   var meal = request.body.meal;
-  if(userHandle == null || date == null || meal == null)
+  var returnAll = request.body.returnAll;
+
+
+  if(userHandle == null || date == null || meal == null || returnAll == null)
     throw new Error("incorrect parameters!");
 
-  var userDishRatings = [];
 
-  var userRef = db.collection("User").doc(userHandle);
-  await userRef.get().then(async function(doc) {
-    if (doc.exists) {
-      await userRef.collection("ItemRatings").get().then(function(querySnapshot) {
-        querySnapshot.forEach(async function(itemRatingDoc) {
-          await userDishRatings.push(itemRatingDoc.data());
-        });
-        console.log("all dish ratings: " +userDishRatings);
-      })
-      .catch(function(error) {
-        throw new Error(error);
-      });
-    }
-    else {
-      throw new Error("user does not exist");
-    }
-  })
-  .catch(function(error) {
-    throw new Error(error);
-  });
-
-  var ratedDishOfferings = [];
-  for(var i=0; i<userDishRatings.length; i++){
-    var ratingObj = userDishRatings[i];
-    console.log(i+"th rating: "+ratingObj['dish']);
-    var dishRef = db.collection("Dish").doc(ratingObj['dish']);
-    await dishRef.get().then(function(doc){
-      var dishOffering = [];
-      try{
-        var dishOffering = doc.data().offered;
-      } catch(error){
-        console.log("no offered array for this!");
-      }
-      ratedDishOfferings.push({dish: ratingObj['dish'], offered: dishOffering, rating: ratingObj['rating']});
-    })
-  }
-
-  var matches = [];
-  for(var i = 0; i<ratedDishOfferings.length; i++){
-    var currDish = ratedDishOfferings[i];
-    for(var j = 0; j<currDish['offered'].length; j++){
-      var offeredObj = currDish['offered'][j];
-      if(offeredObj['date'] == date && offeredObj['meal'] == meal){
-        matches.push({dish: currDish['dish'], location: offeredObj['location'], rating: currDish['rating']});
-      }
-    }
-  }
-  var courts = {
-    "Hillenbrand" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    },
-    "Earhart" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    },
-    "Wiley" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    },
-    "Windsor" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    },
-    "Ford" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    }
-  }
-  var courtNames = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
-  for(var i=0; i<matches.length; i++){
-    var currLoc = matches[i]['location'];
-    courts[currLoc]['dishes'].push(matches[i]);
-    courts[currLoc]['aggregate'] += matches[i]['rating'];
-    courts[currLoc]['total']++;
-  }
-
-  var best = {};
-  var maxRating = 0;
-  for(var i=0; i<courtNames.length; i++){
-    if(courts[courtNames[i]]['total']>0){
-      var currRating = courts[courtNames[i]]['aggregate'] / courts[courtNames[i]]['total'];
-    }else{
-      currRating = -1;
-    }
-    if(currRating>maxRating){
-      maxRating = currRating;
-      best['location'] = courtNames[i];
-      best['dishes'] = courts[courtNames[i]]['dishes'];
-      best['rating'] = currRating;
-    }
-  }
-  //response.send(courts);
-  response.send(best);
+    var JSONobj = await prediction.getUserPrediction(userHandle, date, meal, returnAll);
+    response.send(JSONobj);
 })
-
-// adds current location
-// requires userHandle and Location
-exports.checkInLocation = functions.https.onRequest((request, response) => {
-  var userHandle = request.body.userHandle;
-  var location = request.body.location;
-
-  if(userHandle == null || location == null) {
-    throw new Error("Input data not valid!");
-  }
-  else {
-    var userRef = db.collection("User").doc(userHandle);
-    userRef.get().then(async doc =>{
-      if(!doc.exists) {
-        throw new Error("no such user");
-      }
-      else {
-        var currTime = new Date();
-        userRef.update({
-          location: location,
-          "checkInTime": currTime.getTime(),
-        }).then(async function() {
-          var userObj = {
-            "friendHandle":doc.data().userHandle,
-            "friendName":doc.data().userName
-          };
-          var notification = {
-            "type":"joinedDiningCourt",
-            "id":userObj
-          }
-          var friendsArr = doc.data().friends;
-          console.log("friendsArr: " + friendsArr);
-          var buddiesArr = [];
-          for(var i = 0; i < friendsArr.length; i++) {
-            var friendObj = friendsArr[i]
-            console.log("friendObj: " + friendObj)
-            var friendHandle = friendObj.friendHandle;
-            var friendRef = db.collection("User").doc(friendHandle);
-            await friendRef.get().then(async function(doc) {
-              var friendLocation = doc.data().location;
-              var friendStatus = doc.data().status;
-              console.log("friendHandle: " + friendHandle + " friendLocation: " + friendLocation);
-              if (friendLocation == location && friendStatus == 1) {
-                console.log("MATCH");
-                buddiesArr.push(friendObj);
-                await friendRef.update({
-                  "notifications": admin.firestore.FieldValue.arrayUnion(notification)
-                })
-                .catch(function(error) {
-                  throw new Error(error);
-                });
-              }
-            })
-            .catch(function(error) {
-              throw new Error(error);
-            });
-          }
-          response.send(buddiesArr);
-        })
-        .catch(function(error) {
-          throw new Error(error);
-        });
-      }
-    })
-    .catch(function(error) {
-      throw new Error(error);
-    });
-  }
-});
 
 // removes location
 //PARAMETERS: userHandle
@@ -583,7 +420,20 @@ exports.fetchAllOffered = functions.https.onRequest(async (request, response) =>
       if(!doc.exists){
         response.send({error: "No such dish in the database!"});
       }else{
-        response.send(doc.data());
+        var dishData = doc.data();
+        var offeredArray = dishData['offered'];
+        var newOfferedArray = [];
+        for(var i=0; i<offeredArray.length; i++){
+          var currDate = dishData['offered'][i]['data'];
+          var dishDate = new Date(currDate);
+          console.log("curr Date: " + dishDate.toString());
+          var today = new Date();
+          today.setDate(today.getDate());
+          if(+dishDate >= +today)
+            newOfferedArray.push(dishData['offered'][i]);
+        }
+        dishData['alsoOffered'] = newOfferedArray;
+        response.send(dishData);
       }
     }
   )
