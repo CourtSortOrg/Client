@@ -316,7 +316,7 @@ export default class App extends React.Component {
       true,
       undefined,
       () =>
-        setInterval(() => {
+        this.intervalID = setInterval(() => {
           this.updateFriends(() => console.log("updated friends"));
           this.updateNotifications(() => console.log("updated notifictions"));
           //update every 15 seconds.
@@ -427,6 +427,8 @@ export default class App extends React.Component {
         if (callback) callback();
       });
     } else {
+      clearInterval(this.intervalID);
+      this.intervalID = null;
       await this._storeData("user", "");
       await this.setState({ firebaseLoaded: true, user: undefined }, () => {
         console.log("After::After");
