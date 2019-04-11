@@ -335,6 +335,10 @@ export default class App extends React.Component {
     this.setState({ fontLoaded: true });
   };
 
+  componentWillUnmount = () => {
+    clearInterval(this.intervalID);
+  }
+
   getUserHandle = async (uid, errorHandler) => {
     return await fetch(
       "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserHandle",
