@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View, RefreshControl, TouchableOpacity } from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -124,13 +124,20 @@ export default class Group extends React.Component {
   };
 
   render() {
+    let refreshController = (
+      <RefreshControl
+        refreshing={this.state.loading}
+        onRefresh={this.updateGroup}
+      />
+    );
     return (
       <Screen
-        loading={this.state.loading}
+        // loading={this.state.loading}
         title="Group"
         navigation={{ ...this.props.navigation }}
         screenProps={this.props.screenProps}
         backButton={true}
+        refreshControl={refreshController}
       >
         <Card
           header={this.state.group.groupName}

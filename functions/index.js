@@ -8,6 +8,7 @@ admin.initializeApp(functions.config().firebase);
 var db = admin.firestore();
 
 var ratings = require('./ratings');
+var prediction = require('./prediction');
 
 //this function is for testing
 //PARAMETERS: none
@@ -15,186 +16,73 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
+async function getGroupPrediction(groupID, date, meal, returnAll){
+
+  var members;
+  await db.collection("Group").doc(groupID).get().then(doc => {
+    members = doc.data().memberObjects;
+  }).catch(function(error){
+    throw new Error(error);
+  });
+
+  var bestForUsers;
+
+
+  for(var i=0; i<members.length; i++){
+    var currHandle = members[i]['userHandle'];
+    var currUser = await prediction.getUserPrediction(currHandle, date, meal, true);
+    currUser.sort((a, b) => {
+      if(a.court > b.court)
+        return 1;
+      if(a.court < b.court)
+        return -1;
+      return 0;
+    });
+
+    if(i==0){
+      bestForUsers = currUser;
+      continue;
+    }
+
+    for(var j=0; j<currUser.length; j++){
+      bestForUsers[j]['dishes'].push(currUser[j]['dishes']);
+      bestForUsers[j]['aggregate'] += currUser[j]['aggregate'];
+      bestForUsers[j]['total'] += currUser[j]['total'];
+    }
+  }
+
+  for(var i=0; i<bestForUsers.length; i++){
+    if (bestForUsers[i]['total'] == 0){
+      bestForUsers[i]['rating'] = -1;
+      continue;
+    }
+    var currRating = ((Number) (bestForUsers[i]['aggregate'])) / ((Number) (bestForUsers[i]['total']))
+    bestForUsers[i]['rating'] = currRating;
+    console.log("Rating for "+bestForUsers[i]['court']+" is: "+currRating);
+  }
+
+  bestForUsers.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+
+  console.log("best court: "+bestForUsers[0]['court']);
+  return bestForUsers[0]['court'];
+}
+
 // returns the best dining court for a user
-// PARAMETERS: userHandle, date, meal
+// PARAMETERS: userHandle, date, meal, returnAll
 exports.getBestDiningCourtUser = functions.https.onRequest(async (request, response)=>{
   var userHandle = request.body.userHandle;
   var date = request.body.date;
   var meal = request.body.meal;
-  if(userHandle == null || date == null || meal == null)
+  var returnAll = request.body.returnAll;
+
+
+  if(userHandle == null || date == null || meal == null || returnAll == null)
     throw new Error("incorrect parameters!");
 
-  var userDishRatings = [];
 
-  var userRef = db.collection("User").doc(userHandle);
-  await userRef.get().then(async function(doc) {
-    if (doc.exists) {
-      await userRef.collection("ItemRatings").get().then(function(querySnapshot) {
-        querySnapshot.forEach(async function(itemRatingDoc) {
-          await userDishRatings.push(itemRatingDoc.data());
-        });
-        console.log("all dish ratings: " +userDishRatings);
-      })
-      .catch(function(error) {
-        throw new Error(error);
-      });
-    }
-    else {
-      throw new Error("user does not exist");
-    }
-  })
-  .catch(function(error) {
-    throw new Error(error);
-  });
-
-  var ratedDishOfferings = [];
-  for(var i=0; i<userDishRatings.length; i++){
-    var ratingObj = userDishRatings[i];
-    console.log(i+"th rating: "+ratingObj['dish']);
-    var dishRef = db.collection("Dish").doc(ratingObj['dish']);
-    await dishRef.get().then(function(doc){
-      var dishOffering = [];
-      try{
-        var dishOffering = doc.data().offered;
-      } catch(error){
-        console.log("no offered array for this!");
-      }
-      ratedDishOfferings.push({dish: ratingObj['dish'], offered: dishOffering, rating: ratingObj['rating']});
-    })
-  }
-
-  var matches = [];
-  for(var i = 0; i<ratedDishOfferings.length; i++){
-    var currDish = ratedDishOfferings[i];
-    for(var j = 0; j<currDish['offered'].length; j++){
-      var offeredObj = currDish['offered'][j];
-      if(offeredObj['date'] == date && offeredObj['meal'] == meal){
-        matches.push({dish: currDish['dish'], location: offeredObj['location'], rating: currDish['rating']});
-      }
-    }
-  }
-  var courts = {
-    "Hillenbrand" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    },
-    "Earhart" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    },
-    "Wiley" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    },
-    "Windsor" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    },
-    "Ford" : {
-      dishes: [],
-      aggregate: 0,
-      total: 0
-    }
-  }
-  var courtNames = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
-  for(var i=0; i<matches.length; i++){
-    var currLoc = matches[i]['location'];
-    courts[currLoc]['dishes'].push(matches[i]);
-    courts[currLoc]['aggregate'] += matches[i]['rating'];
-    courts[currLoc]['total']++;
-  }
-
-  var best = {};
-  var maxRating = 0;
-  for(var i=0; i<courtNames.length; i++){
-    if(courts[courtNames[i]]['total']>0){
-      var currRating = courts[courtNames[i]]['aggregate'] / courts[courtNames[i]]['total'];
-    }else{
-      currRating = -1;
-    }
-    if(currRating>maxRating){
-      maxRating = currRating;
-      best['location'] = courtNames[i];
-      best['dishes'] = courts[courtNames[i]]['dishes'];
-      best['rating'] = currRating;
-    }
-  }
-  //response.send(courts);
-  response.send(best);
+    var JSONobj = await prediction.getUserPrediction(userHandle, date, meal, returnAll);
+    response.send(JSONobj);
 })
-
-// adds current location
-// requires userHandle and Location
-exports.checkInLocation = functions.https.onRequest((request, response) => {
-  var userHandle = request.body.userHandle;
-  var location = request.body.location;
-
-  if(userHandle == null || location == null) {
-    throw new Error("Input data not valid!");
-  }
-  else {
-    var userRef = db.collection("User").doc(userHandle);
-    userRef.get().then(async doc =>{
-      if(!doc.exists) {
-        throw new Error("no such user");
-      }
-      else {
-        var currTime = new Date();
-        userRef.update({
-          location: location,
-          "checkInTime": currTime.getTime(),
-        }).then(async function() {
-          var userObj = {
-            "friendHandle":doc.data().userHandle,
-            "friendName":doc.data().userName
-          };
-          var notification = {
-            "type":"joinedDiningCourt",
-            "id":userObj
-          }
-          var friendsArr = doc.data().friends;
-          console.log("friendsArr: " + friendsArr);
-          var buddiesArr = [];
-          for(var i = 0; i < friendsArr.length; i++) {
-            var friendObj = friendsArr[i]
-            console.log("friendObj: " + friendObj)
-            var friendHandle = friendObj.friendHandle;
-            var friendRef = db.collection("User").doc(friendHandle);
-            await friendRef.get().then(async function(doc) {
-              var friendLocation = doc.data().location;
-              var friendStatus = doc.data().status;
-              console.log("friendHandle: " + friendHandle + " friendLocation: " + friendLocation);
-              if (friendLocation == location && friendStatus == 1) {
-                console.log("MATCH");
-                buddiesArr.push(friendObj);
-                await friendRef.update({
-                  "notifications": admin.firestore.FieldValue.arrayUnion(notification)
-                })
-                .catch(function(error) {
-                  throw new Error(error);
-                });
-              }
-            })
-            .catch(function(error) {
-              throw new Error(error);
-            });
-          }
-          response.send(buddiesArr);
-        })
-        .catch(function(error) {
-          throw new Error(error);
-        });
-      }
-    })
-    .catch(function(error) {
-      throw new Error(error);
-    });
-  }
-});
 
 // removes location
 //PARAMETERS: userHandle
@@ -583,7 +471,20 @@ exports.fetchAllOffered = functions.https.onRequest(async (request, response) =>
       if(!doc.exists){
         response.send({error: "No such dish in the database!"});
       }else{
-        response.send(doc.data());
+        var dishData = doc.data();
+        var offeredArray = dishData['offered'];
+        var newOfferedArray = [];
+        for(var i=0; i<offeredArray.length; i++){
+          var currDate = dishData['offered'][i]['data'];
+          var dishDate = new Date(currDate);
+          console.log("curr Date: " + dishDate.toString());
+          var today = new Date();
+          today.setDate(today.getDate());
+          if(+dishDate >= +today)
+            newOfferedArray.push(dishData['offered'][i]);
+        }
+        dishData['alsoOffered'] = newOfferedArray;
+        response.send(dishData);
       }
     }
   )
@@ -1526,18 +1427,21 @@ exports.updateUserProfile = functions.https.onRequest((request, response) => {
 //PARAMETERS: userHandle, downloadURL
 exports.setProfilePic = functions.https.onRequest((request, response) => {
   var userHandle = request.body.userHandle;
-  var downloadURL = request.body.downloadURL;
+  var image = request.body.image;
 
   //don't check downloadURL since it can be null
   if (userHandle == null) {
     throw new Error("Must pass 'userHandle' in body of request");
   }
   else {
+    if (image == null) {
+      image = "http://s3.amazonaws.com/37assets/svn/765-default-avatar.png";
+    }
     var userRef = db.collection("User").doc(userHandle);
     userRef.get().then(function(doc) {
       if (doc.exists) {
         userRef.update({
-          "profilePicDownloadURL":downloadURL
+          "image":image
         })
         .then(function() {
           response.send({
@@ -1571,7 +1475,7 @@ exports.getProfilePic = functions.https.onRequest((request, response) => {
     userRef.get().then(function(doc) {
       if (doc.exists) {
         response.send({
-          "downloadURL":doc.data().profilePicDownloadURL
+          "image":doc.data().image
         });
       }
       else {
@@ -2995,12 +2899,12 @@ exports.getPolls = functions.https.onRequest((request, response) => {
 });
 
 
-exports.closePolls = functions.https.onRequest((request, response) => {
+exports.closePolls = functions.https.onRequest(async (request, response) => {
   var date = new Date();
   //loop through all groups
   var groupDoc = db.collection("Group");
   groupDoc.get().then(gDoc => {
-    gDoc.forEach(function(doc){
+    gDoc.forEach(async function(doc){
       var messages = doc.data().messages;
       for(var i = 0; i < messages.length; i++){
         var message = messages[i];
@@ -3017,10 +2921,13 @@ exports.closePolls = functions.https.onRequest((request, response) => {
           }
           var groupID = doc.id;
           var messageID = message.messageID;
+          var dateString = message.timeOptions[maxIndex].substring(0, 10);
+          console.log("gID: "+groupID+" datestring: "+dateString+" meal: "+message.meal);
+          var diningCourt = await getGroupPrediction(groupID, dateString, message.meal, false);
 
-          var notification = {type: "closePoll", id: {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, diningCourt: "Hillenbrand"}};
+          var notification = {type: "closePoll", id: {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, diningCourt: diningCourt}};
           var userCol = db.collection("User");
-          var eventCreated = {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, votes: message.votes, diningCourt: "Hillenbrand"};
+          var eventCreated = {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, votes: message.votes, diningCourt: diningCourt};
           for(var j = 0; j < data.memberHandles.length; j++){
             userCol.doc(data.memberHandles[j]).update({
               notifications: admin.firestore.FieldValue.arrayUnion(notification),
@@ -3155,15 +3062,17 @@ exports.inviteToEat = functions.https.onRequest(async (request, response) => {
 });
 
 //requests a friend for the user to  eat with them
-//PARAMETERS: userHandle, friendHandle
+//PARAMETERS: userHandle, friendHandle, diningCourt
 exports.requestToEat = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
+  var diningCourt = request.body.diningCourt;
 
   console.log(userHandle);
   console.log(friendHandle);
+  console.log(diningCourt);
 
-  if(userHandle == null || friendHandle == null){
+  if(userHandle == null || friendHandle == null || diningCourt == null){
     throw new Error("incorrect parameters");
     return;
   }
@@ -3175,7 +3084,7 @@ exports.requestToEat = functions.https.onRequest(async (request, response) => {
     userName = await doc.data().userName;
   });
 
-  var notification = {type: "requestToEat", id: {friendHandle: userHandle, friendName: userName}};
+  var notification = {type: "requestToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
 
   userCol.doc(friendHandle).update({
     notifications: admin.firestore.FieldValue.arrayUnion(notification)
@@ -3187,17 +3096,19 @@ exports.requestToEat = functions.https.onRequest(async (request, response) => {
 });
 
 //sends a user's response to an invite as a notification
-//PARAMETERS: userHandle, friendHandle, accepted
+//PARAMETERS: userHandle, friendHandle, accepted, diningCourt
 exports.inviteToEatResponse = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var accepted = request.body.accepted;
+  var diningCourt = request.body.diningCourt;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(accepted);
+  console.log(diningCourt);
 
-  if(userHandle == null || friendHandle == null || accepted == null){
+  if(userHandle == null || friendHandle == null || accepted == null || diningCourt == null){
     throw new Error("incorrect parameters");
     return;
   }
@@ -3211,10 +3122,10 @@ exports.inviteToEatResponse = functions.https.onRequest(async (request, response
 
   var notification;
   if(accepted){
-    notification = {type: "acceptedInvitationToEat", id: {friendHandle: userHandle, friendName: userName}};
+    notification = {type: "acceptedInvitationToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
   }
   else{
-    notification = {type: "deniedInvitationToEat", id: {friendHandle: userHandle, friendName: userName}};
+    notification = {type: "deniedInvitationToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
   }
 
   userCol.doc(friendHandle).update({
@@ -3227,17 +3138,19 @@ exports.inviteToEatResponse = functions.https.onRequest(async (request, response
 });
 
 //sends a user's response to an invite as a notification
-//PARAMETERS: userHandle, friendHandle, accepted
+//PARAMETERS: userHandle, friendHandle, accepted, diningCourt
 exports.requestToEatResponse = functions.https.onRequest(async (request, response) => {
   var userHandle = request.body.userHandle;
   var friendHandle = request.body.friendHandle;
   var accepted = request.body.accepted;
+  var diningCourt = request.body.diningCourt;
 
   console.log(userHandle);
   console.log(friendHandle);
   console.log(accepted);
+  console.log(diningCourt);
 
-  if(userHandle == null || friendHandle == null || accepted == null){
+  if(userHandle == null || friendHandle == null || accepted == null || diningCourt == null){
     throw new Error("incorrect parameters");
     return;
   }
@@ -3251,10 +3164,10 @@ exports.requestToEatResponse = functions.https.onRequest(async (request, respons
 
   var notification;
   if(accepted){
-    notification = {type: "acceptedRequestToEat", id: {friendHandle: userHandle, friendName: userName}};
+    notification = {type: "acceptedRequestToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
   }
   else{
-    notification = {type: "deniedRequestToEat", id: {friendHandle: userHandle, friendName: userName}};
+    notification = {type: "deniedRequestToEat", id: {friendHandle: userHandle, friendName: userName, diningCourt: diningCourt}};
   }
 
   userCol.doc(friendHandle).update({

@@ -2042,6 +2042,31 @@ export default class App extends React.Component {
       .catch(error => console.error(`createPoll: ${error}`));
   };
 
+  setProfilePic = (imageURL) => {
+    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/setProfilePic", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userHandle: this.state.user.userHandle,
+        image: imageURL
+      })
+    })
+    .then(() => {
+      this.setState({
+        user: {
+          ...this.state.user,
+          image: imageURL
+        }
+      })
+    })
+    .catch(error => {
+      console.error(`setProfilePic: ${error}`);
+    });
+  }
+
   componentWillUnmount = () => {
     clearInterval();
   };
@@ -2086,7 +2111,8 @@ export default class App extends React.Component {
               toggleLocationTracking: this.toggleLocationTracking,
               getLocationTracking: this.getLocationTracking,
               sendInvitationAlert: this.sendInvitationAlert,
-              sendRequestToJoinAlert: this.sendRequestToJoinAlert
+              sendRequestToJoinAlert: this.sendRequestToJoinAlert,
+              setProfilePic: this.setProfilePic
             },
             globals: {
               statusMessage: this.statusMessage,
