@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
 
 import Screen from "../Nav/Screen";
 import SelectList from "../components/SelectList";
 import List from "../components/List";
 import Card from "../components/Card";
 import Separator from "../components/Separator";
+import Text from "../components/Text";
 
 export default class GroupResults extends React.Component {
   constructor(props) {
@@ -19,7 +20,7 @@ export default class GroupResults extends React.Component {
         memberObjects: []
       },
       poll: undefined,
-      dishes: this.props.court.dishes.sort((a, b) => b.rating - a.rating),
+      dishes: [], //this.props.court.dishes.sort((a, b) => b.rating - a.rating),
 
       ...this.props.screenProps.user
     };
@@ -47,6 +48,8 @@ export default class GroupResults extends React.Component {
           time: index
         };
       });
+
+      console.log(this.state.poll);
     }
   }
 
@@ -65,10 +68,15 @@ export default class GroupResults extends React.Component {
             this.props.screenProps.globals.dayNames[d.getDay()]
           }`}
         >
-          <Text>DINING COURT</Text>
-        </Card>
-        <Card header={"Voting Results"}>
-          <List list={this.state.poll.votes} type="element" />
+          <View style={{ padding: 16 }}>
+            <Text type="bold">
+              {"Best Dining Court: "}
+              <Text>{this.state.poll.diningCourt}</Text>
+            </Text>
+          </View>
+          <Card header={"Voting Results"}>
+            <List list={this.state.poll.votes} type="element" />
+          </Card>
         </Card>
       </Screen>
     );
