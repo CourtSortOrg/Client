@@ -39,6 +39,7 @@ import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
 import BlockedUsers from "./components/Settings/BlockedUsers";
 import TestLocation from "./components/main/TestLocation";
+import MyLocationTest from "./components/main/MyLocationTest";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
@@ -95,6 +96,9 @@ const SettingsNavigation = createStackNavigator(
     },
     TestLocation: {
       screen: TestLocation
+    },
+    MyLocationTest: {
+      screen: MyLocationTest
     }
   },
   {
@@ -195,7 +199,8 @@ TaskManager.defineTask(GEOFENCING_TASK, async ({ data: { region } }) => {
   await Notifications.presentLocalNotificationAsync({
     title: "Expo Geofencing",
     body: `You're ${stateString} a region ${region.identifier}`,
-    data: region
+    data: region,
+    icon: "./assets/logo.png"
   });
 });
 
@@ -211,10 +216,9 @@ export default class App extends React.Component {
       meals: []
     };
 
-    // Notification.presentLocalNotificationAsync({
-    //   title: "Expo Notification",
-    //   body: "This is a test notifcation from the Notification API"
-    // });
+    Notification.addListener(() => {
+      console.log("Notification entered");
+    });
   }
 
   date = new Date();
@@ -311,12 +315,15 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
-    this.updateUser(true, undefined, () =>
-      setInterval(() => {
-        this.updateFriends(() => console.log("updated friends"));
-        this.updateNotifications(() => console.log("updated notifictions"));
-        //update every 15 seconds.
-      }, 15000)//60000)
+    this.updateUser(
+      true,
+      undefined,
+      () =>
+        setInterval(() => {
+          this.updateFriends(() => console.log("updated friends"));
+          this.updateNotifications(() => console.log("updated notifictions"));
+          //update every 15 seconds.
+        }, 15000) //60000)
     );
 
     //If the authentification state changes
@@ -412,8 +419,7 @@ export default class App extends React.Component {
         true
       );
       await this.updateRatings(() => console.log("ratings loaded"));
-
-      await this.enableLocation();
+      if (this.state.user.locationTracking) await this.enableLocation();
 
       // TODO: Get the user's ratings here
 
@@ -506,6 +512,8 @@ export default class App extends React.Component {
       longitude: -86.92659381777048,
       radius: 50
     });
+    if (await Location.hasStartedGeofencingAsync(GEOFENCING_TASK))
+      await Location.stopGeofencingAsync(GEOFENCING_TASK);
     if (!(await Location.hasStartedGeofencingAsync(GEOFENCING_TASK))) {
       // update existing geofencing task
       await Location.startGeofencingAsync(GEOFENCING_TASK, geofencingRegions);
@@ -1366,7 +1374,7 @@ export default class App extends React.Component {
         type: type,
         date: this.dateStr,
         ...id,
-        ...obj,
+        ...obj
       });
     }
   };
@@ -1569,7 +1577,9 @@ export default class App extends React.Component {
   newAcceptedInvitationToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has accepted your invitation to eat with you at ${this.state.user.location}!`;
+    }  has accepted your invitation to eat with you at ${
+      this.state.user.location
+    }!`;
     id.date = this.dateStr;
     id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
@@ -2042,30 +2052,33 @@ export default class App extends React.Component {
       .catch(error => console.error(`createPoll: ${error}`));
   };
 
-  setProfilePic = (imageURL) => {
-    fetch("https://us-central1-courtsort-e1100.cloudfunctions.net/setProfilePic", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        userHandle: this.state.user.userHandle,
-        image: imageURL
-      })
-    })
-    .then(() => {
-      this.setState({
-        user: {
-          ...this.state.user,
+  setProfilePic = imageURL => {
+    fetch(
+      "https://us-central1-courtsort-e1100.cloudfunctions.net/setProfilePic",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userHandle: this.state.user.userHandle,
           image: imageURL
-        }
+        })
+      }
+    )
+      .then(() => {
+        this.setState({
+          user: {
+            ...this.state.user,
+            image: imageURL
+          }
+        });
       })
-    })
-    .catch(error => {
-      console.error(`setProfilePic: ${error}`);
-    });
-  }
+      .catch(error => {
+        console.error(`setProfilePic: ${error}`);
+      });
+  };
 
   componentWillUnmount = () => {
     clearInterval();
