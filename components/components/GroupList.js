@@ -29,7 +29,7 @@ export default class GroupList extends React.Component {
 
   renderElement(item) {
     return (
-      <View style={{padding: 8}}>
+      <View style={{ padding: 8 }}>
         <TouchableOpacity
           style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
           onPress={() => {
@@ -61,7 +61,7 @@ export default class GroupList extends React.Component {
             </Text>
           </View>
           <TouchableOpacity
-            style={{padding: 0}}
+            style={{ padding: 0 }}
             onPress={() => {
               item.props.navigation.navigate("Group", {
                 ID: item.props.groupID
@@ -80,12 +80,24 @@ export default class GroupList extends React.Component {
   }
 
   render() {
-    let list;
+    let list = this.props.list;
     if (this.props.selectable) {
       list = this.props.list.map(item => {
         return { ...item, selectable: true };
       });
     }
+
+    list = list.sort((a, b) => {
+      const A = a.groupName.toUpperCase();
+      const B = b.groupName.toUpperCase();
+      if (A < B) {
+        return -1;
+      }
+      if (A > B) {
+        return 1;
+      }
+      return 0;
+    });
 
     return (
       <SearchList
@@ -94,13 +106,10 @@ export default class GroupList extends React.Component {
         extendedSearch={this.props.extendedSearch}
         updateSelectedList={this.props.updateSelectedList}
         noElementFound={
-          <ListElement
-            type={"expandable"}
-            Name="No groups found"
-          />
+          <ListElement type={"expandable"} Name="No groups found" />
         }
         list={{
-          list: this.props.list,
+          list: list,
           type: "element",
           subList: false,
           rank: 1,

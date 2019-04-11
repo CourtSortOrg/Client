@@ -19,11 +19,18 @@ export default class Recommendations extends React.Component {
       renderReport: false,
       renderBusyness: false,
       hasRatedCourt: false,
-      userCourtRating: 0
+      userCourtRating: 0,
+      dishes: this.props.court.dishes.sort((a, b) => b.rating - a.rating)
     };
+
+    this.state.dishes = this.state.dishes.splice(0, 5);
   }
 
   componentDidMount = () => {
+    console.log(this.props.court.court);
+    console.log(this.props.court.rating);
+    console.log(this.props.court.dishes);
+
     this.getMalfunctions();
     this.props.navigation.addListener("willFocus", payload => {
       this.getMalfunctions();
@@ -60,7 +67,7 @@ export default class Recommendations extends React.Component {
       <TouchableOpacity
         onPress={() =>
           this.props.navigation.navigate("MealItem", {
-            ID: item.props.dish
+            ID: item.props.Name
           })
         }
         style={{
@@ -73,7 +80,7 @@ export default class Recommendations extends React.Component {
             item.props.backgroundIndex % 2 == 0 ? "white" : "#ccc"
         }}
       >
-        <Text type="bold">{item.props.dish}</Text>
+        <Text type="bold">{item.props.Name}</Text>
         <View
           style={{
             flex: 1,
@@ -129,22 +136,24 @@ export default class Recommendations extends React.Component {
           </View>
         </View>
 
-        <Card header="Dishes">
-        {
-          this.props.court.dishes.length > 0 ?
-          <List
-            list={this.props.court.dishes.map((d, index) => ({
-              ...d,
-              backgroundIndex: index
-            }))}
-            renderElement={this.renderDish}
-            type="element"
-          /> :
-          <ListElement
-            Name={"Please rate dishes to receive personalized recommendations."}
-            type="element"
-          />
-        }
+        <Card header="Top Rated">
+          {this.state.dishes.length > 0 ? (
+            <List
+              list={this.state.dishes.map((d, index) => ({
+                ...d,
+                backgroundIndex: index
+              }))}
+              renderElement={this.renderDish}
+              type="element"
+            />
+          ) : (
+            <ListElement
+              Name={
+                "Please rate dishes to receive personalized recommendations."
+              }
+              type="element"
+            />
+          )}
         </Card>
 
         {this.props.friends === true && (
