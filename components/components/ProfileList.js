@@ -88,7 +88,12 @@ export default class ProfileList extends React.Component {
                 this.props.screenProps.user.location !== null ? (
                   <TouchableOpacity
                     onPress={() => {
-                      if (this.props.screenProps.user.status != 1) {
+                      if (this.props.screenProps.user.location == null) {
+                        Alert.alert(
+                          "Invite Error",
+                          "Please check into a dining court!"
+                        );
+                      } else if (this.props.screenProps.user.status != 1) {
                         Alert.alert(
                           "Status Error",
                           "Would you like to set your status to available to invite?",
@@ -185,7 +190,7 @@ export default class ProfileList extends React.Component {
       }
       return 0;
     });
-    
+
     return (
       <SearchList
         navigation={this.props.navigation}
