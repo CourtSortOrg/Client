@@ -195,7 +195,7 @@ export default class DiningInfo extends React.Component {
           <Text type="sectionName" style={styles.busynessHeader}>
             Average Time Spent:
           </Text>
-          <Text>{timeSpent.avgTime}</Text>
+          <Text>{convertMS(timeSpent.avgTime)}</Text>
         </View>
         <View style={styles.numberVisitsBlock}>
           <Text type="sectionName" style={styles.busynessHeader}>
@@ -288,6 +288,21 @@ function convertToTwelveHour(rawTime) {
   rawTime =
     ((hour + 11) % 12) + 1 + ":" + rawTime.substring(3, 5) + " " + suffix;
   return rawTime;
+}
+
+function convertMS(ms) {
+  var hours = Math.trunc(ms / (1000 * 60 * 60));
+  var minutes = Math.trunc((ms / (1000 * 60)) % 60);
+
+  if (hours == 0) {
+    return minutes + " minutes";
+  }
+  else if (hours == 1) {
+    return hours + " hour and " + minutes + " minutes";
+  }
+  else {
+    return hours + " hours and " + minutes + " minutes";
+  }
 }
 
 const styles = StyleSheet.create({
