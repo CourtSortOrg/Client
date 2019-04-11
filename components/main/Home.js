@@ -176,7 +176,7 @@ export default class Home extends React.Component {
                 <Text>{this.state.meal}</Text>
               </TouchableOpacity>
             </View>
-            {this.state.recommendation.map((court, index) => (
+            {this.state.recommendation.filter(c => c.rating != -1).map((court, index) => (
               <RecommendationsCard
                 court={court}
                 index={index}
