@@ -261,8 +261,8 @@ export default class Friend extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.userHandle,
-          friendHandle: [this.state.otherUser.userHandle],
-          location: this.state.location
+          friendHandles: [this.state.otherUser.userHandle],
+          diningCourt: this.state.location
         })
       }
     )
@@ -295,7 +295,8 @@ export default class Friend extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.userHandle,
-          friendHandle: this.state.otherUser.userHandle
+          friendHandle: this.state.otherUser.userHandle,
+          diningCourt: this.state.location
         })
       }
     )
