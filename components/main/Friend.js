@@ -224,10 +224,10 @@ export default class Friend extends React.Component {
 
   // Function to determine if the user is going to invite the friend to eat, or to send a request to eat
   inviteOrJoin = status => {
-    if(status == 0) {
+    if (status == 0) {
       // Invite them to eat
       // If the current user is not checked into a dining court, give an error
-      if( !this.state.location ){
+      if (!this.state.location) {
         Alert.alert(
           "Declined",
           "You are currently not checked into a dining court"
@@ -238,10 +238,12 @@ export default class Friend extends React.Component {
     } else {
       // Request to join friend
       // If the friend is not checked into a dining court, give an error
-      if( !this.state.otherUser.location ){
+      if (!this.state.otherUser.location) {
         Alert.alert(
           "Declined",
-          `@${this.state.otherUser.userHandle} is not currently checked into a dining court`
+          `@${
+            this.state.otherUser.userHandle
+          } is not currently checked into a dining court`
         );
       } else {
         this.requestToEat();
@@ -267,19 +269,17 @@ export default class Friend extends React.Component {
       }
     )
       .then(data => {
-        if (data._bodyText ==  "{\"success\":true}")
+        if (data._bodyText == '{"success":true}')
           Alert.alert(
             "Success",
-            `You sent an invite to ${this.state.otherUser.userHandle} to eat with you.`,
+            `You sent an invite to ${
+              this.state.otherUser.userHandle
+            } to eat with you.`
           );
-        else
-          Alert.alert(
-            "Error",
-            "Invite could not be sent"
-          );
+        else Alert.alert("Error", "Invite could not be sent");
       })
       .catch(error => console.error(`inviteToEat: ${error}`));
-  }
+  };
 
   // Calls firebase function to send a request for the user to join a friend who is currently eating
   requestToEat = () => {
@@ -294,26 +294,24 @@ export default class Friend extends React.Component {
         body: JSON.stringify({
           userHandle: this.state.userHandle,
           friendHandle: this.state.otherUser.userHandle,
-          diningCourt: "your location",
+          diningCourt: "your location"
         })
       }
     )
       .then(data => {
         console.log("From database:");
         console.log(data._bodyText);
-        if (data._bodyText == "{\"success\":true}")
+        if (data._bodyText == '{"success":true}')
           Alert.alert(
             "Success",
-            `You sent a request to ${this.state.otherUser.userHandle} to join them.`,
+            `You sent a request to ${
+              this.state.otherUser.userHandle
+            } to join them.`
           );
-        else
-          Alert.alert(
-            "Error",
-            "Request could not be sent",
-          );
+        else Alert.alert("Error", "Request could not be sent");
       })
       .catch(error => console.error(`requestToEat: ${error}`));
-  }
+  };
 
   render() {
     const statusColor = ["#0F0", "#FF0", "#F00"];
@@ -352,19 +350,20 @@ export default class Friend extends React.Component {
           </Text>
           <Separator />
           {/* Card for joining a friend already eating or inviting a friend to eat with the user*/}
-          <Card
-            footer={[
-              {
-                text: "Invite to eat",
-                onPress: () => this.inviteOrJoin(0)
-              },
-              {
-                text: "Request to eat",
-                onPress: () => this.inviteOrJoin(1)
-              }
-            ]}
-          >
-          </Card>
+          {this.state.friend && (
+            <Card
+              footer={[
+                {
+                  text: "Invite to eat",
+                  onPress: () => this.inviteOrJoin(0)
+                },
+                {
+                  text: "Request to eat",
+                  onPress: () => this.inviteOrJoin(1)
+                }
+              ]}
+            />
+          )}
           <Separator />
           <List
             navigation={this.props.navigation}
