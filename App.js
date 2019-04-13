@@ -316,11 +316,12 @@ export default class App extends React.Component {
       true,
       undefined,
       () =>
-        this.intervalID = setInterval(() => {
+        (this.intervalID = setInterval(() => {
           this.updateFriends(() => console.log("updated friends"));
+          // this.updateGroups(() => console.log("updated groups"));
           this.updateNotifications(() => console.log("updated notifictions"));
           //update every 15 seconds.
-        }, 15000) //60000)
+        }, 15000)) //60000)
     );
 
     //If the authentification state changes
@@ -337,7 +338,7 @@ export default class App extends React.Component {
 
   componentWillUnmount = () => {
     clearInterval(this.intervalID);
-  }
+  };
 
   getUserHandle = async (uid, errorHandler) => {
     return await fetch(
@@ -1367,6 +1368,9 @@ export default class App extends React.Component {
       case "deniedRequestToEat":
         obj = this.newDeniedRequestToEat(id);
         break;
+      case "changeGroupName":
+        obj = this.newChangeGroupNameNotification(id);
+        break;
 
       default:
         console.error(`invalid notification type: ${type}\nid: ${id}`);
@@ -1610,6 +1614,16 @@ export default class App extends React.Component {
     id.Name = `${id.friendName}  @${
       id.friendHandle
     }  is not available for you to join.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newChangeGroupNameNotification = id => {
+    this.updateGroup(id.groupID, true);
+
+    id.Name = `Group ${id.oldName} has changed names to be ${id.newName}.`;
     id.date = this.dateStr;
     id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
