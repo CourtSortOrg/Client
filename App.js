@@ -312,17 +312,15 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
-    this.updateUser(
-      true,
-      undefined,
-      () =>
-        (this.intervalID = setInterval(() => {
+    this.updateUser(true, undefined, () => {
+      if (this.state.user !== undefined)
+        this.intervalID = setInterval(() => {
           this.updateFriends(() => console.log("updated friends"));
           // this.updateGroups(() => console.log("updated groups"));
           this.updateNotifications(() => console.log("updated notifictions"));
           //update every 15 seconds.
-        }, 15000)) //60000)
-    );
+        }, 15000); //60000)
+    });
 
     //If the authentification state changes
     //firebase.auth().onAuthStateChanged(user => this.updateUser(user, true));
