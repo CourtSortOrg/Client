@@ -1184,7 +1184,7 @@ export default class App extends React.Component {
       this.setState({ mealsLoaded: true });
       return;
     }
-    let date = this.date;
+    let date = new Date();
     date.setDate(date.getDate() + from);
     const dateStr = `${date.getFullYear()}-${
       date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
@@ -1211,8 +1211,6 @@ export default class App extends React.Component {
               meals
             },
             () => {
-              //this.updateMeals();
-              date = date.setDate(date.getDate() + 1);
               this.fetchMeals(from + 1, left - 1);
             }
           );
