@@ -39,7 +39,6 @@ import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
 import BlockedUsers from "./components/Settings/BlockedUsers";
 import TestLocation from "./components/main/TestLocation";
-import MyLocationTest from "./components/main/MyLocationTest";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
@@ -96,9 +95,6 @@ const SettingsNavigation = createStackNavigator(
     },
     TestLocation: {
       screen: TestLocation
-    },
-    MyLocationTest: {
-      screen: MyLocationTest
     }
   },
   {
@@ -168,6 +164,45 @@ const MainNavigation = createStackNavigator(
   }
 );
 
+const geofencingRegions = [
+  {
+    identifier: "Earhart",
+    latitude: 40.4256,
+    longitude: -86.9251,
+    radius: 50
+  },
+  {
+    identifier: "Ford",
+    latitude: 40.4321,
+    longitude: -86.9196,
+    radius: 50
+  },
+  {
+    identifier: "Hillenbrand",
+    latitude: 40.4269,
+    longitude: -86.9265,
+    radius: 50
+  },
+  {
+    identifier: `Hillenbrand`,
+    latitude: 40.42634942065527,
+    longitude: -86.92659381777048,
+    radius: 50
+  },
+  {
+    identifier: "Wiley",
+    latitude: 40.4285,
+    longitude: -86.9208,
+    radius: 50
+  },
+  {
+    identifier: "Windsor",
+    latitude: 40.4266,
+    longitude: -86.9213,
+    radius: 50
+  }
+];
+
 const AppNavigation = createSwitchNavigator(
   {
     Splash: {
@@ -189,20 +224,26 @@ const Navigation = createAppContainer(AppNavigation);
 
 const GEOFENCING_TASK = "geofencing";
 
-TaskManager.defineTask(GEOFENCING_TASK, async ({ data: { region } }) => {
-  const stateString = Location.GeofencingRegionState[
-    region.state
-  ].toLowerCase();
+// TaskManager.defineTask(GEOFENCING_TASK, async ({ data: { region } }) => {
+//   const stateString = Location.GeofencingRegionState[
+//     region.state
+//   ].toLowerCase();
 
-  console.log(`${stateString} region ${region.identifier}`);
+//   // console.log(`${stateString} region ${region.identifier}`);
+//   // console.log("POOP");
+//   // if (stateString == "inside") {
+//   //   await Notifications.presentLocalNotificationAsync({
+//   //     title: "Expo Geofencing TEST",
+//   //     body: `You're ${stateString} a region ${region.identifier}`,
+//   //     data: region,
+//   //     icon: "./assets/logo.png"
+//   //   });
+//   // } else {
+//   //   // TODO: Check if user is in same dining court as region they are outside and check them out if so
+//   // }
+// });
 
-  await Notifications.presentLocalNotificationAsync({
-    title: "Expo Geofencing",
-    body: `You're ${stateString} a region ${region.identifier}`,
-    data: region,
-    icon: "./assets/logo.png"
-  });
-});
+TaskManager.unregisterTaskAsync(GEOFENCING_TASK);
 
 export default class App extends React.Component {
   constructor(props) {
@@ -217,7 +258,7 @@ export default class App extends React.Component {
     };
 
     Notification.addListener(() => {
-      console.log("Notification entered");
+      console.log(this.state.user);
     });
   }
 
@@ -505,13 +546,6 @@ export default class App extends React.Component {
   enableLocation = async callback => {
     let { status } = await Permissions.askAsync(Permissions.LOCATION);
     console.log("LOCATION PERMISSIONS: ", status);
-    geofencingRegions = [];
-    geofencingRegions.push({
-      identifier: `TEST`,
-      latitude: 40.42634942065527,
-      longitude: -86.92659381777048,
-      radius: 50
-    });
     if (await Location.hasStartedGeofencingAsync(GEOFENCING_TASK))
       await Location.stopGeofencingAsync(GEOFENCING_TASK);
     if (!(await Location.hasStartedGeofencingAsync(GEOFENCING_TASK))) {
