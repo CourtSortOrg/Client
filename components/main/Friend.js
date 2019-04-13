@@ -224,7 +224,13 @@ export default class Friend extends React.Component {
 
   // Function to determine if the user is going to invite the friend to eat, or to send a request to eat
   inviteOrJoin = status => {
-    if (status == 0) {
+    if ( !this.state.friend ) {
+        // If the user is not a friend, then don't send anything
+        Alert.alert(
+          "Declined",
+          `You are not friends with ${this.state.otherUser.userHandle}.`
+        )
+    } else if (status == 0) {
       // Invite them to eat
       // If the current user is not checked into a dining court, give an error
       if (!this.state.location) {
