@@ -222,28 +222,40 @@ const AppNavigation = createSwitchNavigator(
 
 const Navigation = createAppContainer(AppNavigation);
 
-const GEOFENCING_TASK = "geofencing";
+const GEOFENCING_TASK = "geofenceTest5";
 
-// TaskManager.defineTask(GEOFENCING_TASK, async ({ data: { region } }) => {
-//   const stateString = Location.GeofencingRegionState[
-//     region.state
-//   ].toLowerCase();
+TaskManager.isTaskRegisteredAsync(GEOFENCING_TASK).then(bool => {
+  console.log(GEOFENCING_TASK, bool);
+  //TaskManager.unregisterAllTasksAsync().then(() => {});
+});
 
-//   // console.log(`${stateString} region ${region.identifier}`);
-//   // console.log("POOP");
-//   // if (stateString == "inside") {
-//   //   await Notifications.presentLocalNotificationAsync({
-//   //     title: "Expo Geofencing TEST",
-//   //     body: `You're ${stateString} a region ${region.identifier}`,
-//   //     data: region,
-//   //     icon: "./assets/logo.png"
-//   //   });
-//   // } else {
-//   //   // TODO: Check if user is in same dining court as region they are outside and check them out if so
-//   // }
-// });
+TaskManager.defineTask(GEOFENCING_TASK, sendNotification);
 
-TaskManager.unregisterTaskAsync(GEOFENCING_TASK);
+// TaskManager.defineTask(GEOFENCING_TASK, sendNotification);
+
+async function sendNotification({ data: { region } }) {
+  const stateString = Location.GeofencingRegionState[
+    region.state
+  ].toLowerCase();
+  console.log(`${stateString} region ${region.identifier}`);
+  if (stateString == "inside") {
+    await Notification.presentLocalNotificationAsync({
+      title: "CourtSort",
+      body: `You've entered ${region.identifier}, click to check in`,
+      data: region,
+      icon: "./assets/logo.png"
+    });
+  } else {
+    console.log(this.state.user);
+    // await Notification.presentLocalNotificationAsync({
+    //   title: "CourtSort",
+    //   body: `You've exited ${region.identifier}, click to check in`,
+    //   data: region,
+    //   icon: "./assets/logo.png"
+    // });
+    // TODO: Check if user is in same dining court as region they are outside and check them out if so
+  }
+}
 
 export default class App extends React.Component {
   constructor(props) {
@@ -257,8 +269,10 @@ export default class App extends React.Component {
       meals: []
     };
 
-    Notification.addListener(() => {
-      console.log(this.state.user);
+    Notification.addListener((origin, data, remote) => {
+      console.log(data);
+      if (!this.state.user.location) {
+      }
     });
   }
 
@@ -546,10 +560,13 @@ export default class App extends React.Component {
   enableLocation = async callback => {
     let { status } = await Permissions.askAsync(Permissions.LOCATION);
     console.log("LOCATION PERMISSIONS: ", status);
-    if (await Location.hasStartedGeofencingAsync(GEOFENCING_TASK))
+    if (await Location.hasStartedGeofencingAsync(GEOFENCING_TASK)) {
+      console.log("ENDING GEOFENCING");
       await Location.stopGeofencingAsync(GEOFENCING_TASK);
+    }
     if (!(await Location.hasStartedGeofencingAsync(GEOFENCING_TASK))) {
       // update existing geofencing task
+      console.log("STARTING GEOFENCING");
       await Location.startGeofencingAsync(GEOFENCING_TASK, geofencingRegions);
     }
   };
