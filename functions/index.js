@@ -2339,13 +2339,29 @@ exports.changeGroupName = functions.https.onRequest((request, response) => {
   }
   else{
     var group = db.collection("Group").doc(groupID);
-    group.update({
-      "groupName":groupName
-    }).then(function(){
-      response.send("success");
-    }).catch(function(error){
-      throw new Error(error.message);
+    group.get().then(gDoc => {
+      var oldName = gDoc.data().groupName;
+      var members = gDoc.data().memberHandles;
+      var userCol = db.collection("User");
+      group.update({
+        "groupName":groupName
+      }).then(function(){
+        var notification = {type: "changeGroupName", id: {oldName: oldName, newName: groupName, groupID: groupID}};
+        for(var i = 0; i < members.length; i++){
+          userCol.doc(members[i]).update({
+            notifications: admin.firestore.FieldValue.arrayUnion(notification)
+          }).catch(function(error){
+            console.log(error.message);
+            throw new Error(error);
+            return;
+          });
+        }
+        response.send("success");
+      }).catch(function(error){
+        throw new Error(error.message);
+      });
     });
+
   }
 });
 
