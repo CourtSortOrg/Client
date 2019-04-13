@@ -12,6 +12,7 @@ module.exports = {
     getUserPrediction: async function(userHandle, date, meal, returnAll){
         var userDishRatings = [];
   
+        // get the users dish ratings
         var userRef = db.collection("User").doc(userHandle);
         await userRef.get().then(async function(doc) {
           if (doc.exists) {
@@ -38,7 +39,7 @@ module.exports = {
           await dishRef.get().then(function(doc){
             var dishOffering = [];
             try{
-              var dishOffering = doc.data().offered;
+              dishOffering = doc.data().offered;
             } catch(error){
               console.log("no offered array for this!");
             }
@@ -47,9 +48,10 @@ module.exports = {
         }
       
         function addToMatches(currDish, offeredObj){
-          return offeredObj['date'] == date && offeredObj['meal'] == meal && currDish['rating'] > 3;
+          return offeredObj['date'] == date && offeredObj['meal'] == meal;
         };
       
+        // get an array of dishes the user has rated that are served for this particular meal and date
         var matches = [];
         for(var i = 0; i<ratedDishOfferings.length; i++){
           var currDish = ratedDishOfferings[i];
@@ -104,6 +106,8 @@ module.exports = {
           return null;
         }
       
+        // all dishes is an array for every dc that contains all the dishes offered and the rating
+        // everyDishEveryCourt will be used as matches array if user has not rated anything that is being served today
         var dateDishRef = db.collection("DateDishes").doc(date);
         await dateDishRef.get().then(async function(doc){
           var allCourtData = doc.data();
