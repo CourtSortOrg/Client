@@ -164,6 +164,24 @@ const MainNavigation = createStackNavigator(
   }
 );
 
+const AppNavigation = createSwitchNavigator(
+  {
+    Splash: {
+      screen: LoginSplash
+    },
+    Home: {
+      screen: MainNavigation
+    },
+    Auth: {
+      screen: AuthNavigation
+    }
+  },
+  {
+    initialRouteName: "Splash"
+  }
+);
+
+const Navigation = createAppContainer(AppNavigation);
 const geofencingRegions = [
   {
     identifier: "Earhart",
@@ -202,58 +220,52 @@ const geofencingRegions = [
     radius: 50
   }
 ];
-
-const AppNavigation = createSwitchNavigator(
-  {
-    Splash: {
-      screen: LoginSplash
-    },
-    Home: {
-      screen: MainNavigation
-    },
-    Auth: {
-      screen: AuthNavigation
-    }
-  },
-  {
-    initialRouteName: "Splash"
-  }
-);
-
-const Navigation = createAppContainer(AppNavigation);
-
 const GEOFENCING_TASK = "geofenceTest5";
-
-TaskManager.isTaskRegisteredAsync(GEOFENCING_TASK).then(bool => {
-  console.log(GEOFENCING_TASK, bool);
-  //TaskManager.unregisterAllTasksAsync().then(() => {});
-});
 
 TaskManager.defineTask(GEOFENCING_TASK, sendNotification);
 
 // TaskManager.defineTask(GEOFENCING_TASK, sendNotification);
 
 async function sendNotification({ data: { region } }) {
+  let userHandle = await AsyncStorage.getItem("userHandle");
+  let response = await fetch(
+    "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userHandle: userHandle
+      })
+    }
+  );
+  let user = await response.json();
+  let location = user.location;
   const stateString = Location.GeofencingRegionState[
     region.state
   ].toLowerCase();
-  console.log(`${stateString} region ${region.identifier}`);
-  if (stateString == "inside") {
+
+  console.log(`${stateString} region ${region.identifier} ${userHandle}`);
+
+  if (stateString == "inside" && !location) {
     await Notification.presentLocalNotificationAsync({
       title: "CourtSort",
       body: `You've entered ${region.identifier}, click to check in`,
-      data: region,
+      data: { checkIn: true, location: region.identifier },
       icon: "./assets/logo.png"
     });
-  } else {
-    console.log(this.state.user);
-    // await Notification.presentLocalNotificationAsync({
-    //   title: "CourtSort",
-    //   body: `You've exited ${region.identifier}, click to check in`,
-    //   data: region,
-    //   icon: "./assets/logo.png"
-    // });
-    // TODO: Check if user is in same dining court as region they are outside and check them out if so
+  } else if (stateString == "outside") {
+    console.log(location, region.identifier);
+    if (location == region.identifier) {
+      await Notification.presentLocalNotificationAsync({
+        title: "CourtSort",
+        body: `You've exited ${region.identifier}, click to check out`,
+        data: { checkIn: false },
+        icon: "./assets/logo.png"
+      });
+    }
   }
 }
 
@@ -269,9 +281,13 @@ export default class App extends React.Component {
       meals: []
     };
 
-    Notification.addListener((origin, data, remote) => {
-      console.log(data);
-      if (!this.state.user.location) {
+    Notification.addListener(notif => {
+      if (notif.origin == "selected") {
+        if (!this.state.user.location && notif.data.checkIn) {
+          this.checkIntoDiningCourt(notif.data.location);
+        } else if (!notif.data.checkIn) {
+          this.checkOutOfDiningCourt();
+        }
       }
     });
   }
@@ -560,6 +576,9 @@ export default class App extends React.Component {
   enableLocation = async callback => {
     let { status } = await Permissions.askAsync(Permissions.LOCATION);
     console.log("LOCATION PERMISSIONS: ", status);
+    let handle = this.state.user.userHandle;
+    await this._storeData("userHandle", handle);
+
     if (await Location.hasStartedGeofencingAsync(GEOFENCING_TASK)) {
       console.log("ENDING GEOFENCING");
       await Location.stopGeofencingAsync(GEOFENCING_TASK);
