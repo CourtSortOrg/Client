@@ -22,8 +22,15 @@ export default class GroupSettings extends React.Component {
     };
   }
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     // get group from screenProps.
+    this.getGroup();
+    this.props.navigation.addListener("willFocus", payload => {
+      this.getGroup();
+    });
+  };
+
+  getGroup = () => {
     if (this.state.groupID !== "NO-ID") {
       let groups = this.props.screenProps.user.groups.filter(
         group => group.groupID === this.state.groupID

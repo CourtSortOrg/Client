@@ -44,6 +44,38 @@ export default class GroupPoll extends React.Component {
     }
   }
 
+  componentDidMount = () => {
+    this.props.navigation.addListener("willFocus", payload => {
+      const groupID = this.props.navigation.getParam("ID", "NO-ID");
+      const messageID = this.props.navigation.getParam("MESSAGEID", "NO-ID");
+
+      if (groupID !== "NO-ID") {
+        let group = this.props.screenProps.user.groups.find(
+          g => g.groupID === groupID
+        );
+        let poll = group.messages.find(msg => msg.messageID == messageID);
+        let options = poll.timeOptions.map((time, index) => {
+          let d = new Date(time);
+          return {
+            Name: `${d.getHours()}:${
+              d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
+            }`,
+            time: index
+          };
+        });
+
+        this.setState({
+          groupID,
+          messageID,
+          group,
+          poll,
+          options,
+          time: undefined
+        });
+      }
+    });
+  };
+
   vote = selected => {
     if (selected.length == 0) {
       this.setState({

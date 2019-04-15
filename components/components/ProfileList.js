@@ -88,7 +88,12 @@ export default class ProfileList extends React.Component {
                 this.props.screenProps.user.location !== null ? (
                   <TouchableOpacity
                     onPress={() => {
-                      if (this.props.screenProps.user.status != 1) {
+                      if (this.props.screenProps.user.location == null) {
+                        Alert.alert(
+                          "Invite Error",
+                          "Please check into a dining court!"
+                        );
+                      } else if (this.props.screenProps.user.status != 1) {
                         Alert.alert(
                           "Status Error",
                           "Would you like to set your status to available to invite?",
@@ -167,6 +172,25 @@ export default class ProfileList extends React.Component {
   };
 
   render() {
+    let list = this.props.selectable
+      ? this.props.list.map((item, index) => ({
+          ...item,
+          Name: item.userHandle,
+          index
+        }))
+      : this.props.list.map((item, index) => ({ ...item, index }));
+    list = list.sort((a, b) => {
+      const A = a.userHandle.toUpperCase();
+      const B = b.userHandle.toUpperCase();
+      if (A < B) {
+        return -1;
+      }
+      if (A > B) {
+        return 1;
+      }
+      return 0;
+    });
+
     return (
       <SearchList
         navigation={this.props.navigation}
@@ -177,13 +201,7 @@ export default class ProfileList extends React.Component {
           <ListElement type={"expandable"} Name="No friends found" />
         }
         list={{
-          list: this.props.selectable
-            ? this.props.list.map((item, index) => ({
-                ...item,
-                Name: item.userHandle,
-                index
-              }))
-            : this.props.list.map((item, index) => ({ ...item, index })),
+          list: list,
           type: "element",
           subList: false,
           rank: 1,

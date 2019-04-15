@@ -117,7 +117,7 @@ export default class GroupCreateEvent extends React.Component {
     });
 
     let expirationTime = new Date();
-    expirationTime.setDate(date.getDate() + this.state.date);
+    expirationTime.setDate(expirationTime.getDate() + this.state.date);
     expirationTime.setHours(times[this.state.meal][0].long - 1, 0, 0);
     //expirationTime.setMinutes(expirationTime.getMinutes() + 1, 0);
 
@@ -134,7 +134,6 @@ export default class GroupCreateEvent extends React.Component {
         dateTimes,
         this.state.meal,
         messageID => {
-          console.log(messageID);
           this.props.screenProps.functions.updateGroup(
             this.state.groupID,
             true,

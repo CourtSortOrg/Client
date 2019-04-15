@@ -386,16 +386,16 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
-    this.updateUser(
-      true,
-      undefined,
-      () =>
-        setInterval(() => {
+
+    this.updateUser(true, undefined, () => {
+      if (this.state.user !== undefined)
+        this.intervalID = setInterval(() => {
           this.updateFriends(() => console.log("updated friends"));
+          // this.updateGroups(() => console.log("updated groups"));
           this.updateNotifications(() => console.log("updated notifictions"));
           //update every 15 seconds.
-        }, 15000) //60000)
-    );
+        }, 15000); //60000)
+    });
 
     //If the authentification state changes
     //firebase.auth().onAuthStateChanged(user => this.updateUser(user, true));
@@ -407,6 +407,10 @@ export default class App extends React.Component {
       "Quicksand-Bold": require("./assets/fonts/Quicksand/Quicksand-Bold.ttf")
     });
     this.setState({ fontLoaded: true });
+  };
+
+  componentWillUnmount = () => {
+    clearInterval(this.intervalID);
   };
 
   getUserHandle = async (uid, errorHandler) => {
@@ -503,6 +507,8 @@ export default class App extends React.Component {
         if (callback) callback();
       });
     } else {
+      clearInterval(this.intervalID);
+      this.intervalID = null;
       await this._storeData("user", "");
       await this.setState({ firebaseLoaded: true, user: undefined }, () => {
         console.log("After::After");
@@ -1252,7 +1258,7 @@ export default class App extends React.Component {
       this.setState({ mealsLoaded: true });
       return;
     }
-    let date = this.date;
+    let date = new Date();
     date.setDate(date.getDate() + from);
     const dateStr = `${date.getFullYear()}-${
       date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
@@ -1279,8 +1285,6 @@ export default class App extends React.Component {
               meals
             },
             () => {
-              //this.updateMeals();
-              date = date.setDate(date.getDate() + 1);
               this.fetchMeals(from + 1, left - 1);
             }
           );
@@ -1434,18 +1438,18 @@ export default class App extends React.Component {
       case "deniedRequestToEat":
         obj = this.newDeniedRequestToEat(id);
         break;
+      case "changeGroupName":
+        obj = this.newChangeGroupNameNotification(id);
+        break;
 
       default:
         console.error(`invalid notification type: ${type}\nid: ${id}`);
     }
 
     if (obj) {
-      notifications.push({
-        type: type,
-        date: this.dateStr,
-        ...id,
-        ...obj
-      });
+      obj.type = type;
+      if (!obj.date) obj.date = this.dateStr;
+      notifications.push(obj);
     }
   };
 
@@ -1604,7 +1608,7 @@ export default class App extends React.Component {
   newInviteToEatNotification = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has invited you to eat with them at ${id.diningCourt} for ${id.time}!
+    }  has invited you to eat with them at ${id.diningCourt}!
     \nWould you like to join?`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.respondToInvitationAlert(id) };
@@ -1614,7 +1618,7 @@ export default class App extends React.Component {
   newRequestToEatNotification = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has asked to join you!\nAre you available?`;
+    }  has asked to join you at ${id.diningCourt}!\nAre you available?`;
     id.date = this.dateStr;
     let obj = { ...id, onPress: () => this.respondToRequestAlert(id) };
     return obj;
@@ -1679,7 +1683,17 @@ export default class App extends React.Component {
   newDeniedRequestToEat = id => {
     id.Name = `${id.friendName}  @${
       id.friendHandle
-    }  has is not available for you to join.`;
+    }  is not available for you to join.`;
+    id.date = this.dateStr;
+    id.func = "dismiss";
+    let obj = { ...id, onPress: () => this.dismissNotification(id) };
+    return obj;
+  };
+
+  newChangeGroupNameNotification = id => {
+    this.updateGroup(id.groupID, true);
+
+    id.Name = `Group ${id.oldName} has changed names to be ${id.newName}.`;
     id.date = this.dateStr;
     id.func = "dismiss";
     let obj = { ...id, onPress: () => this.dismissNotification(id) };
@@ -1826,7 +1840,9 @@ export default class App extends React.Component {
   respondToRequestAlert = id => {
     Alert.alert(
       "Respond",
-      `Would you like to join ${id.friendName}  @${id.friendHandle}?`,
+      `Would you like for ${id.friendName}  @${
+        id.friendHandle
+      }  to join you here?`,
       [
         {
           text: "No, I'm leaving soon",
@@ -2009,6 +2025,7 @@ export default class App extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
+          diningCourt: "your location",
           friendHandle
         })
       }
@@ -2048,6 +2065,7 @@ export default class App extends React.Component {
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
           friendHandle: id.friendHandle,
+          diningCourt: id.diningCourt,
           accepted
         })
       }
@@ -2068,6 +2086,7 @@ export default class App extends React.Component {
         body: JSON.stringify({
           userHandle: this.state.user.userHandle,
           friendHandle: id.friendHandle,
+          diningCourt: this.state.user.location,
           accepted
         })
       }
