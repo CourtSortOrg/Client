@@ -155,15 +155,23 @@ module.exports = {
           var currLoc = getCourt(matches[i]['location']);
           if(currLoc == null)
             continue;
-          console.log(currLoc);
       
           currLoc['dishes'].push(matches[i]);
-          console.log("Pre Aggregate: " + currLoc['aggregate']+" rating: "+Number(matches[i]['rating']));
 
-          if(matches[i]['rating'] != null)
-            currLoc['aggregate'] = Number(currLoc['aggregate']) + Number(matches[i]['rating']);
+          let currDishRating = parseFloat(matches[i]['rating']);
+          if(currDishRating == null || !currDishRating)
+            continue;
+
+          if(currDishRating > 4.9){
+            currDishRating *= 1.8;
+          } else if(currDishRating < 2.5){
+            continue;
+          } else if(currDishRating > 4.2){
+            currDishRating *= 1.3;
+          }
+
+          currLoc['aggregate'] = (currLoc['aggregate'] || 0) + currDishRating;
           
-          console.log("Post Aggregate: " + currLoc['aggregate']);
           currLoc['total']++;
       
         }
@@ -171,7 +179,7 @@ module.exports = {
         for(var i=0; i<courtNames.length; i++){
           var currLoc = getCourt(courtNames[i]);
           if(currLoc['total']>0){
-            var currRating = currLoc['aggregate'] / currLoc['total'];
+            var currRating = Number(currLoc['aggregate']) / currLoc['total'];
           }else{
             currRating = -1;
           }
