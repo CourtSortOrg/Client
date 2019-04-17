@@ -11,7 +11,7 @@ import ProfileList from "../components/ProfileList";
 import List from "../components/List";
 import ListElement from "../components/ListElement";
 
-export default class Recommendations extends React.Component {
+class RecommendationsCard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -136,6 +136,18 @@ export default class Recommendations extends React.Component {
           </View>
         </View>
 
+        {this.props.friends === true && (
+          <Card header="Friends Checked In">
+            <ProfileList
+              screenProps={this.props.screenProps}
+              navigation={this.props.navigation}
+              list={this.props.screenProps.user.friends.filter(
+                f => f.location == this.props.court.court && f.status == 1
+              )}
+            />
+          </Card>
+        )}
+
         <Card header="Top Rated">
           {this.state.dishes.length > 0 ? (
             <List
@@ -156,18 +168,6 @@ export default class Recommendations extends React.Component {
           )}
         </Card>
 
-        {this.props.friends === true && (
-          <Card header="Friends Checked In">
-            <ProfileList
-              screenProps={this.props.screenProps}
-              navigation={this.props.navigation}
-              list={this.props.screenProps.user.friends.filter(
-                f => f.location == this.props.court.court && f.status == 1
-              )}
-            />
-          </Card>
-        )}
-
         <Card header="Reports" expand={this.state.reports != undefined}>
           {this.state.reports != undefined ? (
             <List
@@ -187,3 +187,5 @@ export default class Recommendations extends React.Component {
     );
   }
 }
+
+export default RecommendationsCard;
