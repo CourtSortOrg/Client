@@ -30,14 +30,19 @@ export default class CreateAccount extends React.Component {
   };
 
   createAccount = () => {
-    Alert.alert(
-      "Name: " +
-        this.state.userName +
-        "\nEmail: " +
-        this.state.email +
-        "\nPassword: " +
-        this.state.password
-    );
+    // Alert.alert(
+    //   "Name: " +
+    //     this.state.userName +
+    //     "\nEmail: " +
+    //     this.state.email +
+    //     "\nPassword: " +
+    //     this.state.password
+    // );
+    if (this.state.userHandle.indexOf(" ") !== -1) {
+      Alert.alert("User handle cannot have a space");
+      return;
+    }
+
     Keyboard.dismiss();
     let email = this.state.email;
     let password = this.state.password;

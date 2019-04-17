@@ -16,6 +16,20 @@ exports.test = functions.https.onRequest((request, response) => {
   response.send("Heyo!");
 });
 
+exports.getGroupPredictionTest = functions.https.onRequest(async (request, response) => {
+  var groupID = request.body.groupID;
+  var date = request.body.date;
+  var meal = request.body.meal;
+  var returnAll = request.body.returnAll;
+
+
+  if(groupID == null || date == null || meal == null || returnAll == null)
+    throw new Error("incorrect parameters!");
+
+  var best = await getGroupPrediction(groupID, date, meal, returnAll);
+  response.send(best);
+});
+
 async function getGroupPrediction(groupID, date, meal, returnAll){
 
   var members;
@@ -64,7 +78,7 @@ async function getGroupPrediction(groupID, date, meal, returnAll){
   bestForUsers.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
 
   console.log("best court: "+bestForUsers[0]['court']);
-  return bestForUsers[0]['court'];
+  return bestForUsers;//[0]['court'];
 }
 
 // returns the best dining court for a user
@@ -80,8 +94,8 @@ exports.getBestDiningCourtUser = functions.https.onRequest(async (request, respo
     throw new Error("incorrect parameters!");
 
 
-    var JSONobj = await prediction.getUserPrediction(userHandle, date, meal, returnAll);
-    response.send(JSONobj);
+  var JSONobj = await prediction.getUserPrediction(userHandle, date, meal, returnAll);
+  response.send(JSONobj);
 })
 
 // removes location
@@ -358,7 +372,7 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
     date = yyyy+"-"+mm+"-"+dd;
 
     //remove old dates
-    var delDate = new Date();
+    /*var delDate = new Date();
     delDate.setDate(delDate.getDate() - 2);
 
     var dd = delDate.getDate();
@@ -372,7 +386,7 @@ exports.populateDiningTimes = functions.https.onRequest(async (request, response
       mm = '0' + mm;
     }
     var delFormat = yyyy+"-"+mm+"-"+dd;
-    await db.collection("DateTimes").doc(delFormat).delete();
+    await db.collection("DateTimes").doc(delFormat).delete();*/
   }
 
   const url = "https://api.hfs.purdue.edu/menus/v2/locations/"; // + location + "/" + date;
@@ -719,7 +733,7 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
 
   if(!userInput){
     //remove old dates
-    var delDate = new Date();
+    /*var delDate = new Date();
     delDate.setDate(delDate.getDate() - 2);
 
     var dd = delDate.getDate();
@@ -733,7 +747,7 @@ exports.populateDishes = functions.https.onRequest(async (request, response)=>{
       mm = '0' + mm;
     }
     var delFormat = yyyy+"-"+mm+"-"+dd;
-    await db.collection("DateDishes").doc(delFormat).delete();
+    await db.collection("DateDishes").doc(delFormat).delete();*/
   }
 
   console.log("done");
@@ -2924,6 +2938,8 @@ exports.closePolls = functions.https.onRequest(async (request, response) => {
       var messages = doc.data().messages;
       for(var i = 0; i < messages.length; i++){
         var message = messages[i];
+        console.log(date.getTime());
+        console.log(new Date(message.expirationTime).getTime());
         if(date.getTime() >= new Date(message.expirationTime).getTime()){
           //send a notification to the group members and remove the message
           var data = doc.data();
@@ -2940,6 +2956,7 @@ exports.closePolls = functions.https.onRequest(async (request, response) => {
           var dateString = message.timeOptions[maxIndex].substring(0, 10);
           console.log("gID: "+groupID+" datestring: "+dateString+" meal: "+message.meal);
           var diningCourt = await getGroupPrediction(groupID, dateString, message.meal, false);
+          diningCourt = diningCourt[0]['court'];
 
           var notification = {type: "closePoll", id: {groupName: data.groupName, time: message.timeOptions[maxIndex], groupID: groupID, messageID: messageID, meal: message.meal, diningCourt: diningCourt}};
           var userCol = db.collection("User");
@@ -3010,7 +3027,7 @@ exports.activateEvents = functions.https.onRequest(async (request, response) => 
     eCol.forEach(function(doc){
       var data = doc.data();
       var seconds = data.time._seconds;
-      if(date.getTime()/1000 >= seconds){
+      if(date.getTime()/1000 >= seconds - 900){
         //remove the event from the group
         var group = data.groupID;
         groupsCol.doc(group).update({

@@ -12,6 +12,7 @@ module.exports = {
     getUserPrediction: async function(userHandle, date, meal, returnAll){
         var userDishRatings = [];
   
+        // get the users dish ratings
         var userRef = db.collection("User").doc(userHandle);
         await userRef.get().then(async function(doc) {
           if (doc.exists) {
@@ -19,7 +20,7 @@ module.exports = {
               querySnapshot.forEach(async function(itemRatingDoc) {
                 await userDishRatings.push(itemRatingDoc.data());
               });
-              console.log("all dish ratings: " +userDishRatings);
+              //console.log("all dish ratings: " +userDishRatings);
             })
             .catch(function(error) {
               throw new Error(error);
@@ -33,30 +34,31 @@ module.exports = {
         var ratedDishOfferings = [];
         for(var i=0; i<userDishRatings.length; i++){
           var ratingObj = userDishRatings[i];
-          console.log(i+"th rating: "+ratingObj['dish']);
+          //console.log(i+"th rating: "+ratingObj['dish']);
           var dishRef = db.collection("Dish").doc(ratingObj['dish']);
           await dishRef.get().then(function(doc){
             var dishOffering = [];
             try{
-              var dishOffering = doc.data().offered;
+              dishOffering = doc.data().offered;
             } catch(error){
               console.log("no offered array for this!");
             }
-            ratedDishOfferings.push({dish: ratingObj['dish'], offered: dishOffering, rating: ratingObj['rating']});
+            ratedDishOfferings.push({Name: ratingObj['dish'], offered: dishOffering, rating: ratingObj['rating']});
           })
         }
       
         function addToMatches(currDish, offeredObj){
-          return offeredObj['date'] == date && offeredObj['meal'] == meal && currDish['rating'] > 3;
+          return offeredObj['date'] == date && offeredObj['meal'] == meal;
         };
       
+        // get an array of dishes the user has rated that are served for this particular meal and date
         var matches = [];
         for(var i = 0; i<ratedDishOfferings.length; i++){
           var currDish = ratedDishOfferings[i];
           for(var j = 0; j<currDish['offered'].length; j++){
             var offeredObj = currDish['offered'][j];
             if(addToMatches(currDish, offeredObj)){
-              matches.push({dish: currDish['dish'], location: offeredObj['location'], rating: currDish['rating']});
+              matches.push({Name: currDish['Name'], location: offeredObj['location'], rating: currDish['rating']});
             }
           }
         }
@@ -104,57 +106,64 @@ module.exports = {
           return null;
         }
       
-        var dateDishRef = db.collection("DateDishes").doc(date);
-        await dateDishRef.get().then(async function(doc){
-          var allCourtData = doc.data();
-          console.log(allCourtData);
-          for(var i = 0; i<allCourtData['Courts'].length; i++){
-            for(var j = 0; j<allCourtData.Courts[i].Meals.length; j++){
-              if(allCourtData.Courts[i].Meals[j].Name == meal){
-                var currMeal = allCourtData.Courts[i].Meals[j];
-                var currLoc = getCourt(allCourtData.Courts[i].Name);
-                var allDishesObj = currMeal['Stations'];
-                var allDishes = [];
-                for(var k=0; k<allDishesObj.length; k++){
-                  var currStationDishes = allDishesObj[k]['Items'];
-                  for(var p=0; p<currStationDishes.length; p++){
-                    var currDish = currStationDishes[p];
-                    if(currDish['Name'].includes('/'))
-                      continue;
-                    var itemRef = db.collection('Dish').doc(currDish['Name']);
-                    var getItem = await itemRef.get().then(async doc => {
-                      if (!doc.exists) {
-                          console.log("No such dish exists mate!");
-                      } else {
-                          var itemJSON = await doc.data();
-                          var totalScore = itemJSON['totalScore'];
-                          var totalVotes = itemJSON['totalVotes'];
-                          var itemRating = Number(Number(totalScore) / Number(totalVotes));
-                          currDish['rating'] = itemRating;
-                          currDish['location'] = allCourtData.Courts[i].Name;
-                      }
-                    }).catch(err => {
-                        throw new Error(err);
-                    });
-                    allDishes.push(currDish);
-                    everyDishEveryCourt.push(currDish);
+        if(matches.length == 0){
+          // all dishes is an array for every dc that contains all the dishes offered and the rating
+          // everyDishEveryCourt will be used as matches array if user has not rated anything that is being served today
+          var dateDishRef = db.collection("DateDishes").doc(date);
+          await dateDishRef.get().then(async function(doc){
+            var allCourtData = doc.data();
+            //console.log(allCourtData);
+            for(var i = 0; i<allCourtData['Courts'].length; i++){
+              for(var j = 0; j<allCourtData.Courts[i].Meals.length; j++){
+                if(allCourtData.Courts[i].Meals[j].Name == meal){
+                  var currMeal = allCourtData.Courts[i].Meals[j];
+                  var allDishesObj = currMeal['Stations'];
+                  for(var k=0; k<allDishesObj.length; k++){
+                    var currStationDishes = allDishesObj[k]['Items'];
+                    for(var p=0; p<currStationDishes.length; p++){
+                      var currDish = currStationDishes[p];
+                      if(currDish['Name'].includes('/'))
+                        continue;
+                      var itemRef = db.collection('Dish').doc(currDish['Name']);
+                      var getItem = await itemRef.get().then(async doc => {
+                        if (!doc.exists) {
+                            //console.log("No such dish exists mate!");
+                        } else {
+                            var itemJSON = await doc.data();
+                            var totalScore = itemJSON['totalScore'];
+                            var totalVotes = itemJSON['totalVotes'];
+                            var itemRating = Number(Number(totalScore) / Number(totalVotes));
+                            currDish['rating'] = itemRating;
+                            currDish['location'] = allCourtData.Courts[i].Name;
+                        }
+                      }).catch(err => {
+                          throw new Error(err);
+                      });
+                      everyDishEveryCourt.push(currDish);
+                    }
                   }
                 }
-                currLoc['allDishes'] = allDishes;
               }
             }
-          }
-        });
-      
-        if(matches.length == 0)
+          });
+        
           matches = everyDishEveryCourt;
+        }
       
         var courtNames = ["Hillenbrand", "Wiley", "Windsor", "Ford", "Earhart"];
         for(var i=0; i<matches.length; i++){
           var currLoc = getCourt(matches[i]['location']);
+          if(currLoc == null)
+            continue;
+          console.log(currLoc);
       
           currLoc['dishes'].push(matches[i]);
-          currLoc['aggregate'] += matches[i]['rating'];
+          console.log("Pre Aggregate: " + currLoc['aggregate']+" rating: "+Number(matches[i]['rating']));
+
+          if(matches[i]['rating'] != null)
+            currLoc['aggregate'] = Number(currLoc['aggregate']) + Number(matches[i]['rating']);
+          
+          console.log("Post Aggregate: " + currLoc['aggregate']);
           currLoc['total']++;
       
         }
@@ -175,13 +184,14 @@ module.exports = {
             return courts[0];
         }
 
-        for(var i=0; i<courts.length; i++){
+        /*for(var i=0; i<courts.length; i++){
           if(courts[i]['allDishes'].length == 0){
             courts.splice(i, 1);
             continue;
           }
-        }
-      
+        }*/
+        
+        console.log("the actual courts stuff: " +courts.toString);
         return courts;
         
     },
@@ -228,12 +238,12 @@ module.exports = {
         }
         var currRating = ((Number) (bestForUsers[i]['aggregate'])) / ((Number) (bestForUsers[i]['total']))
         bestForUsers[i]['rating'] = currRating;
-        console.log("Rating for "+bestForUsers[i]['court']+" is: "+currRating);
+        //console.log("Rating for "+bestForUsers[i]['court']+" is: "+currRating);
       }
 
       bestForUsers.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
 
-      console.log("best court: "+bestForUsers[0]['court']);
+      //console.log("best court: "+bestForUsers[0]['court']);
       return bestForUsers[0]['court'];
     }
 }
