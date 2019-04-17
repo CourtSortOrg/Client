@@ -267,6 +267,16 @@ export default class Settings extends React.Component {
           bottomDivider
         />
 
+        <ListItem
+          title="My Location Test"
+          leftIcon={<Icon name="food-off" type="material-community" />}
+          onPress={() => {
+            this.props.navigation.navigate("MyLocationTest");
+          }}
+          topDivider
+          bottomDivider
+        />
+
         {/* A ListItem that using a TextInput, prompts for an email to reset the users password */}
         <ListItem
           title="Reset Password"

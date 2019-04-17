@@ -182,22 +182,92 @@ const AppNavigation = createSwitchNavigator(
 );
 
 const Navigation = createAppContainer(AppNavigation);
+const geofencingRegions = [
+  {
+    identifier: "Earhart",
+    latitude: 40.4256,
+    longitude: -86.9251,
+    radius: 50
+  },
+  {
+    identifier: "Ford",
+    latitude: 40.4321,
+    longitude: -86.9196,
+    radius: 50
+  },
+  {
+    identifier: "Hillenbrand",
+    latitude: 40.4269,
+    longitude: -86.9265,
+    radius: 50
+  },
+  {
+    identifier: `Hillenbrand`,
+    latitude: 40.42634942065527,
+    longitude: -86.92659381777048,
+    radius: 50
+  },
+  {
+    identifier: "Wiley",
+    latitude: 40.4285,
+    longitude: -86.9208,
+    radius: 50
+  },
+  {
+    identifier: "Windsor",
+    latitude: 40.4266,
+    longitude: -86.9213,
+    radius: 50
+  }
+];
+const GEOFENCING_TASK = "geofenceTest5";
 
-const GEOFENCING_TASK = "geofencing";
+TaskManager.defineTask(GEOFENCING_TASK, sendNotification);
 
-TaskManager.defineTask(GEOFENCING_TASK, async ({ data: { region } }) => {
+// TaskManager.defineTask(GEOFENCING_TASK, sendNotification);
+
+async function sendNotification({ data: { region } }) {
+  let userHandle = await AsyncStorage.getItem("userHandle");
+  let response = await fetch(
+    "https://us-central1-courtsort-e1100.cloudfunctions.net/getUserProfile",
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userHandle: userHandle
+      })
+    }
+  );
+  let user = await response.json();
+  let location = user.location;
   const stateString = Location.GeofencingRegionState[
     region.state
   ].toLowerCase();
 
-  console.log(`${stateString} region ${region.identifier}`);
-
-  await Notifications.presentLocalNotificationAsync({
-    title: "Expo Geofencing",
-    body: `You're ${stateString} a region ${region.identifier}`,
-    data: region
-  });
-});
+  console.log(`${stateString} region ${region.identifier} ${userHandle}`);
+  if (!user.locationTracking) return;
+  if (stateString == "inside" && !location) {
+    await Notification.presentLocalNotificationAsync({
+      title: "CourtSort",
+      body: `You've entered ${region.identifier}, click to check in`,
+      data: { checkIn: true, location: region.identifier },
+      icon: "./assets/logo.png"
+    });
+  } else if (stateString == "outside") {
+    console.log(location, region.identifier);
+    if (location == region.identifier) {
+      await Notification.presentLocalNotificationAsync({
+        title: "CourtSort",
+        body: `You've exited ${region.identifier}, click to check out`,
+        data: { checkIn: false },
+        icon: "./assets/logo.png"
+      });
+    }
+  }
+}
 
 export default class App extends React.Component {
   constructor(props) {
@@ -211,11 +281,17 @@ export default class App extends React.Component {
       meals: []
     };
 
-    // Notification.presentLocalNotificationAsync({
-    //   title: "Expo Notification",
-    //   body: "This is a test notifcation from the Notification API"
-    // });
-    //this.enableLocation();
+    Notification.addListener(notif => {
+      if (notif.origin == "selected") {
+        if (!this.state.user.location && notif.data.checkIn) {
+          this.checkIntoDiningCourt(notif.data.location);
+          this.setStatus(2);
+        } else if (!notif.data.checkIn) {
+          this.checkOutOfDiningCourt();
+          this.setStatus(0);
+        }
+      }
+    });
   }
 
   date = new Date();
@@ -312,6 +388,7 @@ export default class App extends React.Component {
   componentDidMount = async () => {
     await this._retrieveData();
     this.fetchMeals(0, 7);
+
     this.updateUser(true, undefined, () => {
       if (this.state.user !== undefined)
         this.intervalID = setInterval(() => {
@@ -419,6 +496,8 @@ export default class App extends React.Component {
         true
       );
       await this.updateRatings(() => console.log("ratings loaded"));
+      if (this.state.user.locationTracking) await this.enableLocation();
+
       // TODO: Get the user's ratings here
 
       await this._storeData(`user`, JSON.stringify(this.state.user));
@@ -505,21 +584,18 @@ export default class App extends React.Component {
   enableLocation = async callback => {
     let { status } = await Permissions.askAsync(Permissions.LOCATION);
     console.log("LOCATION PERMISSIONS: ", status);
-    const { coords } = await Location.getCurrentPositionAsync();
-    console.log("CURRENT LOCATION: ", coords);
-    await Location.startGeofencingAsync(GEOFENCING_TASK, [
-      {
-        identifier: "CurrLocation",
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        radius: 50
-      }
-    ]);
-    const isGeofencing = await Location.hasStartedGeofencingAsync(
-      GEOFENCING_TASK
-    );
-    console.log("IS GEOFENCING: ", isGeofencing);
-    if (callback) callback();
+    let handle = this.state.user.userHandle;
+    await this._storeData("userHandle", handle);
+
+    if (await Location.hasStartedGeofencingAsync(GEOFENCING_TASK)) {
+      console.log("ENDING GEOFENCING");
+      await Location.stopGeofencingAsync(GEOFENCING_TASK);
+    }
+    if (!(await Location.hasStartedGeofencingAsync(GEOFENCING_TASK))) {
+      // update existing geofencing task
+      console.log("STARTING GEOFENCING");
+      await Location.startGeofencingAsync(GEOFENCING_TASK, geofencingRegions);
+    }
   };
 
   disableLocation = async callback => {
