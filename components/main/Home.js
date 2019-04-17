@@ -23,16 +23,26 @@ export default class Home extends React.Component {
 
   updateRecommendations = () => {
     if (this.props.screenProps.user.status == 0) {
-      if (
-        this.props.screenProps.functions.getNextMeal() == this.state.meal &&
-        this.props.screenProps.functions.getDay() == this.state.date
-      ) {
-        this.setState({ friends: true });
-        // this.getBestDiningCourtUser(this.state.date, this.state.meal);
-      } else {
-        this.setState({ friends: false });
-        // this.getBestDiningCourtUser(this.state.date, this.state.meal);
-      }
+      this.setState({ friends: false });
+      this.getBestDiningCourtUser(this.state.date, this.state.meal, () => {
+        if (
+          this.props.screenProps.functions.getNextMeal() == this.state.meal &&
+          this.props.screenProps.functions.getDay() == this.state.date
+        ) {
+          const rec = this.state.recommendation.sort((a, b) => {
+            const aFriends = this.props.screenProps.user.friends.filter(
+              f => f.location == a.court && f.status == 1
+            );
+            const bFriends = this.props.screenProps.user.friends.filter(
+              f => f.location == b.court && f.status == 1
+            );
+            if (aFriends.length > bFriends.length) return -1;
+            else if (aFriends.length < bFriends.length) return 1;
+            return 0;
+          });
+          this.setState({ friends: true, recommendation: rec });
+        }
+      });
     }
   };
 
@@ -50,7 +60,7 @@ export default class Home extends React.Component {
     });
   };
 
-  getBestDiningCourtUser = (day, meal) => {
+  getBestDiningCourtUser = (day, meal, callback) => {
     let date = new Date();
     date.setDate(date.getDate() + day);
 
@@ -73,10 +83,13 @@ export default class Home extends React.Component {
       }
     )
       .then(data => {
-        this.setState({
-          recommendation: JSON.parse(data._bodyText),
-          loading: false
-        });
+        this.setState(
+          {
+            recommendation: JSON.parse(data._bodyText),
+            loading: false
+          },
+          callback
+        );
       })
       .catch(error => console.error(`getBestDiningCourtUser: ${error}`));
   };
@@ -176,17 +189,19 @@ export default class Home extends React.Component {
                 <Text>{this.state.meal}</Text>
               </TouchableOpacity>
             </View>
-            {this.state.recommendation.filter(c => c.rating != -1).map((court, index) => (
-              <RecommendationsCard
-                court={court}
-                index={index}
-                key={index}
-                friends={this.state.friends}
-                navigation={this.props.navigation}
-                screenProps={this.props.screenProps}
-                expand={index == 0}
-              />
-            ))}
+            {this.state.recommendation
+              .filter(c => c.rating != -1)
+              .map((court, index) => (
+                <RecommendationsCard
+                  court={court}
+                  index={index}
+                  key={index}
+                  friends={this.state.friends}
+                  navigation={this.props.navigation}
+                  screenProps={this.props.screenProps}
+                  expand={index == 0}
+                />
+              ))}
             <Overlay
               overlayStyle={{ padding: 0 }}
               containerStyle={{ padding: 0, margin: 0 }}
@@ -201,7 +216,7 @@ export default class Home extends React.Component {
                         {
                           text: m,
                           onPress: () => {
-                            if (m != "Cancel" && m != this.state.meal) {
+                            if (m != "Cancel") {
                               this.setState(
                                 {
                                   showMeal: false,
@@ -237,7 +252,7 @@ export default class Home extends React.Component {
                               ? this.props.screenProps.globals.dayNames[d]
                               : "Cancel",
                           onPress: () => {
-                            if (d != "Cancel" && d != this.state.date) {
+                            if (d != "Cancel") {
                               this.setState(
                                 {
                                   showDate: false,
