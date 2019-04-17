@@ -2938,6 +2938,8 @@ exports.closePolls = functions.https.onRequest(async (request, response) => {
       var messages = doc.data().messages;
       for(var i = 0; i < messages.length; i++){
         var message = messages[i];
+        console.log(date.getTime());
+        console.log(new Date(message.expirationTime).getTime());
         if(date.getTime() >= new Date(message.expirationTime).getTime()){
           //send a notification to the group members and remove the message
           var data = doc.data();
@@ -3025,7 +3027,7 @@ exports.activateEvents = functions.https.onRequest(async (request, response) => 
     eCol.forEach(function(doc){
       var data = doc.data();
       var seconds = data.time._seconds;
-      if(date.getTime()/1000 >= seconds){
+      if(date.getTime()/1000 >= seconds - 900){
         //remove the event from the group
         var group = data.groupID;
         groupsCol.doc(group).update({
