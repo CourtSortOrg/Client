@@ -470,6 +470,7 @@ export default class App extends React.Component {
     await this.setState({
       user: {
         ...this.state.user,
+        friends: []
       }
     });
 
