@@ -27,11 +27,6 @@ export default class Home extends React.Component {
       this.getBestDiningCourtUser(this.state.date, this.state.meal, () => {
         console.log(this.state.recommendation);
         let rec = this.state.recommendation.filter(c => c.rating != -1);
-        rec = rec.sort((a, b) => {
-          if (a.aggregate > b.aggregate) return -1;
-          else if (a.aggregate < b.aggregate) return 1;
-          return 0;
-        });
         if (
           this.props.screenProps.functions.getNextMeal() == this.state.meal &&
           this.props.screenProps.functions.getDay() == this.state.date
