@@ -285,8 +285,10 @@ export default class App extends React.Component {
       if (notif.origin == "selected") {
         if (!this.state.user.location && notif.data.checkIn) {
           this.checkIntoDiningCourt(notif.data.location);
+          this.setStatus(2);
         } else if (!notif.data.checkIn) {
           this.checkOutOfDiningCourt();
+          this.setStatus(0);
         }
       }
     });

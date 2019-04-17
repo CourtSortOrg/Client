@@ -28,10 +28,10 @@ export default class Home extends React.Component {
         this.props.screenProps.functions.getDay() == this.state.date
       ) {
         this.setState({ friends: true });
-        this.getBestDiningCourtUser(this.state.date, this.state.meal);
+        // this.getBestDiningCourtUser(this.state.date, this.state.meal);
       } else {
         this.setState({ friends: false });
-        this.getBestDiningCourtUser(this.state.date, this.state.meal);
+        // this.getBestDiningCourtUser(this.state.date, this.state.meal);
       }
     }
   };
