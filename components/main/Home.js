@@ -25,11 +25,18 @@ export default class Home extends React.Component {
     if (this.props.screenProps.user.status == 0) {
       this.setState({ friends: false });
       this.getBestDiningCourtUser(this.state.date, this.state.meal, () => {
+        console.log(this.state.recommendation);
+        let rec = this.state.recommendation.filter(c => c.rating != -1);
+        rec = rec.sort((a, b) => {
+          if (a.aggregate > b.aggregate) return -1;
+          else if (a.aggregate < b.aggregate) return 1;
+          return 0;
+        });
         if (
           this.props.screenProps.functions.getNextMeal() == this.state.meal &&
           this.props.screenProps.functions.getDay() == this.state.date
         ) {
-          const rec = this.state.recommendation.sort((a, b) => {
+          rec = rec.sort((a, b) => {
             const aFriends = this.props.screenProps.user.friends.filter(
               f => f.location == a.court && f.status == 1
             );
@@ -40,8 +47,10 @@ export default class Home extends React.Component {
             else if (aFriends.length < bFriends.length) return 1;
             return 0;
           });
-          this.setState({ friends: true, recommendation: rec });
+          this.setState({ friends: true });
         }
+        this.setState({ recommendation: rec });
+        console.log(rec);
       });
     }
   };
@@ -62,8 +71,7 @@ export default class Home extends React.Component {
 
   getBestDiningCourtUser = (day, meal, callback) => {
     let date = new Date();
-    date.setDate(date.getDate() + day);
-
+    date.setDate(date.getDate() + (day - (date.getDate() % 7)));
     this.setState({ loading: true });
 
     fetch(
@@ -189,19 +197,17 @@ export default class Home extends React.Component {
                 <Text>{this.state.meal}</Text>
               </TouchableOpacity>
             </View>
-            {this.state.recommendation
-              .filter(c => c.rating != -1)
-              .map((court, index) => (
-                <RecommendationsCard
-                  court={court}
-                  index={index}
-                  key={index}
-                  friends={this.state.friends}
-                  navigation={this.props.navigation}
-                  screenProps={this.props.screenProps}
-                  expand={index == 0}
-                />
-              ))}
+            {this.state.recommendation.map((court, index) => (
+              <RecommendationsCard
+                court={court}
+                index={index}
+                key={index}
+                friends={this.state.friends}
+                navigation={this.props.navigation}
+                screenProps={this.props.screenProps}
+                expand={index == 0}
+              />
+            ))}
             <Overlay
               overlayStyle={{ padding: 0 }}
               containerStyle={{ padding: 0, margin: 0 }}

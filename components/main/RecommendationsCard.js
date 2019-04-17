@@ -27,10 +27,6 @@ class RecommendationsCard extends React.Component {
   }
 
   componentDidMount = () => {
-    console.log(this.props.court.court);
-    console.log(this.props.court.rating);
-    console.log(this.props.court.dishes);
-
     this.getMalfunctions();
     this.props.navigation.addListener("willFocus", payload => {
       this.getMalfunctions();
