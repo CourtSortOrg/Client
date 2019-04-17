@@ -248,7 +248,7 @@ async function sendNotification({ data: { region } }) {
   ].toLowerCase();
 
   console.log(`${stateString} region ${region.identifier} ${userHandle}`);
-
+  if (!user.locationTracking) return;
   if (stateString == "inside" && !location) {
     await Notification.presentLocalNotificationAsync({
       title: "CourtSort",
