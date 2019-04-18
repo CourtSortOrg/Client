@@ -1641,7 +1641,7 @@ export default class App extends React.Component {
 
   newEventStartNotification = id => {
     let d = new Date(id.time);
-    id.Name = `${id.groupName}'s event on ${id.date} at ${id.diningCourt} in ${
+    id.Name = `${id.groupName}'s event at ${id.diningCourt} at ${
       d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
     }:${
       d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
