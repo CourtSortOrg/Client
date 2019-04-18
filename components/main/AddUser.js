@@ -20,7 +20,7 @@ export default class AddUser extends React.Component {
       }
     )
       .then(data => {
-        //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+        //console.log(`sendFriendRequest: Successful: ${data._bodyText}`);
         if (data._bodyText == "success")
           Alert.alert(
             "Friend Request",
@@ -44,7 +44,7 @@ export default class AddUser extends React.Component {
             { cancelable: false }
           );
       })
-      .catch(error => console.error(`sendFriendRequest: ${error}`));
+      .catch(error => console.log(`sendFriendRequest: ${error}`));
   };
 
   render() {

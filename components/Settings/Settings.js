@@ -111,7 +111,7 @@ export default class Settings extends React.Component {
                         }`
                       );
                     } catch (error) {
-                      console.error(
+                      console.log(
                         `deleteAccount: removeFromAllFriends: ${error}: ${
                           data._bodyText
                         }`
@@ -119,7 +119,7 @@ export default class Settings extends React.Component {
                     }
                   })
                   .catch(error =>
-                    console.error(
+                    console.log(
                       `deleteAccount: removeFromAllFriends: ${error}`
                     )
                   );
@@ -145,7 +145,7 @@ export default class Settings extends React.Component {
                         }`
                       );
                     } catch (error) {
-                      console.error(
+                      console.log(
                         `deleteAccount: removeUserFromDatabase: ${error}: ${
                           data._bodyText
                         }`
@@ -153,7 +153,7 @@ export default class Settings extends React.Component {
                     }
                   })
                   .catch(error =>
-                    console.error(
+                    console.log(
                       `deleteAccount: removeUserFromDatabase: ${error}`
                     )
                   );

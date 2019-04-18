@@ -21,8 +21,8 @@ export default class GroupList extends React.Component {
       try {
         return item.groupName.includes(text);
       } catch (error) {
-        console.error("filterGroup: Ill defined item:");
-        console.error(item);
+        console.log("filterGroup: Ill defined item:");
+        console.log(item);
       }
     });
   }

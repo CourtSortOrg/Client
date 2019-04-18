@@ -102,10 +102,10 @@ export default class Map extends React.Component {
             loading: false
           });
         } catch (error) {
-          console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
+          console.log(`fetchDiningTimes: ${error}: ${data._bodyText}`);
         }
       })
-      .catch(error => console.error(`fetchDiningTimes: ${error}`));
+      .catch(error => console.log(`fetchDiningTimes: ${error}`));
   }
 
   renderDiningCard = ({ item, index }) => {

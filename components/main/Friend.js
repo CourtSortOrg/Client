@@ -132,7 +132,7 @@ export default class Friend extends React.Component {
       }
     )
       .then(data => {
-        //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+        //console.log(`sendFriendRequest: Successful: ${data._bodyText}`);
         if (data._bodyText == "success")
           Alert.alert(
             "Friend Request",
@@ -158,7 +158,7 @@ export default class Friend extends React.Component {
             { cancelable: false }
           );
       })
-      .catch(error => console.error(`sendFriendRequest: ${error}`));
+      .catch(error => console.log(`sendFriendRequest: ${error}`));
   };
 
   removeFriendFirebaseFunction() {
@@ -185,12 +185,12 @@ export default class Friend extends React.Component {
           );
           this.props.navigation.goBack();
         } catch (error) {
-          console.error(
+          console.log(
             `removeFriendFirebaseFunction: ${error}: ${data._bodyText}`
           );
         }
       })
-      .catch(error => console.error(`removeFriendFirebaseFunction: ${error}`));
+      .catch(error => console.log(`removeFriendFirebaseFunction: ${error}`));
   }
 
   blockUserFirebaseFunction() {
@@ -214,12 +214,12 @@ export default class Friend extends React.Component {
           );
           this.props.navigation.goBack();
         } catch (error) {
-          console.error(
+          console.log(
             `blockUserFirebaseFunction: ${error}: ${data._bodyText}`
           );
         }
       })
-      .catch(error => console.error(`blockUserFirebaseFunction: ${error}`));
+      .catch(error => console.log(`blockUserFirebaseFunction: ${error}`));
   }
 
   // Function to determine if the user is going to invite the friend to eat, or to send a request to eat
@@ -284,7 +284,7 @@ export default class Friend extends React.Component {
           );
         else Alert.alert("Error", "Invite could not be sent");
       })
-      .catch(error => console.error(`inviteToEat: ${error}`));
+      .catch(error => console.log(`inviteToEat: ${error}`));
   };
 
   // Calls firebase function to send a request for the user to join a friend who is currently eating
@@ -316,7 +316,7 @@ export default class Friend extends React.Component {
           );
         else Alert.alert("Error", "Request could not be sent");
       })
-      .catch(error => console.error(`requestToEat: ${error}`));
+      .catch(error => console.log(`requestToEat: ${error}`));
   };
 
   render() {

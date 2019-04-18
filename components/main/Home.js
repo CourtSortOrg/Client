@@ -94,7 +94,7 @@ export default class Home extends React.Component {
           callback
         );
       })
-      .catch(error => console.error(`getBestDiningCourtUser: ${error}`));
+      .catch(error => console.log(`getBestDiningCourtUser: ${error}`));
   };
 
   render() {

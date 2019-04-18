@@ -362,7 +362,7 @@ export default class App extends React.Component {
         await AsyncStorage.removeItem(key);
       }
     } catch (error) {
-      console.error(`_storeData: ${error}`);
+      console.log(`_storeData: ${error}`);
     }
   };
 
@@ -378,7 +378,7 @@ export default class App extends React.Component {
         userLoaded: true
       });
     } catch (error) {
-      console.error(`componentDidMount: AsyncStorage.getItem: ${error}`);
+      console.log(`componentDidMount: AsyncStorage.getItem: ${error}`);
       this.setState({
         userLoaded: true
       });
@@ -449,13 +449,13 @@ export default class App extends React.Component {
               });
             } catch (error) {
               if (errorHandler) errorHandler();
-              else console.error(`getUserHandle: ${error} -- ${data}`);
+              else console.log(`getUserHandle: ${error} -- ${data}`);
               errorGetUserHandle = true;
             }
           })
           .catch(error => {
             if (errorHandler) errorHandler();
-            else console.error(`getUserHandle: ${error}`);
+            else console.log(`getUserHandle: ${error}`);
             errorGetUserHandle = true;
           });
       } else {
@@ -626,7 +626,7 @@ export default class App extends React.Component {
       // Call the callback if provided
       if (callback) callback();
     } catch (error) {
-      console.error(`updateBlockedUsers: ${error}`);
+      console.log(`updateBlockedUsers: ${error}`);
       // Call the callback if provided
       if (callback) callback();
     }
@@ -715,7 +715,7 @@ export default class App extends React.Component {
         callback
       );
     } catch (error) {
-      console.error(`getUserDishRatings : ${error}`);
+      console.log(`getUserDishRatings : ${error}`);
     }
   };
 
@@ -740,7 +740,7 @@ export default class App extends React.Component {
           dietaryRestrictionArray: restrictions
         })
       }
-    ).catch(error => console.error(`setDietaryRestrictions : ${error}`));
+    ).catch(error => console.log(`setDietaryRestrictions : ${error}`));
   };
 
   checkOut = callback => {
@@ -824,7 +824,7 @@ export default class App extends React.Component {
           status: status
         })
       }
-    ).catch(error => console.error(`checkInLocation: ${error}`));
+    ).catch(error => console.log(`checkInLocation: ${error}`));
 
     if (callback) callback();
   };
@@ -843,7 +843,7 @@ export default class App extends React.Component {
           location: courtId
         })
       }
-    ).catch(error => console.error(`checkInLocation: ${error}`));
+    ).catch(error => console.log(`checkInLocation: ${error}`));
 
     this.setState({
       user: {
@@ -874,7 +874,7 @@ export default class App extends React.Component {
 
       if (callback) callback();
     } catch (error) {
-      console.error(`removeLocation: ${error}`);
+      console.log(`removeLocation: ${error}`);
       if (callback) callback();
     }
   };
@@ -896,7 +896,7 @@ export default class App extends React.Component {
       );
       if (callback) callback();
     } catch (error) {
-      console.error(`toggleLocationTracking: ${error}`);
+      console.log(`toggleLocationTracking: ${error}`);
     }
   };
 
@@ -926,7 +926,7 @@ export default class App extends React.Component {
       });
       if (callback) callback();
     } catch (error) {
-      console.error(`getLocationTracking: ${error}`);
+      console.log(`getLocationTracking: ${error}`);
     }
   };
 
@@ -943,7 +943,7 @@ export default class App extends React.Component {
           userHandle: this.state.user.userHandle
         })
       }
-    ).catch(error => console.error(`removeLocation: ${error}`));
+    ).catch(error => console.log(`removeLocation: ${error}`));
 
     this.setState({
       user: {
@@ -1073,7 +1073,7 @@ export default class App extends React.Component {
           busyness
         })
       }
-    ).catch(error => console.error(`reportBusyness: ${error}`));
+    ).catch(error => console.log(`reportBusyness: ${error}`));
   };
 
   reportMalfunction = (diningCourt, malfunction) => {
@@ -1091,7 +1091,7 @@ export default class App extends React.Component {
           malfunction
         })
       }
-    ).catch(error => console.error(`reportMalfunction: ${error}`));
+    ).catch(error => console.log(`reportMalfunction: ${error}`));
   };
 
   addUserToDatabase = (user, callback) => {
@@ -1115,17 +1115,17 @@ export default class App extends React.Component {
           //JSON.parse(data._bodyText);
           this.updateUser(true, user, callback);
         } catch (error) {
-          console.error(`addUserToDatabase: ${error}--${data._bodyText}`);
+          console.log(`addUserToDatabase: ${error}--${data._bodyText}`);
         }
       })
-      .catch(error => console.error(`addUserToDatabase: ${error}`));
+      .catch(error => console.log(`addUserToDatabase: ${error}`));
   };
 
   handleData = (functionName, data, callback) => {
     try {
       if (callback) callback(JSON.parse(data._bodyText));
     } catch (error) {
-      console.error(`${functionName}: ${error} -- ${data}`);
+      console.log(`${functionName}: ${error} -- ${data}`);
     }
   };
 
@@ -1144,7 +1144,7 @@ export default class App extends React.Component {
       }
     )
       .then(data => this.handleData(`fetchUser`, data, callback))
-      .catch(error => console.error(`fetchUser: ${error}`));
+      .catch(error => console.log(`fetchUser: ${error}`));
   };
 
   fetchFriends = async (id, callback) => {
@@ -1162,7 +1162,7 @@ export default class App extends React.Component {
       }
     )
       .then(data => this.handleData(`fetchFriends`, data, callback))
-      .catch(error => console.error(`fetchFriends: ${error}`));
+      .catch(error => console.log(`fetchFriends: ${error}`));
   };
 
   // Update to get friend.
@@ -1181,7 +1181,7 @@ export default class App extends React.Component {
       }
     )
       .then(data => this.handleData(`fetchFriend`, data, callback))
-      .catch(error => console.error(`fetchFriend: ${error}`));
+      .catch(error => console.log(`fetchFriend: ${error}`));
   };
 
   fetchGroups = async (id, callback) => {
@@ -1199,7 +1199,7 @@ export default class App extends React.Component {
       }
     )
       .then(data => this.handleData(`fetchGroups`, data, callback))
-      .catch(error => console.error(`fetchFriends: ${error}`));
+      .catch(error => console.log(`fetchFriends: ${error}`));
   };
 
   fetchGroup = async (id, callback) => {
@@ -1218,7 +1218,7 @@ export default class App extends React.Component {
       }
     )
       .then(data => this.handleData(`getGroup`, data, callback))
-      .catch(error => console.error(`getGroup: ${error}`));
+      .catch(error => console.log(`getGroup: ${error}`));
   };
 
   fetchDiningCourtRating = async (id, callback) => {
@@ -1236,7 +1236,7 @@ export default class App extends React.Component {
       }
     )
       .then(data => this.handleData(`getDiningCourtRatings`, data, callback))
-      .catch(error => console.error(`getDiningCourtRatings: ${error}`));
+      .catch(error => console.log(`getDiningCourtRatings: ${error}`));
   };
 
   rateDiningCourt = (diningCourt, rating) => {
@@ -1254,7 +1254,7 @@ export default class App extends React.Component {
           rating
         })
       }
-    ).catch(error => console.error(`rateDiningCourt: ${error}`));
+    ).catch(error => console.log(`rateDiningCourt: ${error}`));
   };
 
   fetchMeals = (from, left) => {
@@ -1293,10 +1293,10 @@ export default class App extends React.Component {
             }
           );
         } catch (error) {
-          console.error(`fetchMeals: ${error}: ${data._bodyText}`);
+          console.log(`fetchMeals: ${error}: ${data._bodyText}`);
         }
       })
-      .catch(error => console.error(`fetchMeals: ${error}`));
+      .catch(error => console.log(`fetchMeals: ${error}`));
   };
 
   changeGroupName = (groupID, groupName) => {
@@ -1325,7 +1325,7 @@ export default class App extends React.Component {
         });
         console.log(`Update group name to ${groupName}`);
       })
-      .catch(error => console.error(`changeGroupName: ${error}`));
+      .catch(error => console.log(`changeGroupName: ${error}`));
   };
 
   resetNotifications = async callback => {
@@ -1384,7 +1384,7 @@ export default class App extends React.Component {
       .then(data => {
         this.handleData(`getNotifications`, data, callback);
       })
-      .catch(error => console.error(`getNotifications: ${error}`));
+      .catch(error => console.log(`getNotifications: ${error}`));
   };
 
   parseNotifications = (notifications, type, id, callback) => {
@@ -1447,7 +1447,7 @@ export default class App extends React.Component {
         break;
 
       default:
-        console.error(`invalid notification type: ${type}\nid: ${id}`);
+        console.log(`invalid notification type: ${type}\nid: ${id}`);
     }
 
     if (obj) {
@@ -1641,7 +1641,7 @@ export default class App extends React.Component {
 
   newEventStartNotification = id => {
     let d = new Date(id.time);
-    id.Name = `${id.groupName}'s event on ${id.date} at ${id.diningCourt} in ${
+    id.Name = `${id.groupName}'s event at ${id.diningCourt} at ${
       d.getHours() > 12 ? d.getHours() - 12 : d.getHours()
     }:${
       d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
@@ -1928,10 +1928,10 @@ export default class App extends React.Component {
           //JSON.parse(data._bodyText);
           this.updateFriend(id.friendHandle, true);
         } catch (error) {
-          console.error(`acceptFriendRequest: ${error} -- ${data._bodyText}`);
+          console.log(`acceptFriendRequest: ${error} -- ${data._bodyText}`);
         }
       })
-      .catch(error => console.error(`acceptFriendRequest: ${error}`));
+      .catch(error => console.log(`acceptFriendRequest: ${error}`));
   };
 
   denyFriendRequest = id => {
@@ -1955,10 +1955,10 @@ export default class App extends React.Component {
         try {
           //JSON.parse(data._bodyText);
         } catch (error) {
-          console.error(`denyFriendRequest: ${error}: ${data._bodyText}`);
+          console.log(`denyFriendRequest: ${error}: ${data._bodyText}`);
         }
       })
-      .catch(error => console.error(`denyFriendRequest: ${error}`));
+      .catch(error => console.log(`denyFriendRequest: ${error}`));
   };
 
   acceptGroupInvitation = id => {
@@ -1984,10 +1984,10 @@ export default class App extends React.Component {
           //JSON.parse(data._bodyText);
           this.updateGroup(id.groupID, true);
         } catch (error) {
-          console.error(`acceptGroupInvitation: ${error}- ${data._bodyText}`);
+          console.log(`acceptGroupInvitation: ${error}- ${data._bodyText}`);
         }
       })
-      .catch(error => console.error(`acceptGroupInvitation: ${error}`));
+      .catch(error => console.log(`acceptGroupInvitation: ${error}`));
   };
 
   denyGroupInvitation = id => {
@@ -2012,10 +2012,10 @@ export default class App extends React.Component {
         try {
           //JSON.parse(data._bodyText);
         } catch (error) {
-          console.error(`denyGroupInvitation: ${error}- ${data._bodyText}`);
+          console.log(`denyGroupInvitation: ${error}- ${data._bodyText}`);
         }
       })
-      .catch(error => console.error(`denyGroupInvitation: ${error}`));
+      .catch(error => console.log(`denyGroupInvitation: ${error}`));
   };
 
   requestToEat = friendHandle => {
@@ -2033,7 +2033,7 @@ export default class App extends React.Component {
           friendHandle
         })
       }
-    ).catch(error => console.error(`requestToEat: ${error}`));
+    ).catch(error => console.log(`requestToEat: ${error}`));
   };
 
   inviteToEat = friendHandle => {
@@ -2052,7 +2052,7 @@ export default class App extends React.Component {
           //default to checkin, otherwise prompt.
         })
       }
-    ).catch(error => console.error(`inviteToEat: ${error}`));
+    ).catch(error => console.log(`inviteToEat: ${error}`));
   };
 
   inviteToEatResponse = (id, accepted) => {
@@ -2073,7 +2073,7 @@ export default class App extends React.Component {
           accepted
         })
       }
-    ).catch(error => console.error(`inviteToEatResponse: ${error}`));
+    ).catch(error => console.log(`inviteToEatResponse: ${error}`));
   };
 
   requestToEatResponse = (id, accepted) => {
@@ -2094,7 +2094,7 @@ export default class App extends React.Component {
           accepted
         })
       }
-    ).catch(error => console.error(`requestToEatResponse: ${error}`));
+    ).catch(error => console.log(`requestToEatResponse: ${error}`));
   };
 
   voteGroup = id => {
@@ -2119,7 +2119,7 @@ export default class App extends React.Component {
         groupID,
         messageID
       })
-    }).catch(error => console.error(`vote: ${error}`));
+    }).catch(error => console.log(`vote: ${error}`));
   };
 
   createPoll = (expirationTime, groupID, timeOptions, meal, callback) => {
@@ -2142,7 +2142,7 @@ export default class App extends React.Component {
       .then(data => {
         if (callback) callback(JSON.parse(data._bodyText).messageID);
       })
-      .catch(error => console.error(`createPoll: ${error}`));
+      .catch(error => console.log(`createPoll: ${error}`));
   };
 
   setProfilePic = imageURL => {
@@ -2169,7 +2169,7 @@ export default class App extends React.Component {
         });
       })
       .catch(error => {
-        console.error(`setProfilePic: ${error}`);
+        console.log(`setProfilePic: ${error}`);
       });
   };
 

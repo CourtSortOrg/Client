@@ -55,7 +55,7 @@ class RecommendationsCard extends React.Component {
             reports: mal
           });
       })
-      .catch(error => console.error(`getMalfunctions: ${error}`));
+      .catch(error => console.log(`getMalfunctions: ${error}`));
   };
 
   renderDish = item => {
