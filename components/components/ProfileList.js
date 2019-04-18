@@ -21,8 +21,8 @@ export default class ProfileList extends React.Component {
       try {
         return item.userName.includes(text) || item.userHandle.includes(text);
       } catch (error) {
-        console.error("filterProfile: Ill defined item:");
-        console.error(item);
+        console.log("filterProfile: Ill defined item:");
+        console.log(item);
       }
     });
   }

@@ -71,7 +71,7 @@ export default class MealItem extends React.Component {
         this.getRating(dishName);
         this.props.screenProps.functions.updateRatings();
       })
-      .catch(error => console.error(`addRating: ${error}`));
+      .catch(error => console.log(`addRating: ${error}`));
   };
 
   getRating = async dishName => {
@@ -93,7 +93,7 @@ export default class MealItem extends React.Component {
         }
         this.setState({ rating: parsedData });
       })
-      .catch(error => console.error(`getRating: ${error}`));
+      .catch(error => console.log(`getRating: ${error}`));
   };
 
   componentDidMount = async () => {
@@ -150,10 +150,10 @@ export default class MealItem extends React.Component {
             }
           );
         } catch (error) {
-          console.error(`fetchAllOffered: ${error}: ${data._bodyText}`);
+          console.log(`fetchAllOffered: ${error}: ${data._bodyText}`);
         }
       })
-      .catch(error => console.error(`fetchAllOffered: ${error}`));
+      .catch(error => console.log(`fetchAllOffered: ${error}`));
     //TODO: Call getRating on this item
     //TODO: Call getRating for user?
   };

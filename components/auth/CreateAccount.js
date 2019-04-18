@@ -58,7 +58,7 @@ export default class CreateAccount extends React.Component {
             userHandle: this.state.userHandle
           })
           .catch(function(error) {
-            console.error(`createAccount: updateProfile: ${error.message}`);
+            console.log(`createAccount: updateProfile: ${error.message}`);
           });
           */
         this.props.screenProps.functions.addUserToDatabase(
@@ -76,7 +76,7 @@ export default class CreateAccount extends React.Component {
         if (errorCode == "auth/weak-password") {
           Alert.alert("the password is too weak");
         } else {
-          //console.error(`createAccount: createUserWithEmailAndPassword: ${error.message}`);
+          //console.log(`createAccount: createUserWithEmailAndPassword: ${error.message}`);
           Alert.alert("Error", error.message);
         }
       });

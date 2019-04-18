@@ -96,7 +96,7 @@ export default class GroupSettings extends React.Component {
           groupName: this.state.group.groupName
         })
       }
-    ).catch(error => console.error(`inviteToGroup: ${error}`));
+    ).catch(error => console.log(`inviteToGroup: ${error}`));
   };
 
   createGroup = () => {
@@ -141,7 +141,7 @@ export default class GroupSettings extends React.Component {
             }
           );
         })
-        .catch(error => console.error(`createGroup: ${error}`));
+        .catch(error => console.log(`createGroup: ${error}`));
     } else {
       if (this.state.newGroupName === "") {
         Alert.alert(
@@ -204,7 +204,7 @@ export default class GroupSettings extends React.Component {
         this.props.screenProps.functions.updateGroup(this.state.groupID, false);
         this.props.navigation.pop(2);
       })
-      .catch(error => console.error(`leaveGroupFirebaseFunction: ${error}`));
+      .catch(error => console.log(`leaveGroupFirebaseFunction: ${error}`));
   };
 
   render() {

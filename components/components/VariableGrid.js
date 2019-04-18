@@ -5,16 +5,16 @@ export default class RestrictionGrid extends React.Component {
   render() {
     let data = this.props.data;
     if (!data || data.constructor !== Array) {
-      console.error("Restriction Grid Prop 'data' must be of type Array");
+      console.log("Restriction Grid Prop 'data' must be of type Array");
     }
     let colPattern = this.props.colPattern;
     if (!colPattern || colPattern.constructor !== Array) {
-      console.error("Restriction Grid Prop 'data' must be of type Array");
+      console.log("Restriction Grid Prop 'data' must be of type Array");
     }
     //Check if renderItem exists as a prop
     let renderItem = this.props.renderItem;
     if (!renderItem || renderItem.constructor !== Function) {
-      console.error(
+      console.log(
         "Restriction Grid Prop 'renderItem' must be of type Function"
       );
     }
