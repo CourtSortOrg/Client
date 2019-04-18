@@ -101,28 +101,27 @@ export default class Settings extends React.Component {
                       userHandle: this.state.id
                     })
                   }
-                )
-                  .then(data => {
-                    try {
-                      //JSON.parse(data._bodyText);
-                      console.log(
-                        `deleteAccount: removeFromAllFriends: Successful: ${
-                          data._bodyText
-                        }`
-                      );
-                    } catch (error) {
-                      console.error(
-                        `deleteAccount: removeFromAllFriends: ${error}: ${
-                          data._bodyText
-                        }`
-                      );
-                    }
-                  })
-                  .catch(error =>
-                    console.error(
-                      `deleteAccount: removeFromAllFriends: ${error}`
-                    )
-                  );
+                ).then(data => {
+                  try {
+                    //JSON.parse(data._bodyText);
+                    console.log(
+                      `deleteAccount: removeFromAllFriends: Successful: ${
+                        data._bodyText
+                      }`
+                    );
+                  } catch (error) {
+                    // console.error(
+                    //   `deleteAccount: removeFromAllFriends: ${error}: ${
+                    //     data._bodyText
+                    //   }`
+                    // );
+                  }
+                });
+                // .catch(error =>
+                // console.error(
+                //   `deleteAccount: removeFromAllFriends: ${error}`
+                // )
+                // );
                 await fetch(
                   "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
                   {
@@ -135,28 +134,27 @@ export default class Settings extends React.Component {
                       userHandle: this.state.id
                     })
                   }
-                )
-                  .then(data => {
-                    try {
-                      //JSON.parse(data._bodyText);
-                      console.log(
-                        `deleteAccount: removeUserFromDatabase: Successful: ${
-                          data._bodyText
-                        }`
-                      );
-                    } catch (error) {
-                      console.error(
-                        `deleteAccount: removeUserFromDatabase: ${error}: ${
-                          data._bodyText
-                        }`
-                      );
-                    }
-                  })
-                  .catch(error =>
-                    console.error(
-                      `deleteAccount: removeUserFromDatabase: ${error}`
-                    )
-                  );
+                ).then(data => {
+                  try {
+                    //JSON.parse(data._bodyText);
+                    console.log(
+                      `deleteAccount: removeUserFromDatabase: Successful: ${
+                        data._bodyText
+                      }`
+                    );
+                  } catch (error) {
+                    // console.error(
+                    //   `deleteAccount: removeUserFromDatabase: ${error}: ${
+                    //     data._bodyText
+                    //   }`
+                    // );
+                  }
+                });
+                // .catch(error =>
+                // console.error(
+                //   `deleteAccount: removeUserFromDatabase: ${error}`
+                // )
+                // );
                 //navigate to SignIn Screen
                 this.props.screenProps.functions.updateUser(
                   false,

@@ -96,7 +96,8 @@ export default class GroupSettings extends React.Component {
           groupName: this.state.group.groupName
         })
       }
-    ).catch(error => console.error(`inviteToGroup: ${error}`));
+    );
+    // .catch(error => console.error(`inviteToGroup: ${error}`));
   };
 
   createGroup = () => {
@@ -118,30 +119,29 @@ export default class GroupSettings extends React.Component {
             groupName: this.state.newGroupName
           })
         }
-      )
-        .then(data => {
-          this.setState(
-            {
-              groupID: data._bodyText
-            },
-            () => {
-              this.handleInvites();
+      ).then(data => {
+        this.setState(
+          {
+            groupID: data._bodyText
+          },
+          () => {
+            this.handleInvites();
 
-              this.props.screenProps.functions.updateGroup(
-                this.state.groupID,
-                true,
-                () => {
-                  this.setState({ loading: false });
-                  this.props.navigation.navigate("Profile");
-                  this.props.navigation.navigate("Group", {
-                    ID: this.state.groupID
-                  });
-                }
-              );
-            }
-          );
-        })
-        .catch(error => console.error(`createGroup: ${error}`));
+            this.props.screenProps.functions.updateGroup(
+              this.state.groupID,
+              true,
+              () => {
+                this.setState({ loading: false });
+                this.props.navigation.navigate("Profile");
+                this.props.navigation.navigate("Group", {
+                  ID: this.state.groupID
+                });
+              }
+            );
+          }
+        );
+      });
+      // .catch(error => console.error(`createGroup: ${error}`));
     } else {
       if (this.state.newGroupName === "") {
         Alert.alert(
@@ -199,12 +199,11 @@ export default class GroupSettings extends React.Component {
         groupID: this.state.groupID,
         userHandle: this.props.screenProps.user.userHandle
       })
-    })
-      .then(() => {
-        this.props.screenProps.functions.updateGroup(this.state.groupID, false);
-        this.props.navigation.pop(2);
-      })
-      .catch(error => console.error(`leaveGroupFirebaseFunction: ${error}`));
+    }).then(() => {
+      this.props.screenProps.functions.updateGroup(this.state.groupID, false);
+      this.props.navigation.pop(2);
+    });
+    // .catch(error => console.error(`leaveGroupFirebaseFunction: ${error}`));
   };
 
   render() {

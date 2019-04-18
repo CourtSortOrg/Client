@@ -66,12 +66,11 @@ export default class MealItem extends React.Component {
         rating: rating,
         userHandle: userHandle
       })
-    })
-      .then(() => {
-        this.getRating(dishName);
-        this.props.screenProps.functions.updateRatings();
-      })
-      .catch(error => console.error(`addRating: ${error}`));
+    }).then(() => {
+      this.getRating(dishName);
+      this.props.screenProps.functions.updateRatings();
+    });
+    // .catch(error => console.error(`addRating: ${error}`));
   };
 
   getRating = async dishName => {
@@ -84,16 +83,15 @@ export default class MealItem extends React.Component {
       body: JSON.stringify({
         dish: dishName
       })
-    })
-      .then(data => {
-        let parsedData = JSON.parse(data._bodyText);
-        parsedData = parsedData.rating ? parsedData.rating : 0;
-        if (parsedData > 0) {
-          parsedData = Math.round(parsedData * 100) / 100;
-        }
-        this.setState({ rating: parsedData });
-      })
-      .catch(error => console.error(`getRating: ${error}`));
+    }).then(data => {
+      let parsedData = JSON.parse(data._bodyText);
+      parsedData = parsedData.rating ? parsedData.rating : 0;
+      if (parsedData > 0) {
+        parsedData = Math.round(parsedData * 100) / 100;
+      }
+      this.setState({ rating: parsedData });
+    });
+    // .catch(error => console.error(`getRating: ${error}`));
   };
 
   componentDidMount = async () => {
@@ -113,47 +111,44 @@ export default class MealItem extends React.Component {
           name: this.state.name
         })
       }
-    )
-      .then(data => {
-        try {
-          this.setState(
-            {
-              ...JSON.parse(data._bodyText)
-            },
-            () => {
-              this.setState(
-                {
-                  allergens: this.state.allergens.filter(a => a.Value == true)
-                },
-                () => {
-                  allergens = this.state.allergens.map(a => ({
-                    ...a,
-                    enabled:
-                      this.props.screenProps.user.dietaryRestrictions.find(
-                        b => {
-                          if (b == a.Name) {
-                            this.setState({
-                              warning: true
-                            });
-                            return true;
-                          }
-                          return false;
-                        }
-                      ) != undefined
-                  }));
-                  this.setState({
-                    allergens,
-                    loading: false
-                  });
-                }
-              );
-            }
-          );
-        } catch (error) {
-          console.error(`fetchAllOffered: ${error}: ${data._bodyText}`);
-        }
-      })
-      .catch(error => console.error(`fetchAllOffered: ${error}`));
+    ).then(data => {
+      try {
+        this.setState(
+          {
+            ...JSON.parse(data._bodyText)
+          },
+          () => {
+            this.setState(
+              {
+                allergens: this.state.allergens.filter(a => a.Value == true)
+              },
+              () => {
+                allergens = this.state.allergens.map(a => ({
+                  ...a,
+                  enabled:
+                    this.props.screenProps.user.dietaryRestrictions.find(b => {
+                      if (b == a.Name) {
+                        this.setState({
+                          warning: true
+                        });
+                        return true;
+                      }
+                      return false;
+                    }) != undefined
+                }));
+                this.setState({
+                  allergens,
+                  loading: false
+                });
+              }
+            );
+          }
+        );
+      } catch (error) {
+        // console.error(`fetchAllOffered: ${error}: ${data._bodyText}`);
+      }
+    });
+    // .catch(error => console.error(`fetchAllOffered: ${error}`));
     //TODO: Call getRating on this item
     //TODO: Call getRating for user?
   };

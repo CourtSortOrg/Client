@@ -71,7 +71,7 @@ export default class Map extends React.Component {
       diningLocations: { locations: [] },
       initialIndex: locations[initialCourt].index,
       region: {
-        latitude: locations[initialCourt].latitude - .001,
+        latitude: locations[initialCourt].latitude - 0.001,
         longitude: locations[initialCourt].longitude,
         latitudeDelta: 0.004,
         longitudeDelta: 0.003
@@ -93,19 +93,18 @@ export default class Map extends React.Component {
           date: this.props.screenProps.functions.generateDateString(new Date())
         })
       }
-    )
-      .then(data => {
-        try {
-          let parsedJSON = JSON.parse(data._bodyText);
-          this.setState({
-            diningLocations: parsedJSON,
-            loading: false
-          });
-        } catch (error) {
-          console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
-        }
-      })
-      .catch(error => console.error(`fetchDiningTimes: ${error}`));
+    ).then(data => {
+      try {
+        let parsedJSON = JSON.parse(data._bodyText);
+        this.setState({
+          diningLocations: parsedJSON,
+          loading: false
+        });
+      } catch (error) {
+        // console.error(`fetchDiningTimes: ${error}: ${data._bodyText}`);
+      }
+    });
+    // .catch(error => console.error(`fetchDiningTimes: ${error}`));
   }
 
   renderDiningCard = ({ item, index }) => {
@@ -210,7 +209,7 @@ export default class Map extends React.Component {
                     locations[this.state.diningLocations.locations[index].name];
                   this.mapView.animateToRegion(
                     {
-                      latitude: latlng.latitude - .001,
+                      latitude: latlng.latitude - 0.001,
                       longitude: latlng.longitude,
                       latitudeDelta: 0.004,
                       longitudeDelta: 0.003

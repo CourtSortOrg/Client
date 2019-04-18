@@ -84,17 +84,16 @@ export default class Home extends React.Component {
           returnAll: true
         })
       }
-    )
-      .then(data => {
-        this.setState(
-          {
-            recommendation: JSON.parse(data._bodyText),
-            loading: false
-          },
-          callback
-        );
-      })
-      .catch(error => console.error(`getBestDiningCourtUser: ${error}`));
+    ).then(data => {
+      this.setState(
+        {
+          recommendation: JSON.parse(data._bodyText),
+          loading: false
+        },
+        callback
+      );
+    });
+    // .catch(error => console.error(`getBestDiningCourtUser: ${error}`));
   };
 
   render() {

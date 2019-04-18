@@ -21,8 +21,8 @@ export default class RatingList extends React.Component {
       try {
         return item.Name.includes(text);
       } catch (error) {
-        console.error("filterRating: Ill defined item:");
-        console.error(item);
+        // console.error("filterRating: Ill defined item:");
+        // console.error(item);
       }
     });
   }

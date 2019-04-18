@@ -130,35 +130,34 @@ export default class Friend extends React.Component {
           friendHandle: this.state.otherUser.userHandle
         })
       }
-    )
-      .then(data => {
-        //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
-        if (data._bodyText == "success")
-          Alert.alert(
-            "Friend Request",
-            `You sent a friend request to ${this.state.otherUser.userHandle}.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-        else
-          Alert.alert(
-            "Friend Request",
-            `Friend request to ${
-              this.state.otherUser.userHandle
-            } could not be sent.`,
-            [
-              {
-                text: "Ok"
-              }
-            ],
-            { cancelable: false }
-          );
-      })
-      .catch(error => console.error(`sendFriendRequest: ${error}`));
+    ).then(data => {
+      //console.error(`sendFriendRequest: Successful: ${data._bodyText}`);
+      if (data._bodyText == "success")
+        Alert.alert(
+          "Friend Request",
+          `You sent a friend request to ${this.state.otherUser.userHandle}.`,
+          [
+            {
+              text: "Ok"
+            }
+          ],
+          { cancelable: false }
+        );
+      else
+        Alert.alert(
+          "Friend Request",
+          `Friend request to ${
+            this.state.otherUser.userHandle
+          } could not be sent.`,
+          [
+            {
+              text: "Ok"
+            }
+          ],
+          { cancelable: false }
+        );
+    });
+    // .catch(error => console.error(`sendFriendRequest: ${error}`));
   };
 
   removeFriendFirebaseFunction() {
@@ -175,22 +174,21 @@ export default class Friend extends React.Component {
           friendHandle: this.state.otherUser.userHandle
         })
       }
-    )
-      .then(data => {
-        try {
-          //JSON.parse(data._bodyText);
-          this.props.screenProps.functions.updateFriend(
-            this.state.otherUser.userHandle,
-            false
-          );
-          this.props.navigation.goBack();
-        } catch (error) {
-          console.error(
-            `removeFriendFirebaseFunction: ${error}: ${data._bodyText}`
-          );
-        }
-      })
-      .catch(error => console.error(`removeFriendFirebaseFunction: ${error}`));
+    ).then(data => {
+      try {
+        //JSON.parse(data._bodyText);
+        this.props.screenProps.functions.updateFriend(
+          this.state.otherUser.userHandle,
+          false
+        );
+        this.props.navigation.goBack();
+      } catch (error) {
+        // console.error(
+        //   `removeFriendFirebaseFunction: ${error}: ${data._bodyText}`
+        // )
+      }
+    });
+    // .catch(error => console.error(`removeFriendFirebaseFunction: ${error}`));
   }
 
   blockUserFirebaseFunction() {
@@ -204,32 +202,31 @@ export default class Friend extends React.Component {
         userHandle: this.state.userHandle,
         blockedHandle: this.state.otherUser.userHandle
       })
-    })
-      .then(data => {
-        try {
-          //JSON.parse(data._bodyText);
-          this.props.screenProps.functions.updateFriend(
-            this.state.otherUser.userHandle,
-            false
-          );
-          this.props.navigation.goBack();
-        } catch (error) {
-          console.error(
-            `blockUserFirebaseFunction: ${error}: ${data._bodyText}`
-          );
-        }
-      })
-      .catch(error => console.error(`blockUserFirebaseFunction: ${error}`));
+    }).then(data => {
+      try {
+        //JSON.parse(data._bodyText);
+        this.props.screenProps.functions.updateFriend(
+          this.state.otherUser.userHandle,
+          false
+        );
+        this.props.navigation.goBack();
+      } catch (error) {
+        // console.error(
+        //   `blockUserFirebaseFunction: ${error}: ${data._bodyText}`
+        // );
+      }
+    });
+    // .catch(error => console.error(`blockUserFirebaseFunction: ${error}`));
   }
 
   // Function to determine if the user is going to invite the friend to eat, or to send a request to eat
   inviteOrJoin = status => {
-    if ( !this.state.friend ) {
-        // If the user is not a friend, then don't send anything
-        Alert.alert(
-          "Declined",
-          `You are not friends with ${this.state.otherUser.userHandle}.`
-        )
+    if (!this.state.friend) {
+      // If the user is not a friend, then don't send anything
+      Alert.alert(
+        "Declined",
+        `You are not friends with ${this.state.otherUser.userHandle}.`
+      );
     } else if (status == 0) {
       // Invite them to eat
       // If the current user is not checked into a dining court, give an error
@@ -273,18 +270,17 @@ export default class Friend extends React.Component {
           diningCourt: this.state.location
         })
       }
-    )
-      .then(data => {
-        if (data._bodyText == '{"success":true}')
-          Alert.alert(
-            "Success",
-            `You sent an invite to ${
-              this.state.otherUser.userHandle
-            } to eat with you.`
-          );
-        else Alert.alert("Error", "Invite could not be sent");
-      })
-      .catch(error => console.error(`inviteToEat: ${error}`));
+    ).then(data => {
+      if (data._bodyText == '{"success":true}')
+        Alert.alert(
+          "Success",
+          `You sent an invite to ${
+            this.state.otherUser.userHandle
+          } to eat with you.`
+        );
+      else Alert.alert("Error", "Invite could not be sent");
+    });
+    // .catch(error => console.error(`inviteToEat: ${error}`));
   };
 
   // Calls firebase function to send a request for the user to join a friend who is currently eating
@@ -303,20 +299,19 @@ export default class Friend extends React.Component {
           diningCourt: "your location"
         })
       }
-    )
-      .then(data => {
-        console.log("From database:");
-        console.log(data._bodyText);
-        if (data._bodyText == '{"success":true}')
-          Alert.alert(
-            "Success",
-            `You sent a request to ${
-              this.state.otherUser.userHandle
-            } to join them.`
-          );
-        else Alert.alert("Error", "Request could not be sent");
-      })
-      .catch(error => console.error(`requestToEat: ${error}`));
+    ).then(data => {
+      console.log("From database:");
+      console.log(data._bodyText);
+      if (data._bodyText == '{"success":true}')
+        Alert.alert(
+          "Success",
+          `You sent a request to ${
+            this.state.otherUser.userHandle
+          } to join them.`
+        );
+      else Alert.alert("Error", "Request could not be sent");
+    });
+    // .catch(error => console.error(`requestToEat: ${error}`));
   };
 
   render() {

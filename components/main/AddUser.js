@@ -44,7 +44,7 @@ export default class AddUser extends React.Component {
             { cancelable: false }
           );
       })
-      .catch(error => console.error(`sendFriendRequest: ${error}`));
+      // .catch(error => console.error(`sendFriendRequest: ${error}`));
   };
 
   render() {

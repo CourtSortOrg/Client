@@ -41,16 +41,15 @@ export default class CheckIn extends React.Component {
           diningCourt: this.props.screenProps.user.location
         })
       }
-    )
-      .then(async data => {
-        let mal = await JSON.parse(data._bodyText);
+    ).then(async data => {
+      let mal = await JSON.parse(data._bodyText);
 
-        if (mal.length != 0)
-          this.setState({
-            reports: mal
-          });
-      })
-      .catch(error => console.error(`getMalfunctions: ${error}`));
+      if (mal.length != 0)
+        this.setState({
+          reports: mal
+        });
+    });
+    // .catch(error => console.error(`getMalfunctions: ${error}`));
   };
 
   render() {
