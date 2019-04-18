@@ -191,6 +191,8 @@ export default class ProfileList extends React.Component {
       return 0;
     });
 
+    list = list.map((item, index) => ({ ...item, index }));
+
     return (
       <SearchList
         navigation={this.props.navigation}
