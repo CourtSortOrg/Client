@@ -392,7 +392,7 @@ export default class App extends React.Component {
     this.updateUser(true, undefined, () => {
       if (this.state.user !== undefined)
         this.intervalID = setInterval(() => {
-          this.updateFriends(() => console.log("updated friends"));
+          this.updateFriends(false, () => console.log("updated friends"));
           // this.updateGroups(() => console.log("updated groups"));
           this.updateNotifications(() => console.log("updated notifictions"));
           //update every 15 seconds.
@@ -483,7 +483,7 @@ export default class App extends React.Component {
       action
     ) {
       await this.updateProfile(() => console.log("profile loaded"));
-      await this.updateFriends(() => console.log("friends loaded"));
+      await this.updateFriends(true, () => console.log("friends loaded"));
       await this.updateGroups(() => console.log("groups loaded"));
 
       await this.resetNotifications(
@@ -545,13 +545,15 @@ export default class App extends React.Component {
     if (callback) callback();
   };
 
-  updateFriends = async callback => {
-    await this.setState({
-      user: {
-        ...this.state.user,
-        friends: []
-      }
-    });
+  updateFriends = async (reset, callback) => {
+    console.log(this.state.user.friends)
+    if (reset)
+      await this.setState({
+        user: {
+          ...this.state.user,
+          friends: []
+        }
+      });
 
     await this.fetchFriends(
       this.state.user.userHandle,
