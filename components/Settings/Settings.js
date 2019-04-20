@@ -254,29 +254,6 @@ export default class Settings extends React.Component {
           bottomDivider
         />
 
-        {/* A ListItem that clears all the user dish ratings */}
-        {/* TODO: Implement functionality */}
-        <ListItem
-          title="Clear Ratings"
-          subtitle="Delete your account's ratings"
-          leftIcon={<Icon name="food-off" type="material-community" />}
-          onPress={() => {
-            this.props.navigation.navigate("TestLocation");
-          }}
-          topDivider
-          bottomDivider
-        />
-
-        <ListItem
-          title="My Location Test"
-          leftIcon={<Icon name="food-off" type="material-community" />}
-          onPress={() => {
-            this.props.navigation.navigate("MyLocationTest");
-          }}
-          topDivider
-          bottomDivider
-        />
-
         {/* A ListItem that using a TextInput, prompts for an email to reset the users password */}
         <ListItem
           title="Reset Password"

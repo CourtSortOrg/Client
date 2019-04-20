@@ -38,7 +38,6 @@ import Profile from "./components/main/Profile";
 import Settings from "./components/Settings/Settings";
 import EditProfile from "./components/Settings/EditProfile";
 import BlockedUsers from "./components/Settings/BlockedUsers";
-import TestLocation from "./components/main/TestLocation";
 
 import Group from "./components/Groups/Group";
 import GroupSettings from "./components/Groups/GroupSettings";
@@ -92,9 +91,6 @@ const SettingsNavigation = createStackNavigator(
     },
     BlockedUsers: {
       screen: BlockedUsers
-    },
-    TestLocation: {
-      screen: TestLocation
     }
   },
   {
