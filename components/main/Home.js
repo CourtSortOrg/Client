@@ -15,16 +15,19 @@ import Card from "../components/Card";
 import Text from "../components/Text";
 
 export default class Home extends React.Component {
-  state = {
-    loading: false,
-    meal: this.props.screenProps.functions.getNextMeal(),
-    date: this.props.screenProps.functions.getDay(),
-    showDate: false,
-    showMeal: false,
-    friends: true,
+  constructor(props) {
+    super(props);
+    this.state = {
+      loading: false,
+      meal: this.props.screenProps.functions.getNextMeal(),
+      date: new Date(),
+      showDate: false,
+      showMeal: false,
+      friends: true,
 
-    recommendation: []
-  };
+      recommendation: []
+    };
+  }
 
   updateRecommendations = () => {
     if (this.props.screenProps.user.status == 0) {
@@ -34,7 +37,7 @@ export default class Home extends React.Component {
         let rec = this.state.recommendation.filter(c => c.rating != -1);
         if (
           this.props.screenProps.functions.getNextMeal() == this.state.meal &&
-          this.props.screenProps.functions.getDay() == this.state.date
+          this.props.screenProps.functions.getDay() == this.state.date.getDay()
         ) {
           rec = rec.sort((a, b) => {
             const aFriends = this.props.screenProps.user.friends.filter(
@@ -61,7 +64,7 @@ export default class Home extends React.Component {
         this.setState(
           {
             meal: this.props.screenProps.functions.getNextMeal(),
-            date: this.props.screenProps.functions.getDay()
+            date: new Date()
           },
           this.updateRecommendations
         );
@@ -70,8 +73,7 @@ export default class Home extends React.Component {
   };
 
   getBestDiningCourtUser = (day, meal, callback) => {
-    let date = new Date();
-    date.setDate(date.getDate() + (day - (date.getDate() % 7)));
+    let date = day;
     this.setState({ loading: true });
 
     fetch(
@@ -104,10 +106,11 @@ export default class Home extends React.Component {
 
   render() {
     let days = [];
-    let day = new Date();
 
     for (let i = 0; i < 7; i++) {
-      days.push((day.getDate() + i) % 7);
+      let day = new Date();
+      day.setDate(day.getDate() + i);
+      days.push(day);
     }
 
     return (
@@ -181,7 +184,11 @@ export default class Home extends React.Component {
               >
                 <Text type="bold">{"Date: "}</Text>
                 <Text>
-                  {this.props.screenProps.globals.dayNames[this.state.date]}
+                  {
+                    this.props.screenProps.globals.dayNames[
+                      this.state.date.getDay()
+                    ]
+                  }
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -260,7 +267,7 @@ export default class Home extends React.Component {
                         {
                           text:
                             d != "Cancel"
-                              ? this.props.screenProps.globals.dayNames[d]
+                              ? this.props.screenProps.globals.dayNames[d.getDay()]
                               : "Cancel",
                           onPress: () => {
                             if (d != "Cancel") {
