@@ -83,9 +83,9 @@ export default class ProfileList extends React.Component {
               style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
             >
               {this.props.noInvite !== true &&
-                ((item.props.location === null ||
-                  item.props.location === undefined) &&
-                this.props.screenProps.user.location !== null ? (
+                ((item.props.location == null ||
+                  item.props.location == undefined) &&
+                this.props.screenProps.user.location != null ? (
                   <TouchableOpacity
                     onPress={() => {
                       if (this.props.screenProps.user.location == null) {
