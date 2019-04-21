@@ -31,6 +31,7 @@ export default class Home extends React.Component {
 
   updateRecommendations = () => {
     if (this.props.screenProps.user.status == 0) {
+      console.log(this.state.date);
       this.setState({ friends: false });
       this.getBestDiningCourtUser(this.state.date, this.state.meal, () => {
         console.log(this.state.recommendation);
@@ -73,7 +74,6 @@ export default class Home extends React.Component {
   };
 
   getBestDiningCourtUser = (day, meal, callback) => {
-    let date = day;
     this.setState({ loading: true });
 
     fetch(
@@ -86,7 +86,7 @@ export default class Home extends React.Component {
         },
         body: JSON.stringify({
           userHandle: this.props.screenProps.user.userHandle,
-          date: this.props.screenProps.functions.generateDateString(date),
+          date: this.props.screenProps.functions.generateDateString(day),
           meal: this.state.meal,
           returnAll: true
         })
