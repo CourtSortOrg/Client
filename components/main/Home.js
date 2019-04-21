@@ -1,5 +1,10 @@
 import React from "react";
-import { View, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl
+} from "react-native";
 import { Button, Overlay } from "react-native-elements";
 
 import Screen from "../Nav/Screen";
@@ -108,10 +113,15 @@ export default class Home extends React.Component {
     return (
       <Screen
         title="Home"
-        loading={this.state.loading}
         navigation={this.props.navigation}
         screenProps={this.props.screenProps}
         backButton={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={this.state.loading}
+            onRefresh={this.updateRecommendations}
+          />
+        }
       >
         {this.props.screenProps.user == undefined ? (
           <View
