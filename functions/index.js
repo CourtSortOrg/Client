@@ -596,7 +596,7 @@ exports.individualItemPopulate = functions.https.onRequest(async (request, respo
               }],
               id: currStation['Items'][j]['ID']
             };
-            if(currStation['Items'][j]['Name'] == "Deli w/Fresh Baked Breads"){
+            if(currStation['Items'][j]['Name'].includes('/')) {
               console.log("skipping");
               continue;
             }
