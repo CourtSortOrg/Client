@@ -10,46 +10,31 @@ export default class Notifications extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loadingNotifications: false,
-      notifications: this.props.screenProps.user.notifications
+      loadingNotifications: false
     };
+    this.getNotifications();
   }
-
-  componentDidMount = () => {
-    this.getNotifications(() => console.log(this.props.screenProps.user.notifications));
-    this.props.navigation.addListener("willFocus", () => {
-      this.setState({
-        notifications: this.props.screenProps.user.notifications
-      });
-    });
-  };
-
-  componentDidUpdate = prevProps => {
-    // Typical usage (don't forget to compare props):
-    if (
-      this.props.screenProps.user.notifications !==
-      prevProps.screenProps.user.notifications
-    ) {
-      this.setState({
-        notifications: this.props.screenProps.user.notifications
-      });
-    }
-  };
 
   getNotifications = () => {
     if (!this.state.loadingNotifications) {
       this.setState({
         loadingNotifications: true
       });
-      this.props.screenProps.functions.updateNotifications(() =>
-        this.setState({
-          loadingNotifications: false
-        }), false
+      this.props.screenProps.functions.updateNotifications(
+        () =>
+          this.setState({
+            loadingNotifications: false
+          }),
+        false
       );
     }
   };
 
   render() {
+    let notifications = [];
+    if (this.props.screenProps.user != undefined)
+      notifications = this.props.screenProps.user.notifications;
+
     return (
       <Screen
         screenProps={this.props.screenProps}
@@ -59,9 +44,9 @@ export default class Notifications extends React.Component {
         noNotifications={true}
         refresh={() => this.getNotifications()}
       >
-        {this.state.notifications.length > 0 ? (
+        {notifications.length > 0 ? (
           <List
-            list={this.state.notifications}
+            list={notifications}
             type="expandable"
             expand={true}
             subList={{
