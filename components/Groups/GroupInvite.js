@@ -15,7 +15,7 @@ export default class GroupInvite extends React.Component {
     };
   }
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     if (this.props.groupID !== "NO-ID") {
       let friends = this.state.friends.filter(
         friend =>

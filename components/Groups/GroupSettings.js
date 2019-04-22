@@ -22,7 +22,7 @@ export default class GroupSettings extends React.Component {
     };
   }
 
-  componentDidMount = () => {
+  componentWillMount = () => {
     // get group from screenProps.
     this.getGroup();
     this.props.navigation.addListener("willFocus", payload => {
