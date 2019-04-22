@@ -487,14 +487,10 @@ export default class App extends React.Component {
       await this.updateGroups(() => console.log("groups loaded"));
 
       await this.resetNotifications(
-        () => console.log("notifications reset"),
-        true
-      );
-      await this.updateNotifications(
         () => console.log("notifications loaded"),
-        false,
         true
       );
+
       await this.updateRatings(() => console.log("ratings loaded"));
       if (this.state.user.locationTracking) await this.enableLocation();
 
@@ -546,7 +542,6 @@ export default class App extends React.Component {
   };
 
   updateFriends = async (reset, callback) => {
-    console.log(this.state.user.friends)
     if (reset)
       await this.setState({
         user: {
