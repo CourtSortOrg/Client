@@ -119,9 +119,7 @@ export default class Settings extends React.Component {
                     }
                   })
                   .catch(error =>
-                    console.log(
-                      `deleteAccount: removeFromAllFriends: ${error}`
-                    )
+                    console.log(`deleteAccount: removeFromAllFriends: ${error}`)
                   );
                 await fetch(
                   "https://us-central1-courtsort-e1100.cloudfunctions.net/removeUserFromDatabase",
@@ -256,26 +254,28 @@ export default class Settings extends React.Component {
 
         {/* A ListItem that clears all the user dish ratings */}
         {/* TODO: Implement functionality */}
-        <ListItem
-          title="Clear Ratings"
-          subtitle="Delete your account's ratings"
-          leftIcon={<Icon name="food-off" type="material-community" />}
-          onPress={() => {
-            this.props.navigation.navigate("TestLocation");
-          }}
-          topDivider
-          bottomDivider
-        />
-
-        <ListItem
-          title="My Location Test"
-          leftIcon={<Icon name="food-off" type="material-community" />}
-          onPress={() => {
-            this.props.navigation.navigate("MyLocationTest");
-          }}
-          topDivider
-          bottomDivider
-        />
+        {
+          //   <ListItem
+          //   title="Clear Ratings"
+          //   subtitle="Delete your account's ratings"
+          //   leftIcon={<Icon name="food-off" type="material-community" />}
+          //   onPress={() => {
+          //     this.props.navigation.navigate("TestLocation");
+          //   }}
+          //   topDivider
+          //   bottomDivider
+          // />
+          //
+          // <ListItem
+          //   title="My Location Test"
+          //   leftIcon={<Icon name="food-off" type="material-community" />}
+          //   onPress={() => {
+          //     this.props.navigation.navigate("MyLocationTest");
+          //   }}
+          //   topDivider
+          //   bottomDivider
+          // />
+        }
 
         {/* A ListItem that using a TextInput, prompts for an email to reset the users password */}
         <ListItem
