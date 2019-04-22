@@ -31,10 +31,8 @@ export default class Home extends React.Component {
 
   updateRecommendations = () => {
     if (this.props.screenProps.user.status == 0) {
-      console.log(this.state.date);
       this.setState({ friends: false });
       this.getBestDiningCourtUser(this.state.date, this.state.meal, () => {
-        console.log(this.state.recommendation);
         let rec = this.state.recommendation.filter(c => c.rating != -1);
         if (
           this.props.screenProps.functions.getNextMeal() == this.state.meal &&
@@ -54,7 +52,6 @@ export default class Home extends React.Component {
           this.setState({ friends: true });
         }
         this.setState({ recommendation: rec });
-        console.log(rec);
       });
     }
   };
