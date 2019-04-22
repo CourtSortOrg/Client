@@ -45,7 +45,7 @@ export default class GroupResults extends React.Component {
           } voted to eat at ${d.getHours()}:${
             d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes()
           } `,
-          time: index
+          time: d
         };
       });
 
@@ -54,7 +54,7 @@ export default class GroupResults extends React.Component {
   }
 
   render() {
-    let d = new Date(this.state.poll.votes[0].time);
+    let d = this.state.poll.votes[0].time;
 
     return (
       <Screen
