@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^9.0.0",
-    "expo": "^32.0.0",
+    "expo": "^46.0.14",
     "firebase": "^5.8.2",
     "npm": "^6.9.0",
     "react": "16.5.0",
